@@ -1,0 +1,9 @@
+; $Id$
+
+name = v3_cce_download_pdf_report
+
+description =  v3_cce_download_pdf_report
+
+core = 6.x
+
+package = CCE

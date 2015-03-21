@@ -1,0 +1,4 @@
+; $Id$
+name = V3 CCE File Upload
+description = File Upload for CCE
+core = 6.x

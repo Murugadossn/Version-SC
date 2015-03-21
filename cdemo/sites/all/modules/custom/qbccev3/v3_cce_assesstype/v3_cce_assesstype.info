@@ -1,0 +1,5 @@
+; $Id$
+name = V3 CCE Assessments Types
+description = Assessments Types for CCE
+core = 6.x
+package = CCE

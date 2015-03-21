@@ -1,0 +1,700 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+
+function ver3_leaveletter_send_by_staff_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', '  '),
+  );
+}
+
+
+function ver3_leaveletter_send_by_staff_menu() {
+	$items['sfleaveletter'] = array(
+			'title' => t('Messages From Parents'),
+			'page callback' => 'ver3_leaveletter_send_by_staff_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	
+	$items['leaveletter/next'] = array(
+			'title' => t('Comfiramtion for the Approval/Disapproval Of Leave Letter'),
+			'page callback' => 'ver3_staff_leaveletter_my_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+	
+	return $items;
+	
+
+}
+
+function ver3_leaveletter_send_by_staff_my_form_validate($form, &$form_state) {
+//dpm($form_state);
+	if ( !isset( $form_state['clicked_button']['#post']['access']['account'] ) ) {
+//	if ( !isset( $form_state['clicked_button']['#post']['account'] ) ) {
+		 form_set_error('', t('Please selet at least one option'));
+	}
+}
+
+function ver3_leaveletter_send_by_staff_my_next_form_validate($form,&$form_state) {
+$comments = $form_state['values']['reason'];
+$category = $form_state['values']['msgcategory'];
+
+if($category  == 3)
+{
+
+if($comments == '')
+{
+form_set_error('', t('Please Write your Comment Here'));
+}
+}
+if($category == '')
+{
+form_set_error('', t('Please selet at least one option'));
+}
+
+
+}
+
+
+
+
+	
+function ver3_leaveletter_send_by_staff_form() {
+			$output = drupal_get_form('ver3_leaveletter_send_by_staff_filter_form');
+			 $output .= drupal_get_form('ver3_leaveletter_send_by_staff_my_form');
+			return $output ;
+          }
+
+		  function ver3_staff_leaveletter_my_form() {
+			$output = drupal_get_form('ver3_leaveletter_send_by_staff_my_next_form');
+			return $output ;
+}
+
+function ver3_leaveletter_send_by_staff_filter_form($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+$_SESSION['user_class_filter_value'] = $clVal;
+$_SESSION['user_section_filter_value'] = $c2Val;
+
+
+ $clVal = &$_SESSION['user_class_filter_value'] ;
+  $c2Val = &$_SESSION['user_section_filter_value'] ;
+
+
+
+ $i = 0;
+  $form['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Filters'),
+  //  '#theme' => 'user_filters',
+  );
+
+db_set_active('qtxt_db');	
+$result = db_query("select distinct (account_grade_id),grade_name from {qtxt_sms_parent_messages_v3} where drupal_uid =  $uid ");
+$options = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $options[$row->account_grade_id ] =  $row->grade_name; 
+  // This is the only line that changed from the code above.
+}
+  
+$key = 'class';				
+$names[$key] = 'Student';
+    $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+
+'#title' => 'Grade',
+// '#description' => t('Please Select The Grade'),
+
+      '#options' => $options,
+    );
+	db_set_active('qtxt_db');	
+$result = db_query("select type_id,msg_type from {qtxt_sms_teacher_message_type} where type_id =4");
+ $sectionoptions = array('' => t('Select..'));
+
+while ($row = db_fetch_object($result)) {
+  $sectionoptions[$row->type_id ] =  $row->msg_type; //This is the only line that changed from the code above.
+}
+db_set_active('default');
+
+$key = 'section';				
+ $names[$key] = 'Type ';
+ $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+'#title' => 'Message Type',
+// '#description' => t('Please Select The Message Type'),
+
+// '#type' => 'hidden',
+
+      '#options' => $sectionoptions,
+ 
+    );
+
+
+  
+  
+$form['class']['#default_value']	= $clVal;
+$form['section']['#default_value']	= $c2Val;    
+
+ $form['filters']['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+  );
+return $form;
+
+
+}
+		  
+		  
+function ver3_leaveletter_send_by_staff_filter_form_submit($form, &$form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+  $op = $form_state['values']['op'];
+  $val1 = $form_state['values']['filters'][ 'class'];
+  $val2 = $form_state['values'][ 'class'];
+ $val3 = $form_state['values']['filters'][ 'section'];
+  $val4 = $form_state['values'][ 'section'];
+ 
+  switch ($op) {
+    case t('Apply'): 
+
+		
+      if (isset($form_state['values'][ 'class'])) {
+
+			$filter = $form_state['values'][ 'class'];
+		// drupal_set_message(t("After Submit, $filter "));	  
+
+			$_SESSION['user_class_filter_value'] = $filter;
+               $clVal = &$_SESSION['user_class_filter_value'] ;
+// drupal_set_message(t("After Submit, $clVal "));	  
+
+
+
+
+      } else  {
+
+		//	drupal_set_message(t("In the Filter, Class not selected"));	  
+	  }
+	  if (isset($form_state['values'][ 'section'])) {
+
+			$filter = $form_state['values'][ 'section'];
+			// drupal_set_message(t("After Submit, Value Selected $filter "));	  
+$_SESSION['user_section_filter_value'] = $filter;
+
+      } else  {
+
+			// drupal_set_message(t("In the Filter, Class not selected"));	  
+	  }
+
+
+	  break;
+
+    case t('Undo'):
+//      array_pop($_SESSION['user_overview_filter']);
+      break;
+    case t('Reset'):
+//      $_SESSION['user_overview_filter'] = array();
+      break;
+    case t('Delete'):
+      return;
+  }
+
+$clVal = &$_SESSION['user_class_filter_value'] ;
+ // drupal_set_message(t("After Submit, $clVal "));	  
+  $form_state['redirect'] = 'leaveletter';
+  return;
+}
+
+
+function ver3_leaveletter_send_by_staff_my_form($form_state) {
+global $user; 
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+  $header = array(
+    array(),
+    array('data' => t('Student Name'), 'field' => 'student_name'),
+    array('data' => t('Teacher Name'), 'field' => 'teacher_name'),
+    array('data' => t('Message'), 'field' => 'message'),
+	array('data' => t('Created On'), 'field' => 'str_msg_creation_date'),
+    array('data' => t('From Date'), 'field' => 'str_from_date'),
+	 array('data' => t('To Date'), 'field' => 'str_to_date'),
+     array('data' => t('Msg For'), 'field' => 'msg_type'),
+	
+  );
+
+$clVal = &$_SESSION['user_class_filter_value'] ;
+$c2Val = &$_SESSION['user_section_filter_value'] ;
+// drupal_set_message(t("Class Filter 1 , $c2Val"));	
+
+
+ // drupal_set_message(t("vsl $c1Val"));
+
+
+
+
+$filterClass = "";
+
+
+	 if  ( ( ! isset($clVal) )|| ( $clVal == "" ) ) {
+			$accountArray = "";
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select distinct(account_grade_id) from {qtxt_sms_parent_messages_v3} where drupal_uid = $uid ");
+
+		$accountGradeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradeId[] =  $row->account_grade_id; 
+		  // This is the only line that changed from the code above.
+		}
+		db_set_active('default');
+		
+		if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( ",", $accountGradeId );
+		}
+		$filterClass = " and account_grade_id in (" . $accountArray . " ) ";
+	} else {
+		$filterClass = "and account_grade_id = 148";
+	}
+
+//drupal_set_message(t("Class Filter, $filterClass"));	
+
+
+
+$filterSection = "";
+
+	 if  ( ( ! isset($c2Val) )|| ( $c2Val == "" ) ) {
+	
+	$accountArray = "";
+		//drupal_set_message(t("log 2 c2Val Not Set "));	
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select type_id FROM {qtxt_sms_teacher_message_type} where type_id = 4 ");
+
+		$typeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $typeId[] =  $row->type_id; 
+		  // This is the only line that changed from the code above.
+		}
+		db_set_active('default');
+		
+		if (  count( $typeId ) > 0 ) {
+			$accountArray = join( ",", $typeId );
+		}
+		$filterSection = " and type_id in (" . $accountArray . " ) ";
+	} else {
+		$filterSection = " and type_id = 4 ";
+	}
+
+
+  db_set_active('qtxt_db');	
+
+//$field2 = db_fetch_object(db_query("SELECT admin_role FROM {qtxt_staff_map_with_grade} WHERE drupal_uid = '$uid' "));
+$field2 = db_fetch_object(db_query("SELECT a.admin_role FROM {qtxt_sms_account_staff} a,{qtxt_sms_mobile_numbers} b WHERE b.drupal_uid = '$uid' and a.staff_name=b.person_name "));
+
+db_set_active('default');
+$role=$field2->admin_role;
+ db_set_active('qtxt_db');	
+
+if($role == "Tutor")	
+{
+  
+$sql = "select distinct(student_name),teacher_name,message,str_msg_creation_date,str_from_date,str_to_date,msg_type,parent_message_id  
+from {qtxt_sms_parent_messages_v3} where process_flag = 1 and drupal_uid =$uid and delivery_report = 'Request is Pending'  "
+  . $filterClass . $filterSection."order by parent_message_id desc" ; 
+
+$query_count = "select count(parent_message_id) from {qtxt_sms_parent_messages_v3}  
+	         where process_flag = 1 and drupal_uid = $uid  and delivery_report = 'Request is Pending'" . $filterClass . $filterSection."order by parent_message_id desc"  ; 
+}
+else if($role == "Class Teacher"){
+$sql = "select distinct(student_name),teacher_name,message,str_msg_creation_date,str_from_date,str_to_date,msg_type,parent_message_id  
+from {qtxt_sms_parent_messages_v3} where process_flag = 0  and delivery_report = 'Tutor Accepted' "   . $filterClass . $filterSection."order by parent_message_id desc" ; 
+
+$query_count = "select count(parent_message_id) from {qtxt_sms_parent_messages_v3}  
+	         where process_flag = 0   and delivery_report = 'Tutor Accepted'" . $filterClass . $filterSection."order by parent_message_id desc"  ;
+}
+else if($role == "HOD")
+{
+$sql = "select distinct(student_name),teacher_name,message,str_msg_creation_date,str_from_date,str_to_date,msg_type,parent_message_id  
+from {qtxt_sms_parent_messages_v3} where process_flag = 3 and drupal_uid =$uid and delivery_report = 'Class Teacher Accepted' "
+  . $filterClass . $filterSection."order by parent_message_id desc" ; 
+
+$query_count = "select count(parent_message_id) from {qtxt_sms_parent_messages_v3}  
+	         where process_flag = 3 and drupal_uid = $uid  and delivery_report = 'Class Teacher Accepted'" . $filterClass . $filterSection. "order by parent_message_id desc"  ;
+}
+else
+{
+drupal_set_message(t("No Leaveletters"));
+}
+
+
+$sql .= tablesort_sql($header);
+
+   $result = pager_query($sql, 25, 0, $query_count);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Click Here For Approval'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('submit'),
+  );
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );  
+
+  $account = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->parent_message_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+    $form['access']['studentname'][$account->parent_message_id] = array('#value' => $account->student_name);
+    $form['access']['teachername'][$account->parent_message_id] =  array('#value' => $account->teacher_name);
+    $form['access']['message'][$account->parent_message_id] =  array('#value' => $account->message);
+//    $form['access']['msgtype'][$account->parent_message_id] =  array('#value' => $account->msg_type);
+    $form['access']['msgcreationdate'][$account->parent_message_id] =  array('#value' => $account->str_msg_creation_date);
+$form['access']['fromdate'][$account->parent_message_id] =  array('#value' => $account->str_from_date);
+$form['access']['todate'][$account->parent_message_id] =  array('#value' => $account->str_to_date);
+    $form['access']['accountgradeid'][$account->parent_message_id] =  array('#type' => 'hidden','#value' => $account->parent_message_id);
+	
+	$i = $i + 1;
+  }
+db_set_active('default');
+
+  // $form['pager'] = array('#value' => theme('pager', NULL, 25, 0));
+  $form['#theme'] = 'ver3_leaveletter_send_by_parent_my_form_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function ver3_leaveletter_send_by_staff_theme() {
+	return array(
+		'ver3_leaveletter_send_by_staff_my_form_theme' => array('arguments'=> array('form' => NULL),),
+		'ver3_leaveletter_send_by_staff_my_next_form_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+
+function ver3_leaveletter_send_by_staff_my_form_submit($form, &$form_state) {
+
+
+	$TotalCount = $form_state['values']['totalcount'];
+	
+	$myArray = array();
+	
+	if ( isset( $form_state['clicked_button']['#post']['access']['account'] ) ) 
+	{
+	$myArray = $form_state['clicked_button']['#post']['access']['account'];
+	
+	}
+	foreach ($myArray as $key => $value) {
+	}
+	$_SESSION['user_total_count'] =  $TotalCount;
+	$_SESSION['selectOptions'] =  $myArray;
+  $form_state['redirect'] =   'leaveletter/next';
+  return;
+  
+  
+}
+
+
+
+function theme_ver3_leaveletter_send_by_staff_my_form_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['accountgradeid']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['access']['account'][$i]);
+	$row[] =  drupal_render($form['access']['studentname'][$key]);
+       $row[] =  drupal_render($form['access']['teachername'][$key]);
+       $row[] =  drupal_render($form['access']['message'][$key]);
+//       $row[] =  drupal_render($form['access']['msgtype'][$key]);
+      	   $row[] =  drupal_render($form['access']['fromdate'][$key]);
+	   $row[] =  drupal_render($form['access']['todate'][$key]);
+	    $row[] =  drupal_render($form['access']['msgcreationdate'][$key]);
+	   	   $row[] =  drupal_render($form['access']['accountgradeid'][$key]);
+	   $rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+			$header = array(
+				theme('table_select_header_cell'), t('Student Name'), t('Teacher Name'), t('Message'), 
+				 t('From Date'), t('To date'), t('Created On'));
+  }
+  else{
+    $header = array(t(''), t('')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('Filter the Student to view the Messages'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//return $output . drupal_render($form); 
+ $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ;
+}
+
+function ver3_leaveletter_send_by_staff_my_next_form($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$form['reason'] = array(
+
+				  	   '#title' => t('Write your reason for Approving or Rejecting the Leave Letter'),			  		
+                                       '#type' => 'textarea',
+					   '#rows'=> 4,
+                                       '#resizable' => FALSE, 
+					   '#cols'=> 80, 
+						  
+				  	   '#disabled' => FALSE,
+                                           '#description' => t('Write your comments here'),
+
+					);
+					
+$form['msgcategory'] = array (
+		  '#type' => 'radios', 
+ 		  '#title' => t('Select the Category'), 
+		  '#options' => array ( '2' => t('Approve and Delete the Leave Letter'), '3' =>  t('Reject and Delete the Leave Letter')),
+		);
+
+
+
+
+$newCount = &$_SESSION['user_total_count'];
+
+//drupal_set_message(t("type_id  $c2Val"));	
+//drupal_set_message(t("Section Filter Next Form "));	
+
+$selList = &$_SESSION['selectOptions'];
+//drupal_set_message(t("setlist  $selList"));
+$keyvalues = " ( ";
+
+	foreach ($selList as $key => $value) {
+
+
+  //  	drupal_set_message(t("Key Value Pair : $key  -- $value"));
+		$keyvalues .= $value . ',' ;
+	}
+$keyvalues = substr($keyvalues,0,-1);
+$keyvalues .= " ) ";	
+//drupal_set_message(t("Section Filter Next Form == $keyvalues "));		
+
+$filterClass = " and parent_message_id in $keyvalues "; 
+
+  $header = array(
+    array(),
+    array('data' => t('Student Name'), 'field' => 'student_name'),
+    array('data' => t('Teacher Name'), 'field' => 'teacher_name'),
+    array('data' => t('Message'), 'field' => 'message'),
+	 array('data' => t('From Date'), 'field' => 'str_from_date'),
+	 array('data' => t('To Date'), 'field' => 'str_to_date'),
+    array('data' => t('Created On'), 'field' => 'str_msg_creation_date'),
+    array('data' => t('Msg For'), 'field' => 'msg_type'),
+	
+
+  );
+
+db_set_active('qtxt_db');
+	 
+	 $sql = "select student_name,teacher_name,message,str_msg_creation_date,msg_type,parent_message_id from {qtxt_sms_parent_messages_v3} 
+        where process_flag = 1 and drupal_uid = $uid " . $filterClass . $filterSection."order by parent_message_id desc" ; 
+
+$query_count = "select count(parent_message_id) from {qtxt_sms_parent_messages_v3} where process_flag = 1 and drupal_uid =$uid " 
+ . $filterClass . $filterSection."order by parent_message_id desc"  ; 
+
+
+	 $sql .= tablesort_sql($header);
+ 
+  $result = pager_query($sql, 25, 0, $query_count);
+/*
+  while ($account = db_fetch_object($result)) {
+//	drupal_set_message(t("RESULT FETCH -- $account->teacher_message_id "));	
+	
+    $form['access']['studentname'][$account->parent_message_id] = array('#value' => $account->student_name);
+    $form['access']['teachername'][$account->parent_message_id] =  array('#value' => $account->teacher_name);
+    $form['access']['message'][$account->parent_message_id] =  array('#value' => $account->message);
+//    $form['access']['msgtype'][$account->parent_message_id] =  array('#value' => $account->msg_type);
+    $form['access']['msgcreationdate'][$account->parent_message_id] =  array('#value' => $account->str_msg_creation_date);
+	$form['access']['fromdate'][$account->parent_message_id] =  array('#value' => $account->str_from_date);
+$form['access']['todate'][$account->parent_message_id] =  array('#value' => $account->str_to_date);
+    $form['access']['accountgradeid'][$account->parent_message_id] =  array('#type' => 'hidden','#value' => $account->parent_message_id);
+	$i = $i + 1;
+  }
+  db_set_active('default');
+  //   $form['pager'] = array('#value' => theme('pager', NULL, 25, 0));
+	$form['#theme'] = 'ver3_leaveletter_send_by_parent_my_next_form_theme';   
+  */
+  db_set_active('default');
+  $form['submit'] = array(
+    '#type' => 'submit',
+'#prefix' => '<Br><BR><BR><BR><BR><BR><BR>',
+      '#value' => t('Confirm the Approval'),
+  );
+  return $form;
+  }
+
+function ver3_leaveletter_send_by_staff_my_next_form_submit($form, &$form_state) {
+//drupal_set_message(t(" FINAL Section Filter Next Form "));	
+
+$comments = $form_state['values']['reason'];
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$op = $form_state['values']['msgcategory'];
+db_set_active('qtxt_db');	
+
+//$field2 = db_fetch_object(db_query("SELECT admin_role FROM {qtxt_staff_map_with_grade} WHERE drupal_uid = '$uid' "));
+$field2 = db_fetch_object(db_query("SELECT a.admin_role FROM {qtxt_sms_account_staff} a,{qtxt_sms_mobile_numbers} b WHERE b.drupal_uid = '$uid' and a.staff_name=b.person_name"));
+db_set_active('default');
+$role=$field2->admin_role;
+ 
+switch ($op) {
+case "2":
+
+$selList = &$_SESSION['selectOptions'];
+	
+	foreach ($selList as $key => $value) {
+
+	db_set_active('qtxt_db');
+
+	if($role == "Tutor")
+{
+  $sql = db_query("Update qtxt_sms_parent_message set process_flag = 0,delivery_report = 'Tutor Accepted',comments ='$comments',creation_date = sysdate() where parent_message_id = $value ") ; 
+$sql = db_query("Update qtxt_sms_parent_message_bkp set process_flag = 0,delivery_report = 'Tutor Accepted',comments ='$comments' creation_date = sysdate() where parent_message_id = $value ") ; 
+}
+else if ($role =="Class Teacher")
+{
+$sql = db_query("Update qtxt_sms_parent_message set process_flag = 3,delivery_report = 'Class Teacher Accepted',comments ='$comments',creation_date = sysdate() where parent_message_id = $value ") ; 
+$sql = db_query("Update qtxt_sms_parent_message_bkp set process_flag = 3,delivery_report = 'Class Teacher Accepted',comments ='$comments' creation_date = sysdate() where parent_message_id = $value ") ; 
+
+}
+
+else 
+{
+$sql = db_query("Update qtxt_sms_parent_message set process_flag = 4,delivery_report = 'HOD Accepted',comments ='$comments',creation_date = sysdate() where parent_message_id = $value ") ; 
+$sql = db_query("Update qtxt_sms_parent_message_bkp set process_flag = 4,delivery_report = 'HOD Accepted',comments ='$comments' creation_date = sysdate() where parent_message_id = $value ") ; 
+
+
+}
+
+
+	}
+	drupal_set_message(t(" Your Message has been deleted and Sanctioned "));
+	
+	$form_state['redirect'] =   'leaveletter';
+	
+  return;	
+
+break; 
+
+case "3":
+$selList = &$_SESSION['selectOptions'];
+	
+	foreach ($selList as $key => $value) {
+
+	db_set_active('qtxt_db');
+
+
+if($role == "Tutor")
+{
+	
+  $sql = db_query("Update qtxt_sms_parent_message set process_flag = 0,delivery_report = 'LeaveLetter has not been Sanctioned',comments ='$comments' where parent_message_id = $value ") ;
+  $sql = db_query("Update qtxt_sms_parent_message_bkp set process_flag = 0,delivery_report = 'LeaveLetter has not been Sanctioned',comments ='$comments' where parent_message_id = $value "); 
+
+ }
+else if($role == "Class Teacher")
+
+{
+$sql = db_query("Update qtxt_sms_parent_message set process_flag = 1,delivery_report = 'Request is Pending',comments ='$comments' where parent_message_id = $value ") ;
+$sql = db_query("Update qtxt_sms_parent_message_bkp set process_flag = 1,delivery_report = 'Request is Pending',comments ='$comments' where parent_message_id = $value ") ; 
+
+}
+else if ($role == "HOD")
+{
+$sql = db_query("Update qtxt_sms_parent_message set process_flag = 3,delivery_report = 'Tutor Accepted',comments ='$comments' where parent_message_id = $value ") ;
+$sql = db_query("Update qtxt_sms_parent_message_bkp set process_flag = 3,delivery_report = 'Tutor Accepted',comments ='$comments' where parent_message_id = $value ") ; 
+
+$message = "Leave Letter has been Sanctioned by the HOD";
+
+db_set_active('qtxt_db');
+$field209 = db_fetch_object(db_query("SELECT account_student_map_id FROM {qtxt_sms_parent_message} WHERE parent_message_id = $value"));
+
+db_set_active('default');
+$sid = $field209->account_student_map_id;
+
+
+db_set_active('qtxt_db');
+
+$field409 = db_fetch_object(db_query("SELECT mobile_number FROM {qtxt_sms_mobile_numbers} WHERE account_student_map_id = $sid and person_relationship_to_student = 'STUDENT'"));
+db_set_active('default');
+$userMobile = $field409->mobile_number;
+
+$sms= new Qtxt_Sms_Common;
+		$outputString = $sms->leavesmstoteachers(               $message,
+										$userMobile,									
+										$GLOBALS['base_path']);
+}
+
+
+
+	}
+	drupal_set_message(t(" Your Message has been deleted and not Sanctioned to the user "));
+	
+	$form_state['redirect'] =   'leaveletter';
+	
+  return;	
+
+
+
+
+break;
+	
+}
+
+
+}

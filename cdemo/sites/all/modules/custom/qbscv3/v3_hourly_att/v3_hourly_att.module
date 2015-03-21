@@ -1,0 +1,926 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+
+// require ( "../quadroquest/common/QtxtCommonLibrary.php");
+
+function v3_hourly_att_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_hourly_att'),
+  );
+}
+
+function v3_hourly_att_init() {
+             drupal_add_js(drupal_get_path('module', 'v3_hourly_att') . "/hr_js.js");
+}
+
+function v3_hourly_att_menu() {
+
+
+	$items['hourly'] = array(
+			'title' => t('Teachers sms user id and password screen'),
+			'page callback' => 'v3_att2_main_form1',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+
+	$items['fsc1'] = array(
+			'title' => t('Select Students'),
+			'page callback' => 'v3_hourly_att_form1',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+$items['att2'] = array(
+			'title' => t('Enter Your Student Attendance'),
+			'page callback' => 'v3_hourly_att_initialize_form1',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	
+	
+	
+	$items['att2_next'] = array(
+			'title' => t('Attendance Screen Confirmation'),
+			'page callback' => 'v3_hourly_att_next_form1',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	
+
+	$items['fsc1/final'] = array(
+			'title' => t('Attendance Screen Confirmation'),
+			'page callback' => 'v3_hourly_att_final_form1',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+
+	$items['hourly/ind/ahahjs2'] = array(
+
+        'page callback' => 'hourly_ahah_field_js_for_ind2',
+
+    //    'access arguments' => array('administer ahahtestmodule'),
+
+        'type' => MENU_CALLBACK,
+
+    			'access callback' => 'user_access',
+
+    			'access arguments' => array('access content'),	
+
+  );
+  
+
+	return $items;
+}
+
+
+function v3_att2_main_form1() {
+			$output .= drupal_get_form('v3_my_first_form1');
+			return $output ;
+}
+
+function v3_hourly_att_initialize_form1() {
+			$output = drupal_get_form('v3_my_form1');
+		//	$output .= drupal_get_form('v3_my_form1_view1');
+			
+			return $output ;
+
+			}
+
+
+
+function v3_hourly_att_next_form1() {
+			$output = drupal_get_form('v3_my_next_form1');
+			return $output ;
+}
+
+
+
+function v3_hourly_att_final_form1() {
+			$output = drupal_get_form('v3_my_final_form1');
+			return $output ;
+}
+
+
+
+function v3_hourly_att_form1() {
+			$output .= drupal_get_form('v3_filter_form1');
+			//$output .= drupal_get_form('v3_my_form1');
+
+			return $output ;
+}
+
+function v3_hourly_att_page() {
+	$output = t('This page contains our example form.');
+// Return the HTML generated from the $form data structure.
+	$output .= drupal_get_form('v3_hourly_att_main1');
+	return $output;
+}
+
+
+function v3_my_first_form1( $form_state) {
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+unset ( $_SESSION['user_section_filter_value'] );
+unset ( $_SESSION['user_class_filter'] );
+unset ( $_SESSION['user_mobile_number'] );
+unset ( $_SESSION['admin_user_id'] );
+unset ( $_SESSION['admin_pwd'] );
+unset ( $_SESSION['doa'] );
+unset ( $_SESSION['selectOptions'] );
+
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+
+
+				$form['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $defusermobile,
+				'#value' => $defusermobile,
+				'#disabled' => TRUE,
+				// '#size' => 20,
+				'#description' => t('Your Mobile Number.'),
+				);
+
+				$form['userId'] = array(
+				'#title' => t('SMS User Id'),
+				'#type' => 'textfield',
+				'#default_value' => $defadminuserid,
+				// '#size' => 20,
+				'#description' => t('Please enter your SMS User Id.'),
+				);
+				$form['pwdId'] = array(
+				'#title' => t('SMS Password'),
+				'#type' => 'password',
+				'#default_value' => $defadminpwd,
+				// '#size' => 20,
+				'#description' => t('Please enter your SMS Password.'),
+				);
+
+ $form['next_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+    '#prefix' => '<br/>',
+
+  );
+
+return $form;
+
+}
+
+
+
+function v3_my_first_form1_submit($form, &$form_state) {
+		$_SESSION['user_mobile_number'] = $form_state['values']['mobileId'];
+		$_SESSION['admin_user_id'] = $form_state['values']['userId'];
+		$_SESSION['admin_pwd'] = $form_state['values']['pwdId'];
+		$form_state['redirect'] = 'fsc1';
+  return;
+}
+
+
+function v3_my_first_form1_validate($form, &$form_state) {
+$values = $form_state['values'];
+	$mobileId = $values[mobileId];
+	$userId = $values[userId];
+	$pwdId = $values[pwdId];
+	//$category = $values[smscategory];	     
+
+
+         db_set_active('qtxt_db');	
+
+		$result = db_query("select distinct admin_user_id from qtxt_sms_admin_mobile_all_v  where mobile_number = '$mobileId'");
+
+		$accountGradeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradeId[] =  $row->admin_user_id; 
+		  		}
+
+
+
+		db_set_active('default');		
+		if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( ",", $accountGradeId );
+		}
+		$duserId = "$accountArray";
+		
+		        
+                db_set_active('qtxt_db');	
+
+		$result = db_query("select distinct admin_password from qtxt_sms_admin_mobile_all_v  where mobile_number = '$mobileId'");
+
+		$accountGradepass = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradepass[] =  $row->admin_password; 
+		  // This is the only line that changed from the code above.
+		}
+
+
+
+		db_set_active('default');		
+		if (  count( $accountGradepass ) > 0 ) {
+			$accountArray = join( ",", $accountGradepass );
+		}
+		$duserpass = "$accountArray";
+		
+		
+  if ( $mobileId == '') {
+    form_set_error('', t('Please set your Mobile information in User Settings.'));
+  }
+  if ( $userId == '') {
+    form_set_error('', t('Please enter your SMS Admin User id'));
+  }
+
+  if ( $pwdId == '') {
+    form_set_error('', t('Please enter your SMS Admin Pwd'));
+  }
+  if ( $userId != $duserId) {
+     form_set_error('', t('Please Enter Your Correct SMS UserId'));
+               
+	  }
+
+ if ( $pwdId != $duserpass) {
+		form_set_error('', t('Please Enter Your Correct SMS Password'));
+	  }
+  }
+  
+	  
+
+
+function v3_filter_form1($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;
+$uid = $user->uid;
+  
+		$test1 = &$_SESSION['user_mobile_number'] ;
+		$test2 = &$_SESSION['admin_user_id'];
+		$test3 = &$_SESSION['admin_pwd']; 
+
+
+$currdate = date("d-m-Y");
+$defdoa = "";
+if ( !empty($_SESSION['doa'])) {
+$defdoa = &$_SESSION['doa'];
+} else {
+$defdoa = $currdate;
+}
+  
+	$form['doa'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date of Absense'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $defdoa,
+	  '#date_year_range' => '-1:+1',
+	);					
+	 $i = 0;
+	  $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+
+						'#title' => t('Filter By Department/Year '),
+
+						'#collapsible' => TRUE, 
+
+						'#collapsed' => FALSE,
+
+						'#tree' => TRUE
+
+	  );
+
+				  
+
+
+
+	  db_set_active('qtxt_db');	
+
+
+
+	  
+
+	 $resultg1 = db_query("SELECT account_grade_id,grade_name FROM {qtxt_sms_account_grades} a, {qtxt_sms_account} b, {cce_account_admin} c where a.account_id = c.account_id and section != 'ALL' and c.drupal_uid =$uid order by class_weight ");
+
+
+				  $igradeOptions = array('' => t('Select..'));
+
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+
+				  	$igradeOptions[$rowg1->account_grade_id ] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+
+				  	}
+
+				db_set_active('default');
+
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+
+				  				  		'#options' => $igradeOptions,
+
+				  				  		'#title' => t('Dept - Yr'),
+
+				  				  		'#description' => t('Please select the Department and Year '),
+
+				  				  		'#disabled' => FALSE,
+
+				  				  		'#ahah' => array(
+
+				  				  		 'path' => 'hourly/ind/ahahjs2',
+
+				  				  		 'wrapper' => 'ahah-wrapper-hourly',
+
+				  				  		 'method' => 'replace',
+
+				  				  						),
+
+				  );
+
+				  
+
+				  $form['adminOuter']['student'] = array('#type' => 'select',
+
+				  				  		'#title' => t('Subject Name'),
+
+										'#options' =>  array( '' => t('Select ..') ),
+
+				  				  		'#description' => t('Please select the Student'),
+
+				  				  		'#disabled' => FALSE,
+
+				  				  	'#prefix' => '<div id = "ahah-wrapper-hourly">',
+
+				  					'#suffix' => '</div>',				  				  		
+
+				  );
+	  
+ $form['adminOuter']['session1'] = array(
+		'#title' => 'Select a Session',
+		'#type' => 'select',
+'#options' => array(
+		'Session1' => 'Session1',
+		'Session2' => 'Session2',
+		'Session3' => 'Session3',
+		'Session4' => 'Session4',
+		'Session5' => 'Session5',
+		'Session6' => 'Session6',
+		'Session7' => 'Session7',
+		'Session8' => 'Session8',
+		),
+		'#tree' => TRUE,
+                
+	  );
+
+
+ 
+ $form['filters']['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Filter'),
+    '#prefix' => '<br/>',
+
+  );
+ 
+return $form;
+
+}
+
+function v3_my_form1($form_state) {
+  $header = array(
+    array(),
+    array('data' => t('Standard'), 'field' => 'b.standard'),
+    array('data' => t('Section'), 'field' => 'b.section'),
+    array('data' => t('Student Name'), 'field' => 'a.student_name'),
+    array('data' => t('Register Number'), 'field' => 'a.student_identifier'),
+	array('data' => t('Class'), 'field' => 'b.grade_name'),
+    array('data' => t('Account Register Number'), 'field' => 'a.account_student_map_id'),
+  );
+
+$clVal = &$_SESSION['doa'] ;
+$c2Val = &$_SESSION['session1'] ;
+$c3Val = &$_SESSION['grade'] ;
+$c4Val = &$_SESSION['subject']; 
+
+
+//drupal_set_message(t("Class Filter 1 , $clVal"));	
+//drupal_set_message(t("Section Filter 2 , $c2Val"));	
+  
+$filterClass = "";
+	$filterClass = " and b.account_grade_id  = '$c3Val' ";
+
+  
+
+  db_set_active('qtxt_db');	
+
+  
+$sql = "select a.student_identifier,a.student_name,b.grade_name, a.account_student_map_id from {qtxt_sms_account_student_map} a, {qtxt_sms_account_grades} b 
+where  a.account_grade_id = b.account_grade_id and a.active_flag =  'Y' " . $filterClass . " order by SUBSTRING(student_name, LOCATE('.', student_name)+1) " ;
+ 
+    $query_count = "select COUNT(account_student_map_id) from {qtxt_sms_account_student_map} a, {qtxt_sms_account_grades} b 
+where a.account_grade_id = b.account_grade_id and a.active_flag =  'Y' " . $filterClass  ;
+  
+  $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 200, 0, $query_count);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Update Student Attendance'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update'),
+  );
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+  $accounts = array();
+
+$i = 1;  
+$j = 1;
+  while ($account = db_fetch_object($result)) {
+	$form['access']['studentid'][$account->account_student_map_id] =  array('#value' => $account->student_identifier);
+	$form['access']['studentname'][$account->account_student_map_id] =  array('#value' => $account->student_name);
+	$form['access']['class'][$account->account_student_map_id] =  array('#value' => $account->grade_name);
+
+    $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->account_student_map_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+                '#attributes' => array('onclick' => "test(this.value, this.checked, this.form, this.name)"),
+
+	  );
+	  
+  
+	  $form['access']['status'][$j] = array(
+		'#type' => 'textfield',
+		//'#return_value' => $account->account_student_map_id,
+		'#default_value' => 'PRESENT',
+		'#disabled' => TRUE,
+		'#size' => 7,
+		'#tree' => TRUE,
+
+	  );
+	$i = $i + 1;
+	$j = $j + 1;
+  }
+db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 200, 0));
+  $form['#theme'] = 'v3_my_form1_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );
+$form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($j  -1 )
+  );  
+  return $form;
+}
+
+function v3_hourly_att_theme() {
+	return array(
+		'v3_my_form1_theme' => array('arguments'=> array('form' => NULL),),
+		'v3_my_next_form1_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+
+function theme_v3_my_form1_theme($form)
+{
+$rows = array();
+$i = 1;
+$j = 1;
+
+foreach(element_children($form['access']['studentid']) as $key) {
+
+	$row = array(); 
+	
+       $row[] =  drupal_render($form['access']['studentid'][$key]);
+       $row[] =  drupal_render($form['access']['studentname'][$key]);
+	   $row[] =  drupal_render($form['access']['class'][$key]);
+	   $row[] =  drupal_render($form['access']['status'][$j]);
+	   $row[] =  drupal_render($form['access']['account'][$i]);
+	$rows[] = $row; 
+	$i = $i +1 ;
+	$j = $j +1 ;
+}
+
+if(count($rows)){
+$header = array(
+ 
+  				t('Register Number'), t('Student Name'), t('Department') , t('Status') ,theme('table_select_header_cell') 
+				);
+		
+  }
+  else{
+  $header = array(t('First Name'), t('Last Name'));
+      $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//return $output . drupal_render($form); 
+$form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ;
+
+}  
+
+
+function v3_hourly_att_main1_submit($form, &$form_state) {
+	// do nothing
+}
+
+
+function v3_filter_form1_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Filter'): 
+
+		$_SESSION['doa'] = $form_state['values']['doa'];
+	       $_SESSION['session1'] = $form_state['values']['adminOuter']['session1'];
+		$_SESSION['grade'] = $form_state['values']['adminOuter']['grade'];
+		$_SESSION['subject'] = $form_state['values']['adminOuter']['student'];
+		
+	 
+      break;
+    case t('Undo'):
+      break;
+    case t('Reset'):
+      break;
+    case t('Update'):
+      return;
+  }
+
+  $form_state['redirect'] = 'att2';
+  return;
+}
+
+
+
+function v3_filter_form1_validate($form, &$form_state) {
+		$values = $form_state['values'];
+		$doa = $values['doa'];
+
+	  if ( $doa == '') {
+		form_set_error('', t('Please select the date of absense.'));
+	  }
+		
+}
+
+function v3_my_form1_submit($form, &$form_state) {
+//	dpm($form_state);
+	
+	$TotalCount = $form_state['values']['totalcount'];
+	
+	$myArray = array();
+	
+	if ( isset( $form_state['clicked_button']['#post']['access']['account'] ) ) {
+	$myArray = $form_state['clicked_button']['#post']['access']['account'];
+	}
+	$_SESSION['user_total_count'] =  $TotalCount;
+	$_SESSION['selectOptions'] =  $myArray;
+  $form_state['redirect'] =   'att2_next';
+  return;
+}
+
+function v3_my_form1_validate($form, &$form_state) {
+	if ( !isset( $form_state['clicked_button']['#post']['access']['account'] ) ) {
+		 form_set_error('', t('Please selet at least one option'));
+	}
+}
+
+
+
+function v3_my_next_form1($form_state) {
+$clVal = &$_SESSION['doa'] ;
+$c2Val = &$_SESSION['session1'] ;
+$c3Val = &$_SESSION['grade'] ;
+$c4Val = &$_SESSION['subject']; 
+
+
+$form['smscategories'] = array (
+					  '#type' => 'radios', 
+					//  '#title' => t('Categories'), 
+					  '#options' => array ( '0' => t('Absent'),
+                                            '1' => t('Out of Class')),
+      );
+	  
+	  
+	  $reas = &$_SESSION['reason'] ;
+
+			$form['reason'] = array(
+				'#title' => t('Out Of Class Reason'),
+				'#type' => 'textfield',
+				'#size' => 80,
+				'#description' => t('Please Enter Out Of Class Reason.'),
+                           '#suffix' => '<br/><br/><br/><br/>',
+
+				);															
+
+
+$newCount = &$_SESSION['user_total_count'];
+//drupal_set_message(t("Class Filter  $newCount"));	
+//drupal_set_message(t("Section Filter Next Form "));	
+
+$selList = &$_SESSION['selectOptions'];
+$keyvalues = " ( ";
+
+	foreach ($selList as $key => $value) {
+		$keyvalues .= $value . ',' ;
+	}
+
+	
+$keyvalues = substr($keyvalues,0,-1);
+$keyvalues .= " ) ";	
+
+//drupal_set_message(t("Section Filter Next Form == $keyvalues "));		
+
+$filterClass = " and a.account_student_map_id in $keyvalues "; 
+
+  $header = array(
+	array('data' => t('Register Number'), 'field' => 'a.student_identifier'),
+    array('data' => t('Student Name'), 'field' => 'a.student_name'),
+    array('data' => t('Class'), 'field' => 'b.grade_name'),
+    //array('data' => t('Account Register Number'), 'field' => 'a.account_student_map_id'),
+  );
+
+
+  db_set_active('qtxt_db');	
+  $sql = "select a.student_name,a.student_identifier,b.grade_name,a.account_student_map_id from {qtxt_sms_account_student_map} a, {qtxt_sms_account_grades} b where  a.account_grade_id = b.account_grade_id and a.active_flag =  'Y' " . $filterClass ; 
+
+  $sql .= tablesort_sql($header);
+
+  
+  $result = pager_query($sql, 200, 0, $query_count);
+  while ($account = db_fetch_object($result)) {
+    $form['studentid'][$account->account_student_map_id] =  array('#value' => $account->student_identifier);
+	$form['studentname'][$account->account_student_map_id] =  array('#value' => $account->student_name);
+    $form['class'][$account->account_student_map_id] =  array('#value' => $account->grade_name);
+  }
+  db_set_active('default');
+    $form['pager'] = array('#value' => theme('pager', NULL, 200, 0));
+	$form['#theme'] = 'v3_my_next_form1_theme';   
+  
+  
+$form['verifyset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Confirm Student Attendance'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  $form['verifyset']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm'),
+  );
+  
+  $form['verifyset']['submit3'] = array(
+    '#type' => 'submit',
+    '#value' => t('Back'),
+  );
+  return $form;
+}
+
+
+
+
+function theme_v3_my_next_form1_theme($form)
+{
+//	drupal_set_message(t("Inside Theme my Next Form Theme "));	
+
+$rows = array();
+foreach(element_children($form['studentid']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['studentid'][$key]);
+       $row[] =  drupal_render($form['studentname'][$key]);
+       $row[] =  drupal_render($form['class'][$key]);
+	$rows[] = $row; 
+}
+
+$header = array(  t('Register Number') , t('Student Name'), t('Class') );
+$output = theme('table',$header, $rows); 
+return $output . drupal_render($form); 
+}  
+
+
+function v3_my_next_form1_submit($form, &$form_state) {
+//drupal_set_message(t(" FINAL Section Filter Next Form "));	
+
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+
+$selList = &$_SESSION['selectOptions'];
+
+		$mobileId = &$_SESSION['user_mobile_number'] ;
+		$adminUserid = &$_SESSION['admin_user_id'];
+		$adminpwd = &$_SESSION['admin_pwd']; 
+		
+$clVal = &$_SESSION['doa'] ;
+$c2Val = &$_SESSION['session1'] ;
+$c3Val = &$_SESSION['grade'] ;
+$c4Val = &$_SESSION['subject']; 
+$_SESSION['reason'] = $form_state['values']['reason'];
+$reason = &$_SESSION['reason'];
+db_set_active('qtxt_db');
+
+$field = db_fetch_object(db_query("select grade_name, subject_name from qtxt_sms_subjects where subject_id = $c4Val"));
+
+db_set_active('default');
+$sub = $field->subject_name;
+$grade = $field->grade_name;
+
+/*
+drupal_set_message (t("Date: $clVal"));
+drupal_set_message (t("Sessino: $c2Val"));
+drupal_set_message (t("Grade:$grade "));
+drupal_set_message (t("subject:$sub "));
+drupal_set_message (t("Reason: $reason"));
+*/
+
+		$_SESSION['sms_category1'] = $form_state['values']['smscategories'];
+		
+		$categories = $form_state['values']['smscategories'];
+	//	 drupal_set_message(t("reason: $reason "));
+		switch ($categories) {
+		case "0":
+			$sms= new Qtxt_Sms_Common;
+	$outputString = $sms->sendAbsenteeSMS1($mobileId, $adminUserid, $adminpwd, $selList,$clVal,$sub,$c2Val,$GLOBALS['base_path']);
+	drupal_set_message(t("Sms has been sent sucessfully"));	
+				break;
+		case "1":
+			$sms= new Qtxt_Sms_Common;
+	$outputString = $sms->sendAbsenteeHSOCSMS1($mobileId, $adminUserid, $adminpwd, $selList,$clVal,$c4Val,$c2Val,$reason,$GLOBALS['base_path']);
+	drupal_set_message(t("Sms has been sent sucessfully"));	
+	                       	break;
+				}
+	
+	$op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Back'): 
+		$form_state['redirect'] =   'att2';
+		break;
+    case t('Confirm'): 
+		$form_state['redirect'] =   'fsc1/final';
+		break;
+	}
+	
+	  return;	
+}
+
+
+
+
+function v3_my_final_form1($form_state) {
+// drupal_set_message(t("Thanks for your input. Your Request has been Submitted. "));	
+$str = "<big>Your Request has been Submitted. </big> <BR> <BR>";
+$form['message'] = array(
+  '#type' => 'markup',
+  '#value' => $str,
+);
+ $form['submit1'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send More SMS'),
+  );
+ $form['submit2'] = array(
+    '#type' => 'submit',
+    '#value' => t('Return'),
+  );
+  
+return $form;
+}
+
+
+function v3_my_final_form1_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Send More SMS'): 
+		$form_state['redirect'] =   'fsc1';
+		break;
+    case t('Return'): 
+		$form_state['redirect'] =   'hourly';
+		break;
+	}
+  return;	
+}
+
+
+function hourly_ahah_field_js_for_ind2 () {
+
+//  krumo($form_state);
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+
+		$form_build_id = $_POST['form_build_id'];
+
+
+
+		// Get for the form from the cache
+
+		$form = form_get_cache($form_build_id, $form_state);
+
+  
+
+		// Get the form set up to process
+
+		$args = $form['#parameters'];
+
+		$form_id = array_shift($args);
+
+		$form_state['post'] = $form['#post'] = $_POST;
+
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+
+
+
+
+		$gid = $form['#post']['adminOuter']['grade'];
+
+		db_set_active('qtxt_db');
+
+	/*	$sqlg = " select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where account_grade_id = $gid 
+order by SUBSTRING(student_name, LOCATE('.', student_name)+1)";
+*/
+
+$sqlg = " select subject_id,subject_name from {qtxt_sms_subjects} where account_grade_id = $gid";
+
+		$resultg = db_query($sqlg);
+
+		$valueg[''] = 'Select a value';
+
+		while($datag = db_fetch_object($resultg))
+
+		{
+
+		$valueg[$datag->subject_id] = $datag->subject_name;
+
+		}
+
+		db_set_active('default');
+
+		//$valueg1 = drupal_map_assoc($valueg);
+
+		$form['adminOuter']['student']['#options'] = $valueg;
+
+		form_set_cache($form_build_id, $form, $form_state);
+
+				$form += array(
+
+					'#post' => $_POST,
+
+					'#programmed' => FALSE,
+
+				  );
+
+				$form = form_builder('qtext1_smsform', $form, $form_state);		
+
+				$output = $form['adminOuter']['student'];
+
+				unset($output['#prefix'],$output['#suffix']);
+
+				$out1 =  drupal_render($output);
+
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+
+
+
+}
+

@@ -1,0 +1,9 @@
+; $Id$
+
+name = v3_cce_mark_report_pv
+
+description = v3_cce_mark_report_parent_view
+
+core = 6.x
+
+package = CCE

@@ -1,0 +1,102 @@
+ï»¿# $Id: ja.po,v 1.1.2.3 2010/03/19 22:16:55 setfree Exp $ 
+# -----------------------------------------------------------------------------
+# Japanese translation of Drupal (login_destination.module)
+#
+# Copyright (c) 2006-2007  Drupal Japan  ( http://drupal.jp/ )  /
+#                          Drupal Nippon ( http://drupon.org/ ) /
+#                          Takafumi      ( jp.drupal@imagine **reverse order**)
+#
+# Generated from file:
+#  No version information was available in the source files.
+#
+# -----------------------------------------------------------------------------
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2007-04-20 20:36+0900\n"
+"Last-Translator: Takafumi <jp.drupal@imagine **reverse order**>\n"
+"Language-Team: Drupal Japan / Drupal Nippon\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: login_destination.module:35
+msgid "Login destination"
+msgstr "ãƒ­ã‚°ã‚¤ãƒ³ãƒ‡ã‚¹ãƒ†ã‚£ãƒ?ã‚¤ã‚·ãƒ§ãƒ³"
+
+#: login_destination.module:36
+msgid "Configure where user will go after login."
+msgstr "ãƒ¦ãƒ¼ã‚¶ã?®ãƒ­ã‚°ã‚¤ãƒ³å¾Œã?®è¡Œã??å…ˆã‚’è¨­å®šã?—ã?¾ã?™ã€‚"
+
+#: login_destination.module:56
+msgid "URL destination settings"
+msgstr "è¡Œã??å…ˆURLã?®è¨­å®š"
+
+#: login_destination.module:57
+msgid "This is to specify where exactly user should be redirected upon login."
+msgstr "ãƒ­ã‚°ã‚¤ãƒ³ç›´å¾Œã?«ãƒ¦ãƒ¼ã‚¶ã?Œãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆã?•ã‚Œã‚‹å ´æ‰€ã‚’æŒ‡å®šã?—ã?¦ã??ã? ã?•ã?„ã€‚"
+
+#: login_destination.module:63
+msgid "Static URL"
+msgstr "é?™çš„URL"
+
+#: login_destination.module:64;88
+msgid "PHP snippet (experts only)"
+msgstr "PHPã‚³ãƒ¼ãƒ‰ï¼ˆä¸Šç´šè€…ã?®ã?¿ï¼‰"
+
+#: login_destination.module:70
+#msgid "URL"
+#msgstr "URL"
+
+#: login_destination.module:73
+msgid "<b>Static URL mode:</b> Enter a static path. Example paths are %ex1 or %ex2."
+msgstr "<b>é?™çš„URLãƒ¢ãƒ¼ãƒ‰ï¼š</b> é?™çš„ã?ªãƒ‘ã‚¹ã‚’å…¥åŠ›ã?—ã?¦ã??ã? ã?•ã?„ã€‚ ãƒ‘ã‚¹ã?®ä¾‹ã?¯ã€?%ex1 ã‚„ %ex2 ã?§ã?™ã€‚"
+
+#: login_destination.module:74
+msgid "<b>PHP snippet mode:</b> Enter PHP code to evaluate path. It should return string value (<b>NO %php tags!</b>)."
+msgstr "<b>PHPã‚³ãƒ¼ãƒ‰ãƒ¢ãƒ¼ãƒ‰ï¼š</b> ãƒ‘ã‚¹ã‚’è©•ä¾¡ã?—ã€?æ–‡å­—åˆ—ã‚’è¿”ã?™PHPã‚³ãƒ¼ãƒ‰ã‚’è¨˜å…¥ã?—ã?¦ã??ã? ã?•ã?„ã€‚ ã?ªã?Šã€?<b>ã‚³ãƒ¼ãƒ‰ã?« %php ã‚¿ã‚°ã?¯ä¸?è¦?ã?§ã?™ã€‚</b>"
+
+#: login_destination.module:79
+msgid "Redirection condition settings"
+msgstr "ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆæ?¡ä»¶ã?®è¨­å®š"
+
+#: login_destination.module:80
+msgid "Set the condition to determine whether redirection should happen or not."
+msgstr "ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆã?™ã‚‹ã?‹ã?©ã?†ã?‹ã‚’æ±ºå®šã?™ã‚‹æ?¡ä»¶ã‚’è¨­å®šã?—ã?¦ã??ã? ã?•ã?„ã€‚"
+
+#: login_destination.module:86
+msgid "Always"
+msgstr "å¸¸ã?«"
+
+#: login_destination.module:87
+msgid "List of paths"
+msgstr "ãƒ‘ã‚¹ã?®ãƒªã‚¹ãƒˆ"
+
+#: login_destination.module:94
+msgid "Redirect condition"
+msgstr "ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆæ?¡ä»¶"
+
+#: login_destination.module:97
+msgid "<b>Always:</b> Redirection happens always. Redirect condition field is ignored."
+msgstr "<b>å¸¸ã?«ï¼š</b> å¸¸ã?«ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆã?•ã‚Œã?¾ã?™ã€‚ ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆæ?¡ä»¶ã?®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã?¯ç„¡è¦–ã?•ã‚Œã?¾ã?™ã€‚"
+
+#: login_destination.module:98
+msgid "<b>List of paths mode:</b> Enter a list of paths, one path per one line. Redirection will happen only when logging from specified pages. Example paths are %ex1 or %ex2."
+msgstr "<b>ãƒ‘ã‚¹ã?®ãƒªã‚¹ãƒˆãƒ¢ãƒ¼ãƒ‰ï¼š</b> 1è¡Œã?‚ã?Ÿã‚Š1ã?¤ã?®ãƒ‘ã‚¹ã‚’å…¥åŠ›ã?—ã?¦ã??ã? ã?•ã?„ã€‚ æŒ‡å®šã?•ã‚Œã?Ÿãƒšãƒ¼ã‚¸ã?‹ã‚‰ãƒ­ã‚°ã‚¤ãƒ³ã?—ã?Ÿå ´å?ˆã?«ã?®ã?¿ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆã?•ã‚Œã?¾ã?™ã€‚ ãƒ‘ã‚¹ã?®ä¾‹ã?¯ã€? %ex1 ã‚„ %ex2 ã?§ã?™ã€‚"
+
+#: login_destination.module:99
+msgid "<b>PHP snippet mode:</b> Enter PHP code to find should redirection happen or not (<b>NO %php tags!</b>). It should return boolean value."
+msgstr "<b>PHPã‚³ãƒ¼ãƒ‰ãƒ¢ãƒ¼ãƒ‰ï¼š</b> ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆã?™ã‚‹ã?‹ã?©ã?†ã?‹ã‚’è©•ä¾¡ã?—ã€?ãƒ–ãƒ¼ãƒ«å€¤ï¼ˆçœŸã?‹å?½ï¼‰ã‚’è¿”ã?™PHPã‚³ãƒ¼ãƒ‰ã‚’è¨˜å…¥ã?—ã?¦ã??ã? ã?•ã?„ã€‚ ã?ªã?Šã€?<b>ã‚³ãƒ¼ãƒ‰ã?« %php ã‚¿ã‚°ã?¯ä¸?è¦?ã?§ã?™ã€‚</b>"
+
+#: login_destination.info:0
+msgid "Login Destination"
+msgstr "ãƒ­ã‚°ã‚¤ãƒ³ãƒ‡ã‚¹ãƒ†ã‚£ãƒ?ã‚¤ã‚·ãƒ§ãƒ³"
+
+#: login_destination.info:0
+msgid "Controls which URL users will be redirected upon login."
+msgstr "ãƒ­ã‚°ã‚¤ãƒ³ç›´å¾Œã?«ãƒ¦ãƒ¼ã‚¶ã?Œãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆã?•ã‚Œã‚‹URLã‚’ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã?—ã?¾ã?™ã€‚"
+
+#: login_destination.info:0
+msgid "login_destination"
+msgstr "login_destination"
+

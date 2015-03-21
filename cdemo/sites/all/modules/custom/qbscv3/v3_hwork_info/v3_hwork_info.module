@@ -1,0 +1,453 @@
+<?php
+
+
+
+
+
+function v3_hwork_info_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', 'v3_hwork_info'),
+
+  );
+
+}
+
+
+
+function v3_hwork_info_menu() {
+
+$items['hwork'] = array(
+
+			'title' => t('Home work and Assignments'),
+
+			'page callback' => 'v3_teacher_hwork_msg_form',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);
+
+	return $items;
+
+	
+
+	}
+
+	
+
+function v3_teacher_hwork_msg_form() {
+
+ 
+			 $output = drupal_get_form('v3_hwork_filter_form');
+
+			 $output .= drupal_get_form('v3_hwork_my_form');
+			return $output ;
+
+}
+
+function v3_hwork_info_theme() {
+
+	return array(
+
+		'v3_hwork_my_form_theme' => array('arguments'=> array('form' => NULL),),
+
+	);
+
+}
+
+
+
+
+
+function v3_hwork_filter_form($form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$clVal = &$_SESSION['user_class_filter_value'];
+
+
+ $i = 0;
+
+  $form['filters'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Filter'),
+
+   // '#theme' => 'user_filters',
+
+  );
+
+
+
+db_set_active('qtxt_db');	
+ $result = db_query("select distinct(a.account_student_map_id),a.student_name from {qtxt_sms_mobile_students_v} a where a.drupal_uid = $uid ");
+
+$options = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $options[$row->account_student_map_id] =  $row->student_name; 
+
+}
+db_set_active('default');	
+  
+
+    $form['filters'][ 'class'] = array(
+ '#title' => t('Student Name'),
+      
+'#type' => 'select',
+      '#options' => $options,
+    );
+  
+
+
+$form['filters']['class']['#default_value']	= $clVal;
+
+
+ $form['filters']['buttons']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Apply'),
+
+    '#prefix' => '<br/>',
+
+  );
+$form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+return $form;
+
+
+
+}
+
+function v3_hwork_filter_form_submit($form, &$form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+
+
+  $op = $form_state['values']['op'];
+  
+  $val1 = $form_state['values']['filters'][ 'class'];
+  $val2 = $form_state['values'][ 'class'];
+
+  switch ($op) {
+
+    case t('Apply'): 
+
+      if (isset($form_state['values'][ 'class'])) {
+
+			$filter = $form_state['values'][ 'class'];
+			// drupal_set_message(t("After Submit, Value Selected $filter "));	  
+
+			$_SESSION['user_class_filter_value'] = $filter;
+
+      } else  {
+
+			// drupal_set_message(t("In the Filter, Class not selected"));	  
+	  }
+
+	  break;
+
+    case t('Undo'):
+
+//      array_pop($_SESSION['user_overview_filter']);
+
+      break;
+
+    case t('Reset'):
+
+//      $_SESSION['user_overview_filter'] = array();
+
+      break;
+
+    case t('Delete'):
+
+      return;
+
+  }
+
+
+$form_state['redirect'] = 'hwork';
+  return;
+
+}
+
+
+
+function v3_hwork_my_form($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid;
+
+
+
+  $header = array(
+
+    array(),
+
+    array('data' => t('Teacher Name'), 'field' => 'b.teacher_name'),
+
+	array('data' => t('Student Name'), 'field' => 'b.student_name'),
+
+    array('data' => t('Message'), 'field' => 'b.message'),
+
+  array('data' => t('Subject'), 'field' => 'b.subject_name'),
+
+	
+	array('data' => t('Due Date'), 'field' => 'b.str_due_date'),
+
+    array('data' => t('File Name'), 'field' => 'b.file_name'),
+
+    array('data' => t('Msg For'), 'field' => 'b.msg_type'),
+
+	array('data' => t('Created On'), 'field' => 'b.msg_creation_date'),
+
+	
+
+
+
+  );
+
+
+
+$clVal = &$_SESSION['user_class_filter_value'] ;
+  
+
+$filterClass = "";
+
+
+	
+
+	 if  ( ( ! isset($clVal) )|| ( $clVal == "" ) ) {
+		$accountArray = "";
+		// drupal_set_message(t("log 2 c1Val Not Set "));	
+		db_set_active('qtxt_db');	
+
+	$result = db_query("select a.account_student_map_id from {qtxt_sms_mobile_students_v} a  where a.drupal_uid = $uid ");
+
+		$accountGradeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradeId[] =  $row->account_student_map_id; 
+		}
+		db_set_active('default');
+		
+		if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( ",", $accountGradeId );
+		}
+		$filterClass = " and b.account_student_map_id in (" . $accountArray . " ) ";
+
+	} else {
+	 	$filterClass = " and b.account_student_map_id = '$clVal' ";
+	}
+	
+
+  db_set_active('qtxt_db');	
+
+   $sql = "select b.teacher_name,b.student_name,b.message,b.subject_name,b.str_due_date,b.file_name,b.str_msg_creation_date,b.msg_type,b.teacher_message_id from {qtxt_sms_teacher_messages_v2} b where b.process_flag = 1 and b.type_id = 3 " . $filterClass . " ORDER BY teacher_message_id DESC" ; 
+
+
+	   
+
+     $query_count = "select count(teacher_message_id) from {qtxt_sms_teacher_messages_v2} b where b.process_flag = 1 and b.account_student_map_id is null "  . $filterClass." ORDER BY teacher_message_id DESC" ; 
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);
+
+     $form['access'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Access log settings'),
+
+    '#tree' => TRUE,
+
+	'#visible' => false,
+
+  );  
+
+
+
+
+  $account = array();
+
+
+
+$i = 1;  
+
+  while ($account = db_fetch_object($result)) {
+
+	$form['access']['account'][$i] = array(
+
+//		'#type' => 'checkbox',
+
+		'#return_value' => $account->file_name,
+
+		'#return_value' => $account->teacher_message_id,
+
+		'#default_value' => 0,
+
+		'#tree' => TRUE,
+
+		'#disabled' => True,
+
+
+
+	  );
+
+$file_name = $account->file_name;
+
+		
+ $form['access']['studentname'][$account->teacher_message_id] = array('#value' => $account->student_name);
+
+    $form['access']['teachername'][$account->teacher_message_id] = array('#value' => $account->teacher_name);
+
+   
+	
+	$form['access']['message'][$account->teacher_message_id] =  array('#value' => $account->message);
+	
+	$form['access']['subjectname'][$account->teacher_message_id] =  array('#value' => $account->subject_name);
+	
+	$form['access']['duedate'][$account->teacher_message_id] =  array('#value' => $account->str_due_date);
+
+    $form['access']['filename'][$account->teacher_message_id] =  array('#value' => $account->file_name);
+
+    
+	$form['access']['msgcreationdate'][$account->teacher_message_id] =  array('#value' => $account->str_msg_creation_date);
+
+     $form['access']['accountstudentid'][$account->teacher_message_id] =  array('#value' => $account->teacher_message_id);
+
+	  $form['access']['accountstudentid'][$account->teacher_message_id] =  array('#type' => 'hidden','#value' => $account->teacher_message_id);
+
+
+	$i = $i + 1;
+
+  }
+
+db_set_active('default');
+
+
+
+   $form['pager'] = array('#value' => theme('pager', NULL, 6, 0));
+
+  $form['#theme'] = 'v3_hwork_my_form_theme';   
+
+  $form['totalcount'] = array(
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+  );  
+
+  return $form;
+
+}
+
+
+
+function theme_v3_hwork_my_form_theme($form)
+
+{
+
+$rows = array();
+
+$i = 1;
+
+foreach(element_children($form['access']['accountstudentid']) as $key) {
+
+	$row = array(); 
+
+     //  $row[] =  drupal_render($form['access']['account'][$i]);
+
+  $row[] =  drupal_render($form['access']['studentname'][$key]);
+
+	   $row[] =  drupal_render($form['access']['teachername'][$key]);
+	   
+	 
+
+       $row[] =  drupal_render($form['access']['message'][$key]);
+
+ $row[] =  drupal_render($form['access']['subjectname'][$key]);
+
+       $row[] =  drupal_render($form['access']['duedate'][$key]);
+	 
+if  (isset( $form['access']['filename'][$key]['#value'])) {
+//              $row[] =   l(t('File'), 'sites/default/files/'. $form['access']['filename'][$key]);
+              $row[] =   l($form['access']['filename'][$key]['#value'], 'sites/default/files/'. $form['access']['filename'][$key]['#value']);
+         } else {
+         $row[] =  drupal_render(   $form['access']['filename'][$key]);
+         }
+       $row[] =  drupal_render($form['access']['msgcreationdate'][$key]);
+
+	//    $row[] =  drupal_render($form['access']['accountstudentid'][$key]);
+
+	   $rows[] = $row; 
+
+	$i = $i +1 ;
+
+}
+
+
+
+if(count($rows)){
+
+			$header = array( t('Student Name'), t('Teacher Name'), t('Message'), t('Subject'), t('Due Date'), t('File Name'),t('Created On'));
+
+
+			//	theme('table_select_header_cell'),t('Student Name'), t('Teacher Name'), t('Message'), t('Subject'), t('Due Date'), t('File Name'),t('Created On'));
+
+
+  }
+
+  else{
+
+    $header = array(t(''), t('')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('No Data Found for the Selected Criteria'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+$output = theme('table', $header, $rows); 
+$output .= drupal_render($form['options']); 
+
+//return $output . drupal_render($form); 
+return $output ;
+
+}  

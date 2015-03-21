@@ -1,0 +1,9 @@
+name = v3_support_client
+
+description = "To View Queries"
+
+package = School Connect Version 3.0
+core = 6.x
+
+
+

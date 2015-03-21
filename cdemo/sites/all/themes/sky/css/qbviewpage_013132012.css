@@ -1,0 +1,96 @@
+#content-qbviewpage .views-field-field-node-gallery-image-fid img {
+  border: 1px solid slateBlue;
+  width: 175px;
+  height: 175px;
+  -moz-box-shadow: 10px 10px 5px #888;  
+  -webkit-box-shadow: 2px 2px 2px slateBlue;  
+  box-shadow: 2px 2px 2px #888;
+}
+
+#content-qbviewpage table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  margin: 1em 0;
+  border-top: none;
+  border-left: none;
+}
+
+#content-qbviewpage td, td.block {
+  border-bottom: none;
+  border-right: none;
+  padding: 0.25em 0.5em;
+  vertical-align: top;
+}
+
+#node-qbcustom-node-gallery-gallery .views-field-field-node-gallery-image-fid img {
+  border: 1px solid slateBlue;
+  width: 175px;
+  height: 175px;
+  -moz-box-shadow: 10px 10px 5px #888;  
+  -webkit-box-shadow: 2px 2px 2px slateBlue;  
+  box-shadow: 2px 2px 2px #888;
+}
+#node-qbcustom-node-gallery-gallery table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  margin: 1em 0;
+  border-top: none;
+  border-left: none;
+}
+
+#node-qbcustom-node-gallery-gallery td, td.block {
+  border-bottom: none;
+  border-right: none;
+  padding: 0.25em 0.5em;
+  vertical-align: top;
+}
+
+#qbcustom-page-node-galleries-grid .views-field-field-node-gallery-image-fid img {
+  border: 1px solid slateBlue;
+  width: 175px;
+  height: 175px;
+  -moz-box-shadow: 10px 10px 5px #888;  
+  -webkit-box-shadow: 2px 2px 2px slateBlue;  
+  box-shadow: 2px 2px 2px #888;
+}
+
+#qbcustom-page-node-galleries-grid table { 
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  margin: 1em 0;
+  border-top: none;
+  border-left: none;
+}
+
+#qbcustom-page-node-galleries-grid td, td.block {
+  border-bottom: none;
+  border-right: none;
+  padding: 0.25em 0.5em;
+  vertical-align: top;
+}
+
+.headerTinymanName
+{
+display:inline-block;
+max-width: 200px;
+padding-right:8px;
+#text-overflow:ellipsis;
+vertical-align:top;
+white-space:nowrap;
+}
+
+
+#qbcustom-page-ted-talks td, #qbcustom-page-khan td ,#qbcustom-page-science td{
+text-align:center;
+background: gainsboro;
+border-bottom: 3px solid #000;  
+border-right: 3px solid #000;
+border-top: 3px solid #000;  
+border-left: 3px solid #000;
+vertical-align:top;
+padding:0.25em 0.5em;
+width:100px;
+}

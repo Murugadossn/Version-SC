@@ -1,0 +1,1865 @@
+/* CSSTidy 1.3: Tue, 13 Mar 2012 20:53:51 -0600 
+ $Id$ 
+*
+* Sky
+* http://drupal.org/project/sky
+* http://drupal.org/user/88931
+*
+* Credits:
+* Icons: http://www.icojoy.com/articles/44/
+* Icons: http://www.icojoy.com/articles/46/
+ @group Layout */
+
+body {
+background:#314C74 url(images/color-bables.jpg) repeat-x left top;
+color:#111;
+font-family:"Lucida Grande", "Lucida Sans Unicode", Verdana, Helvetica, Arial, sans-serif;
+font-size:12px;
+}
+
+#wrapper {
+background:#fff;
+font-size:12px;
+}
+
+/* @group Header 
+#header {
+background:#8B0000 url(images/skybg1.jpg) repeat-x top left;
+height:75px;
+}*/
+#header {
+background:#0A3043;
+height:76px;
+}
+
+#header #site-name {
+float:left;
+font-size:2.2em;
+line-height:normal;
+margin:.5em 0 .25em .5em;
+}
+
+#header #site-slogan {
+color:#fff;
+display:block;
+float:left;
+font-size:1.5em;
+font-style:italic;
+margin:1em;
+}
+
+/* @group Name & Slogan */
+.name-slogan #site-name {
+margin:0 0 0 .5em;
+}
+
+.name-slogan #site-slogan {
+margin:0 0 1em 1.7em;
+}
+
+/* @end 
+ @group Name & Logo */
+.name-logo #site-name,.name-logo #logo {
+clear:none;
+float:left;
+}
+
+.name-logo #logo {
+display:block;
+margin:0 0 1em .5em;
+}
+
+.name-logo #site-name {
+margin:.4em 0 0 .5em;
+}
+
+/* @end 
+ @group Logo & Slogan */
+.logo-slogan #logo,.logo-slogan #site-slogan {
+clear:left;
+float:left;
+}
+
+.logo-slogan #logo {
+margin:.25em 0 .15em .5em;
+}
+
+#header.logo-slogan #site-slogan {
+display:block;
+margin:0 0 .5em 1.7em;
+width:100%;
+}
+
+#header.name-slogan-logo #site-slogan {
+clear:left;
+float:left;
+font-size:1.2em;
+margin:0 0 .5em 1.5em;
+}
+
+/* @end 
+ @group Footer */
+#footer-inner {
+background:transparent;
+font-size:.9em;
+min-width:4em;
+padding:1em;
+text-align:center;
+}
+
+/* @end 
+ @end 
+ @end 
+ @group Links */
+a,a:visited {
+color:#314C74;
+text-decoration:none;
+}
+
+/* @end 
+ @group HTML Tags 
+ @group Headings */
+h1,h2,h3,h4,h5,h6 {
+clear:both;
+display:block;
+font-family:"Lucida Grande", "Lucida Sans", "Lucida Sans Unicode", "DejaVu Sans", Arial, sans-serif;
+font-style:normal;
+font-variant:normal;
+font-weight:400;
+letter-spacing:-1px;
+line-height:1.4em;
+margin-bottom:10px;
+margin-top:5px;
+}
+
+h1 {
+display:block;
+font-size:2em;
+font-style:normal;
+font-variant:normal;
+font-weight:400;
+letter-spacing:-1px;
+line-height:140%;
+margin:0;
+}
+
+h3 {
+font-size:1.6em;
+}
+
+h5 {
+font-size:1.2em;
+}
+
+/* @end 
+ @group Code */
+code,pre,tt,kbd {
+color:#666;
+font-family:"Espresso Mono", Monaco, Consolas, "Lucida Console", monospace, sans-serif;
+font-size:.9em;
+}
+
+pre {
+border:solid 1px #ddd;
+margin:1em 0;
+padding:.5em;
+}
+
+/* @end 
+ @group Tables */
+table {
+border-collapse:collapse;
+border-left:1px solid #ddd;
+border-spacing:0;
+border-top:1px solid #ddd;
+margin:1em 0;
+width:100%;
+}
+
+/* @group caption */
+table caption {
+font-size:1.2em;
+font-weight:700;
+line-height:1.25em;
+text-decoration:underline;
+}
+
+/* @end 
+ @group thead, th */
+th,thead th {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border:none;
+border-bottom:1px solid #ddd;
+border-right:1px solid #ddd;
+color:#8B0000;
+font-size:1em;
+font-weight:700;
+padding:4px;
+text-align:left;
+}
+
+tbody th {
+border-bottom:1px solid #ddd;
+}
+
+thead th {
+border-bottom:1px solid #ddd;
+padding-right:4px;
+}
+
+/* @end 
+ @group tbody */
+tbody {
+border-top:none;
+}
+
+/* @end 
+ @group tr */
+tr.even,tr.odd {
+background-color:#fff;
+border-bottom:none;
+padding:0;
+}
+
+/* @end 
+ @group td */
+td,#blocks td.block {
+border-bottom:1px solid #ddd;
+border-right:1px solid #ddd;
+padding:.25em .5em;
+vertical-align:top;
+}
+
+td.menu-disabled {
+border-bottom:1px solid #eee;
+}
+
+td.menu-disabled,tr.even td {
+background:#f8f8f8;
+}
+
+/* @end 
+ @end 
+ @group Definition Lists */
+dl {
+border:solid 1px #ddd;
+margin:1em 0;
+padding:0;
+width:100%;
+}
+
+dt {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border-bottom:1px solid #ddd;
+color:#555;
+font-weight:700;
+padding:.25em .75em;
+}
+
+dd {
+border-bottom:solid 1px #ddd;
+margin:0;
+padding:.5em 1.5em;
+}
+
+.inline li {
+display:inline;
+}
+
+.search-results dt.title {
+font-size:1.2em;
+font-weight:700;
+}
+
+.search-results p.search-info {
+color:#666;
+font-size:.9em;
+}
+
+/* @end 
+ @group Misc */
+p {
+margin:5px 0 15px;
+}
+
+blockquote,cite {
+background:url(images/bg-cite.png) no-repeat;
+clear:both;
+color:#888;
+display:block;
+font-style:italic;
+padding:10px 0 0 45px;
+}
+
+acronym,abbr {
+border-bottom:dotted 1px;
+}
+
+acronym:hover,abbr:hover {
+cursor:help;
+}
+
+/* @end 
+ @end 
+ @group Navigation 
+ @group Nav Bar 
+*
+* Controls the backround color of the bar and
+* the default background state of the links*/
+#navigation {
+background:#fff url(images/bg-shade-light.png) repeat-x bottom left;
+border-bottom:solid 1px #ddd;
+height:2.75em;
+}
+
+/**
+* Navigation Layout Alignment from theme settings
+* Credit: CSS Play, Centering Floats: http://www.cssplay.co.uk/menus/centered.html*/
+#navigation del {
+text-decoration:none !important;
+}
+
+#navigation .wrap-center {
+display:table;
+margin:0 auto;
+}
+
+#navigation .wrap-right {
+float:right;
+}
+
+/* @end 
+ @group Level 1 */
+#navigation ul {
+border:none;
+line-height:2.75em;
+list-style:none;
+margin:0;
+padding:0;
+position:relative;
+z-index:998;
+}
+
+#navigation li {
+border-right:solid 1px #ddd;
+float:left;
+list-style:none;
+list-style-image:none;
+margin:0;
+padding:0;
+position:relative;
+z-index:999;
+}
+
+/* First level links */
+#navigation a,#navigation a:visited {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border:none;
+color:#555;
+display:block;
+font-size:12px;
+font-weight:700;
+margin:0;
+overflow:hidden;
+padding:0 1.2em;
+text-decoration:none;
+}
+
+#navigation .expanded a {
+background:transparent url(images/icn-arrow-down-light.png) no-repeat 96% 51%;
+}
+
+/* First level expandable active & hover state */
+#navigation .sfHover a,#navigation .sfHover a:hover {
+background:#fff url(images/bg-shade-light-flip.png) repeat-x;
+color:#000;
+}
+
+/* @end 
+ @group Level 2 + */
+#navigation ul ul {
+background:#fff url(images/bg-shade-white-lrg.png) repeat-x 0 100%;
+border:solid 1px #ddd;
+border-top:0;
+color:#555;
+display:none;
+left:0;
+line-height:1.25em;
+margin:0 0 0 -1px;
+padding:0;
+position:absolute;
+top:2.75em;
+width:15em;
+z-index:1000;
+}
+
+#navigation ul ul li {
+border-right:none;
+display:block;
+line-height:normal;
+margin:0;
+padding:0;
+position:relative;
+text-align:left;
+width:15em;
+}
+
+#navigation li .expanded ul {
+margin:-2.65em 0 0 15em;
+}
+
+/* Second level links */
+#navigation ul ul li a,#navigation ul ul li a:visited,#navigation ul li.active-trail ul li a,#navigation .sfHover ul li a {
+background:none;
+border-bottom:solid 1px #eee;
+color:#555;
+display:block;
+font-size:.9em;
+font-weight:400;
+overflow:hidden;
+padding:.5em 1.25em .5em .75em;
+text-decoration:none;
+}
+
+/* indicate menu has children with right arrow bg image */
+#navigation ul ul li.expanded {
+background:transparent url(images/icn-arrow-right-light.png) no-repeat 96.5% 50%;
+}
+
+/* make sure children of expanded menus don't inherit indicator */
+#navigation ul li.expanded li.leaf {
+background:none;
+}
+
+/* hover state for all submenu links */
+#navigation ul ul li a:hover,#navigation ul ul li a:visited:hover {
+background:#B3B3B3 url(images/bg-shade-medium.png) repeat-x 0 100%;
+color:#000 !important;
+font-weight:700;
+}
+
+#navigation ul ul ul {
+margin:0;
+top:2.65em;
+z-index:1001;
+}
+
+/* @end 
+ @end 
+ @group Breadcrumbs */
+.breadcrumb {
+clear:both;
+margin:0 0 10px;
+padding:5px 0 0;
+}
+
+/* @end 
+ @group Mission */
+.mission {
+background:#fff url(images/bg-shade-white-lrg.png) repeat-x bottom left;
+border:1px solid #eee;
+color:#000;
+margin:5px 0 15px;
+padding:15px;
+}
+
+/* @end 
+ @group Tabs */
+.tab-wrapper {
+border-bottom:solid 1px #ddd;
+margin:1em 0;
+}
+
+.primary-and-secondary #tabs-primary {
+bottom:0;
+}
+
+/* make the tabs smaller in the admin section */
+.section-admin #tabs-primary li a {
+font-size:12px;
+padding:.6em;
+}
+
+/* @group Primary */
+#tabs-primary {
+border:0;
+bottom:-1px;
+float:left;
+font-size:12px;
+line-height:1.3;
+list-style:none;
+margin:0;
+outline:0;
+padding:0;
+position:relative;
+text-decoration:none;
+z-index:1;
+}
+
+#tabs-primary ul {
+display:block;
+float:left;
+line-height:1.3;
+list-style:none;
+margin:0;
+outline:0;
+padding:0;
+text-decoration:none;
+width:100%;
+}
+
+#tabs-primary ul li {
+display:block;
+float:left;
+line-height:1.3;
+list-style:none;
+margin:0;
+outline:0;
+padding:0;
+text-decoration:none;
+}
+
+#tabs-primary ul li:last-child {
+border-right:solid 1px #ddd;
+}
+
+#tabs-primary ul li.active:last-child {
+background:#fff;
+border:none;
+}
+
+#tabs-primary ul li a {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border-left:solid 1px #ddd;
+border-top:solid 1px #ddd;
+color:#555;
+float:left;
+font-size:100%;
+font-weight:400;
+line-height:1.3;
+list-style:none;
+margin:0;
+outline:0;
+padding:.5em 1.1em;
+text-decoration:none;
+}
+
+#tabs-primary ul li.active a,#tabs-primary ul li.active a:hover {
+background:#858585 url(images/bg-shade-dark.png) repeat-x 0 100%;
+border-color:#858585;
+color:#fff;
+line-height:1.9;
+margin-top:-0.6em;
+}
+
+/* @end 
+ @group Secondary */
+#tabs-secondary {
+background:#858585 url(images/bg-shade-dark-flip.png) repeat-x 0 0;
+border:solid 1px #858585;
+border-top:none;
+color:#fff;
+float:left;
+position:relative;
+width:100%;
+}
+
+#tabs-secondary ul {
+display:inline;
+float:left;
+list-style:none;
+margin:0;
+padding:.5em;
+}
+
+#tabs-secondary ul li {
+float:left;
+margin:0;
+padding:0;
+}
+
+#tabs-secondary ul li a {
+color:#fff;
+float:left;
+font-size:12px;
+margin:0 .15em 0 0;
+padding:.5em .75em;
+}
+
+/* @end 
+ @end 
+ @group Pagers */
+div.pager {
+margin:1em auto;
+text-align:center;
+}
+
+.pager-inner {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border:solid 1px #ddd;
+padding:0 .5em;
+}
+
+ul.pager {
+display:inline;
+margin:0;
+padding:0;
+}
+
+ul.pager li {
+border:none;
+display:inline;
+margin:0 .25em .25em 0;
+padding:0;
+}
+
+ul.pager li a {
+border:0;
+color:#555;
+display:inline-block;
+font-weight:400;
+margin:0;
+padding:.2em .75em;
+text-decoration:none;
+}
+
+ul.pager li span {
+display:inline-block;
+font-weight:400;
+padding:.2em .75em;
+}
+
+ul.pager li.pager-current {
+font-weight:700;
+}
+
+.block div.pager-inner,.panel-pane div.pager-inner {
+background:none;
+background-image:none;
+border:none;
+}
+
+.block div.pager,.panel-pane div.pager {
+font-size:.9em;
+text-align:left;
+}
+
+/* @end 
+ @group Item Lists */
+div.item-list {
+margin:0;
+padding:.25em .75em;
+}
+
+div.item-list ul {
+list-style:disc outside;
+margin:.25em 1.25em;
+padding:0;
+}
+
+div.item-list ul li {
+list-style-type:disc;
+margin:0;
+}
+
+ul.menu ul {
+border:none;
+width:100%;
+}
+
+ul.menu li a {
+border-bottom:solid 1px #eee;
+color:#000;
+display:block;
+font-size:12px;
+padding:.25em .5em;
+}
+
+ul.menu li.active-trail > a,ul.menu li.active-trail > a.active,ul.menu li a.active,ul.menu li a.active:visited {
+background-color:#888;
+color:#555;
+font-weight:700;
+}
+
+ul.menu a,ul.menu a:visited {
+font-weight:#8B0000;
+}
+
+ul.menu a:hover {
+color:#000;
+font-weight:700;
+}
+
+/* @group Indentation 
+ Indentation is happening at link level with padding. */
+ul.menu ul a {
+font-size:.9em;
+padding-left:3.25em;
+}
+
+ul.menu li li.last a,ul.menu li li:last-child a {
+border-bottom:solid 1px #eee;
+}
+
+ul.menu ul ul a {
+padding-left:4.75em;
+}
+
+ul.menu ul ul ul a {
+padding-left:6.25em;
+}
+
+/* @end 
+ @group Background Images */
+ul.menu .expanded a span,ul.menu .collapsed a span {
+background:url(images/sprites-sky.png) no-repeat;
+display:block;
+float:left;
+height:16px;
+margin-right:3px;
+width:16px;
+}
+
+/* Indentation needs to be applied to the sprites as well. 
+ @group First Level */
+ul.menu .expanded a span {
+background-position:6px -503px;
+}
+
+ul.menu .expanded a:hover span {
+background-position:6px -244px;
+}
+
+ul.menu .collapsed a span {
+background-position:6px -1023px;
+}
+
+ul.menu .collapsed a:hover span {
+background-position:6px -763px;
+}
+
+/* @end 
+ Remove the background images for nested list items that don't have any children. */
+ul.menu .expanded .leaf a span,ul.menu .collapsed .leaf a span {
+background-image:none;
+height:0;
+width:0;
+}
+
+/* @end 
+ @end 
+ @group More Links */
+.more-link {
+clear:both;
+color:#888;
+display:block;
+font-size:.9em;
+font-weight:700;
+height:1.5em;
+margin:1em -0.55em -0.55em;
+padding:.25em;
+text-transform:uppercase;
+}
+
+.more-link a {
+color:#888;
+float:right;
+padding-right:1.5em;
+}
+
+.more-link span.icon {
+background:transparent url(images/sprites-sky.png) no-repeat 0 -1023px;
+float:right;
+height:16px;
+margin-left:-1.15em;
+width:16px;
+}
+
+/* @end 
+ @group Blocks */
+.block {
+margin:0 0 1.25em;
+overflow:hidden;
+padding:0;
+}
+
+#content-top .block,#content-bottom .block {
+border:0 dotted #ddd;
+margin:0;
+overflow:visible;
+}
+
+.block h3.title {
+background:#fff url(images/bg-shade-light.png) repeat-x bottom left;
+border:solid 1px #ddd;
+border-bottom:0;
+color:#555;
+display:block;
+font-size:1.1em;
+font-weight:700;
+letter-spacing:normal;
+margin:0;
+padding:5px 10px;
+text-align:left;
+}
+
+.style-menu .content {
+border:none;
+padding:0;
+}
+
+/* @group Links */
+.block .links ul {
+display:block;
+font-size:12px;
+margin:0;
+padding:0 0 0 .25em;
+}
+
+.block .links li {
+display:block;
+list-style-position:outside;
+list-style-type:disc;
+}
+
+/* @end 
+ @group Poll 
+ @group Results */
+.poll .title {
+font-size:1.1em;
+font-weight:700;
+margin-bottom:1em;
+}
+
+.poll .bar {
+background:#fff url(images/bg-shade-light.png) repeat-x bottom left;
+color:#777;
+height:1.5em;
+}
+
+.poll .bar .foreground {
+background:#858585 url(images/bg-shade-dark.png) repeat-x bottom left;
+color:#fff;
+height:1.5em;
+}
+
+.poll .vote-form .choices {
+display:block;
+margin:0;
+}
+
+.poll .vote-form .choices .title {
+font-size:1.1em;
+line-height:normal;
+}
+
+/* @end 
+ @end 
+ @end 
+ @group Nodes */
+#edit-body-wrapper {
+clear:both;
+width:100%;
+}
+
+.node {
+clear:both;
+display:block;
+margin:0 0 1em;
+padding:0 1em 0 0;
+}
+
+/* @group Teasers */
+.node-teaser {
+border-bottom:solid 1px #eee;
+margin-bottom:3em;
+padding-bottom:1.5em;
+}
+
+/* @end 
+ @group Sticky */
+.node-sticky {
+border:2px dotted #eee;
+}
+
+.node-teaser .meta,.with-photo .meta {
+background:#fff url(images/bg-shade-white-lrg.png) repeat-x left bottom;
+border:solid 1px #ddd;
+clear:both;
+float:left;
+padding:1em;
+}
+
+.with-photo .meta {
+min-height:7.25em;
+padding:1em 1em 1em 9em;
+width:81%;
+}
+
+.node .meta .picture {
+border:solid 1px #777;
+float:left;
+margin:0 1em 0 -8em;
+padding:0;
+position:absolute;
+}
+
+.node .meta .picture img {
+display:block;
+margin:0;
+padding:0;
+}
+
+.without-photo .meta {
+padding:1em;
+width:93%;
+}
+
+/* @end 
+ @group Terms */
+.node .terms {
+font-size:1.1em;
+margin-top:.25em;
+}
+
+.node .terms .icon {
+background:url(images/sprites-16.png) no-repeat -169px -1224px;
+display:block;
+float:left;
+height:16px;
+width:16px;
+}
+
+.node .terms ul.links {
+border:none;
+display:inline;
+font-size:.9em;
+margin:0;
+padding:0;
+}
+
+.node .terms ul.links li {
+background:transparent;
+border:none;
+display:inline;
+margin:.25em .65em;
+padding:0;
+}
+
+/* @end 
+ @group Content */
+.node .content {
+clear:both;
+padding:1em 0;
+}
+
+.node ol {
+list-style-type:decimal;
+margin:0 0 0 35px;
+}
+
+.node ul {
+list-style-type:disc;
+margin:0 0 0 35px;
+}
+
+.node .content li {
+padding:2px 0;
+}
+
+/* @end 
+ @group Book Navigation */
+.book-navigation {
+border:solid 1px #ddd;
+margin:2em 0;
+}
+
+#book-outline {
+min-width:0;
+}
+
+/* @group Links */
+.book-navigation .page-links {
+background:#fff url(images/bg-shade-light.png) repeat-x bottom left;
+border:none;
+}
+
+.book-navigation .page-links a:hover {
+background:none;
+color:#000;
+}
+
+/* @end 
+ @end 
+ @group Node Add */
+dl.node-type-list dt a:before {
+content:'+ ';
+}
+
+.node .links ul {
+clear:both;
+display:inline;
+float:left;
+margin:0 0 1em;
+padding:0;
+}
+
+.node .links li {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border:solid 1px #ddd;
+display:inline;
+float:left;
+font-size:.9em;
+font-weight:400;
+line-height:1.3;
+list-style:none;
+margin:.25em .5em 0 0;
+outline:0;
+padding:.5em 1.1em;
+text-decoration:none;
+}
+
+.node .links li:hover {
+background:#b3b3b3 url(images/bg-shade-medium.png) repeat-x 0 100%;
+border-color:#999;
+color:#333;
+}
+
+/* @end 
+ @end 
+ @group Comments */
+#comment-wrapper {
+clear:both;
+margin:1.5em 0 0;
+position:static;
+}
+
+#comment-wrapper h3 {
+display:block;
+font-size:1.5em;
+letter-spacing:-1px;
+line-height:2em;
+}
+
+#comments .box {
+clear:both;
+margin:25px 0 0;
+}
+
+.comment {
+border:1px solid #ddd;
+clear:both;
+display:block;
+margin:0 0 15px;
+}
+
+.comment .title {
+display:block;
+font-size:1.5em;
+letter-spacing:-1px;
+line-height:2em;
+padding-left:8px;
+}
+
+.comment .title .new {
+padding-left:4px;
+}
+
+.comment .info {
+clear:both;
+color:#888;
+display:block;
+font-size:.95em;
+padding:5px 10px;
+}
+
+.comment .info .picture {
+display:inline;
+margin:0 10px;
+}
+
+.comment .info .picture img {
+display:inline;
+padding:0 0 10px;
+vertical-align:middle;
+}
+
+.comment .content {
+padding:5px 10px;
+}
+
+.comment ul.links {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border-top:solid 1px #ddd;
+display:inline;
+float:left;
+height:24px;
+line-height:24px;
+margin:1em 0 0;
+padding:0;
+text-align:right;
+width:100%;
+}
+
+.comment .links li {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+display:inline-block;
+font-weight:400;
+line-height:24px;
+list-style:none;
+margin:0;
+outline:0;
+padding:0 1em;
+text-decoration:none;
+}
+
+.comment .links li:hover {
+background:#b3b3b3 url(images/bg-shade-medium.png) repeat-x 0 100%;
+color:#333;
+}
+
+/* @end 
+ @group Feed Icon */
+.left .feed-icon {
+padding:0 1em 0 0;
+text-align:right;
+}
+
+.right .feed-icon {
+padding:0 0 0 1em;
+text-align:left;
+}
+
+/* @end 
+ @group Feed Aggregator 
+ @group Source */
+.feed-source {
+background:#fff url(images/bg-shade-white-lrg.png) repeat-x 0 100%;
+border:solid 1px #ddd;
+margin:1em 0;
+padding:2em;
+}
+
+.feed-source .feed-icon {
+margin-left:1em;
+}
+
+.feed-description {
+font-size:1.1em;
+margin:0 4em 1em 0;
+}
+
+.feed-url {
+border-top:solid 1px #ddd;
+padding-top:1em;
+}
+
+.feed-url em,.feed-updated em {
+color:#777;
+float:left;
+width:90px;
+}
+
+/* @end 
+ @group Item */
+.feed-item {
+border-bottom:solid 1px #eee;
+padding:1em;
+}
+
+/* @end 
+ @end 
+ @group Forms 
+ @group Fieldsets 
+*
+* Expanded & Regular (not collapsible) Fieldset
+* Applying required fieldset styles here.*/
+fieldset {
+background:#fff url(images/bg-shade-white-lrg.png) repeat-x bottom left;
+border:solid 1px #cdcdcd;
+padding:0;
+width:auto;
+}
+
+/**
+* Collapsed Fieldset
+* Don't want any padding, additional margins, borders
+* or background colors because the fieldset is collapsed.*/
+fieldset.collapsed {
+background:none;
+border:none;
+margin-bottom:1.5em;
+}
+
+html.js fieldset:not(.collapsible) legend {
+margin-left:1.25em;
+padding:0;
+}
+
+/**
+* Padding is being applied to wrappers as opposed to the
+* fieldsets themselves.  Some Drupal forms have a
+* div.fieldset-wrapper, and some don't so we've overridden
+* theme_fieldset() to make sure there is always one, and
+* here we back out of the padding when 2 are present.*/
+fieldset .fieldset-wrapper {
+display:block;
+margin:0;
+padding:1.3em;
+}
+
+/* Padding inside nested fieldsets still needs to happen */
+fieldset .fieldset-wrapper fieldset .fieldset-wrapper {
+margin:0;
+padding:1em;
+}
+
+/* Avoid scrollbars */
+html.js fieldset.collapsible .fieldset-wrapper {
+overflow:visible;
+}
+
+/* @group Legends 
+ Regular & Common Legend Styles */
+fieldset legend {
+font-size:12px;
+font-weight:700;
+}
+
+html.js fieldset.collapsible legend a {
+background:transparent url(images/sprites-sky.png) no-repeat;
+background-position:-266px -250px;
+padding:0 0 0 1.5em;
+}
+
+/* Expanded Legend */
+html.js fieldset.collapsible legend {
+margin-left:1.5em;
+}
+
+/* Collapsed Legend */
+html.js fieldset.collapsed legend {
+margin-left:0;
+}
+
+html.js fieldset.collapsed legend a {
+background-position:-266px -516px;
+}
+
+/* @end 
+ @end 
+ @group Labels */
+.form-item label {
+font-size:1.1em;
+font-weight:700;
+}
+
+/* Back out of the bigger sizes for checkbox and radio option labels */
+.form-item label.option {
+font-size:12px;
+}
+
+/* @end 
+ @group Elements */
+.form-item,.book-outline-form .form-item {
+padding:0 0 0 1.5em;
+width:auto;
+}
+
+/**
+* Specifically set font size & family for inputs to
+* override browser and crazy module defaults*/
+.form-checkbox,.form-checkboxes,.form-date,.form-file,.form-password,.form-radio,.form-select,.form-text,.form-textarea {
+font-size:9pt;
+}
+
+/* 98% width doesn't play well in table cells with padding  */
+td .form-text {
+width:auto;
+}
+
+.node-form fieldset .form-text {
+width:99%;
+}
+
+/* @end 
+ @group Search Forms */
+.search-form .form-text {
+margin-right:.5em;
+width:80%;
+}
+
+.block-search .form-text {
+width:65%;
+}
+
+/* @end 
+ @end 
+ @group Textareas */
+.resizable-textarea {
+width:100%;
+}
+
+/* @end 
+ @group Checkboxes */
+.form-item-checkbox {
+margin:1em 0 .5em -2px;
+padding:0;
+}
+
+.form-item-required .form-required {
+color:#d70000;
+float:left;
+font-size:1.4em;
+font-weight:700;
+left:0;
+line-height:normal;
+position:absolute;
+}
+
+.form-item-required label {
+padding-left:1em;
+}
+
+/* @end 
+ @end 
+ @end 
+ @group Descriptions */
+.description {
+color:#666;
+display:none;
+line-height:normal;
+padding:.25em 0;
+}
+
+.fieldset-wrapper > div.description {
+color:inherit;
+font-size:1.1em;
+margin-top:1.1em;
+}
+
+/* @end 
+ @group Filter Tips */
+ul.tips {
+margin:0;
+padding:0 0 0 2.25em;
+}
+
+ul.tips li {
+font-size:1.2em;
+list-style:square;
+list-style-position:outside;
+margin:0 0 0 1em;
+padding:.25em;
+}
+
+/* @end 
+ @group User Login Form */
+#user-login-form {
+margin:0;
+padding:1em 0 1em 1em;
+text-align:left;
+}
+
+/* Open ID */
+#user-login-form .form-item {
+margin:0 0 1.5em;
+}
+
+#user-login-form .form-submit {
+margin-bottom:1em;
+margin-top:-1.5em;
+}
+
+/* Open ID */
+li.openid-link {
+background-position:center left;
+margin:0;
+padding:0;
+}
+
+li.openid-link a {
+margin:0;
+padding-left:1.75em;
+}
+
+#user-login li.openid-link {
+margin-bottom:1em;
+}
+
+.advanced-help-link {
+margin-top:1px;
+}
+
+/* @end 
+ @end 
+ @group System Messages */
+div.messages {
+background:#fff url(images/bg-shade-white-lrg.png) repeat-x 0 100%;
+border:1px solid #ddd;
+margin:1em 0;
+padding:1em 1em 2em;
+}
+
+div.warning {
+margin:1em 0;
+padding:1em 1em 2em;
+}
+
+.messages .inner {
+padding-left:4em;
+}
+
+.messages .icon {
+background:url(images/sprites-32.png) no-repeat 0 0;
+height:32px;
+position:absolute;
+width:32px;
+}
+
+.warning .icon {
+background-position:-182px -1270px;
+}
+
+.error .icon {
+background-position:-364px -898px;
+}
+
+.status .icon {
+background-position:0 -960px;
+}
+
+div.help {
+margin:1em 0;
+padding:1em 0;
+}
+
+div.help div.help {
+background:none;
+border:none;
+margin:0;
+padding:0;
+}
+
+div.password-description {
+border:solid 1px #ddd;
+font-size:.9em;
+margin:-2em 0 1em;
+padding:.5em 1em 1.25em 4em;
+}
+
+.quicktabs_main .block .title {
+background:none;
+border:none;
+padding:1em 1em .25em;
+}
+
+/* @end 
+ @group Admin Menu */
+#admin-menu {
+font-size:12px;
+z-index:9999;
+}
+
+/* @end 
+ @group Vertical Tabs 
+ Disclaimer: sorry about all the important!'s but the CSS file loads last */
+div.vertical-tabs-div {
+border:1px solid #ddd !important;
+}
+
+.vertical-tabs ul.vertical-tabs-list {
+border:1px solid #ddd !important;
+border-bottom:0;
+border-right:0;
+}
+
+.vertical-tabs ul.vertical-tabs-list li {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border-bottom:1px solid #ddd !important;
+border-right:1px solid #ddd !important;
+}
+
+.vertical-tabs ul.vertical-tabs-list li span.description {
+color:#999;
+}
+
+.vertical-tabs ul.vertical-tabs-list li.selected {
+background:#858585 url(images/bg-shade-dark.png) repeat-x 0 100%;
+border-right:none !important;
+color:#fff;
+}
+
+.vertical-tabs ul.vertical-tabs-list li.selected a {
+color:#fff !important;
+}
+
+/* @end 
+ @group TinyMCE */
+body.mceContentBody {
+background:#fff none;
+}
+
+/* @end 
+ @group Coder */
+.coder pre {
+border:none;
+margin:0;
+}
+
+.coder .item-list ul {
+border:solid 1px #bbb;
+margin:0;
+padding:0;
+}
+
+.coder .item-list li {
+border-bottom:solid 1px #bbb;
+list-style:none;
+margin:0;
+padding:0;
+}
+
+.coder .item-list li.first.last {
+border:none;
+color:#777;
+padding:2em;
+}
+
+.coder .coder-warning {
+padding:1em;
+}
+
+/* @end 
+ @group External Link */
+ul.menu a.ext {
+padding-right:0;
+}
+
+.qbcgtbls {
+float:left;
+margin:1% 2%;
+padding:0 0 0 1.5em;
+width:40%;
+}
+
+.qbcgtbls-ver3_sms_log_headers_v,.qbcgtbls-student_home_work_and_assignment,.qbcgtbls-Ver3_upcoming_events,.qbcgtbls-Ver3_recent_created_events_view_,.qbcgtbls-ver3_events_about_retire_view,.qbcgtbls-upcoming_exam_schedule_events,.qbcgtbls-recent_created_exam_schedule,.qbcgtbls-exam_about_retire_view,.qbcgtbls-dashboard_Ver3_upcoming_events,.qbcgtbls-ver_student_attendance_inf,.qbcgtbls-spevent_upcoming_events,.qbcgtbls-student_personal_information,.qbcgtbls-speve_recent_created_events_view,.qbcgtbls-speve_events_about_retire_view,.qbcgtbls-cult_recent_created_events_view_,.qbcgtbls-cultura_events_about_retire_view,.qbcgtbls-cultural_upcoming_events,.qbcgtbls-test_faculty_profile,.qbcgtbls-qtxt_routes,.qbcgtbls-qtxt_attendance_today_summary,.qbcgtbls-ver3_bus_routes,.qbcgtbls-recently_created_view,.qbcgtbls-stu_par_home_work_and_assignment {
+float:left;
+margin:1% 2%;
+padding:0 0 0 1.5em;
+width:98%;
+}
+
+.qbcgtblcols {
+margin-top:-100px;
+min-width:1%;
+}
+
+.qbcgtblecaption {
+background:url(images/h2_bg.gif) top left no-repeat #9A9A9A;
+color:#FFF;
+font-size:13px;
+font-weight:700;
+letter-spacing:0;
+padding:5px 0 5px 12px;
+text-decoration:none;
+width:auto;
+}
+
+.qbsubmit {
+margin-left:10px;
+}
+
+/*created by Deepak for  v3_leave_letter module*/
+.qbleaveletetrform {
+width:150px;
+}
+
+#qbusefullinkspagegrid .views-view-grid {
+text-align:center;
+}
+
+#qbusefullinkspagegrid td {
+width:33%;
+}
+
+.views-field-field-faculty-images-load-fid {
+text-align:center;
+vertical-align:middle;
+}
+
+#header #logo img,.block div.pager ul.pager,.panel-pane ul.pager,.node .meta p {
+margin:0;
+padding:0;
+}
+
+.name-slogan-logo #logo,#navigation .wrap-left,.profile .picture {
+float:left;
+}
+
+h2,h4,.feed-item-title a {
+font-size:1.4em;
+}
+
+tr.odd td,#blocks td.region {
+background:#fff;
+}
+
+td:hover,tr.even td:hover,tr.odd td:hover,td.active,dd:hover {
+background:#eee;
+}
+
+dt a,fieldset legend a,fieldset legend a:active,fieldset legend a:focus,fieldset legend a:visited {
+text-decoration:none;
+}
+
+dd:last-child,.coder .item-list li:last-child {
+border-bottom:0;
+}
+
+.search-results dd,.advanced-help-topic dd,.profile dd {
+margin-bottom:0;
+}
+
+dl.multiselect,dl.multiselect dt,img,.quicktabs_main .block .content,.panel-pane .quicktabs_wrapper .content {
+border:none;
+}
+
+caption,.poll .vote-form,.block .feed-icon {
+text-align:left;
+}
+
+#navigation li.last,#tabs-secondary ul li:last-child a {
+border-right:none;
+}
+
+#navigation ul ul li.last a,.primary-and-secondary,ul.menu li.last a,ul.menu li:last-child a,.profile h3 {
+border-bottom:none;
+}
+
+#tabs-primary ul li a:hover,#tabs-secondary ul li a:hover,#tabs-secondary ul li.active a {
+background:#b3b3b3 url(images/bg-shade-medium.png) repeat-x 0 100%;
+border-color:#999;
+color:#fff;
+}
+
+#tabs-primary ul li.active,ul.pager li.pager-current span {
+background:#858585 url(images/bg-shade-dark.png) repeat-x 0 100%;
+color:#fff;
+}
+
+ul.menu li,#user-login-form .form-item,#user-login-form .form-text,#user-login ul,#user-login-form ul,.profile td {
+margin:0;
+}
+
+li.leaf,.node div.links,fieldset .fieldset-wrapper .fieldset-wrapper {
+padding:0;
+}
+
+.block .content,.form-item-required {
+position:relative;
+}
+
+.node .meta,.feed-item-meta {
+color:#777;
+}
+
+.book-navigation ul.menu,.quicktabs_main .block {
+border:none;
+margin:0;
+padding:0;
+}
+
+.form-text,.form-textarea {
+color:#333;
+width:98%;
+}
+
+.node-form .form-text,.node-form textarea {
+width:98%;
+}
+
+#block-user-0 .content,.panel-pane .block {
+border:solid 1px #ddd;
+}
+
+#block-user-0 form,.panel-panel {
+overflow:hidden;
+}
+
+.select-all {
+width:5px;
+}
+
+#homepage #wrapper {
+background:transparent;
+}
+
+.pane-title {
+background-color:#224272;
+clear:both;
+color:#FFF;
+display:block;
+font-size:13px;
+font-style:normal;
+font-variant:normal;
+font-weight:700;
+letter-spacing:-1px;
+line-height:14px;
+margin-bottom:0;
+margin-left:10px;
+margin-top:0;
+padding:5px 0 5px 12px;
+width:auto;
+}
+
+#content .menu {
+margin-left:35px;
+}
+
+.pane-block h2 {
+background-color:transparent;
+clear:both;
+color:#224272;
+display:block;
+font-family:'Lucida Grande', Verdana, Arial, sans-serif;
+font-size:14px;
+font-style:normal;
+font-variant:normal;
+font-weight:bolder;
+letter-spacing:-1px;
+line-height:1.4em;
+margin-bottom:10px;
+margin-left:50px;
+margin-top:5px;
+padding:15px 0 5px 12px;
+}
+
+.pane-block {
+background-repeat:no-repeat;
+padding-left:10px;
+}
+
+.pane-menu-menu-dash-board-admin-menu,.pane-menu-menu-ver3-dash-board-parent-menu {
+background-image:url(images/customsmenus/menu_tasks.png);
+}
+
+.pane-menu-menu-dash-board-admin-menu-sms,.pane-menu-menu-ver3-dashboard-sms-menu {
+background-image:url(images/customsmenus/menu_reports.png);
+}
+
+.pane-menu-menu-dash-board-admin-menu-event,.pane-menu-menu-dash-board-par-event-menu {
+background-image:url(images/customsmenus/menu_calendar.png);
+}
+
+.pane-menu-menu-dash-board-admin-video,.pane-menu-menu-dsh-brd-parnt-mnu-video {
+background-image:url(images/customsmenus/menu_kp.png);
+}
+
+#qbhomealerttables .qbcgtbls {
+margin:0 2%;
+}
+
+#qbhomemenulist.qbhomemenu {
+height:175px;
+}
+
+#qbhomealerttables .qbh2pane-title,#qbhomealertrollingmessages .qbh2pane-title,#qbhomealerttablesblock .qbh2pane-title {
+background:url(images/h2_span_bg.gif) top right no-repeat;
+display:block;
+padding:5px 10px;
+}
+
+.panel-region-separator {
+clear:both;
+}
+
+#qbhomealertrollingmessages .pane-content {
+background:#fff url(images/bg-shade-light.png) repeat-x 0 100%;
+border:1px solid #D3D3D3;
+display:block;
+margin:0 2%;
+padding:10px;
+width:94.5%;
+}
+
+#qbhomealerttablesblock .pane-content {
+margin-top:-12px;
+padding-left:11px;
+}
+
+#qbhomealerttables .pane-title,#qbhomealertrollingmessages .pane-title,#qbhomealerttablesblock .pane-title {
+background:url(images/h2_bg.gif) top left no-repeat #9A9A9A;
+color:#FFF;
+font-size:13px;
+font-weight:700;
+letter-spacing:0;
+margin:1% 0 0 11px;
+padding:0;
+}
+
+.qb_views_slideshow_singleframe_pause {
+background-image:url(images/pause.gif);
+background-repeat:no-repeat;
+padding-left:5px;
+padding-right:5px;
+}
+
+.qb_views_slideshow_singleframe_next {
+background-image:url(images/next.gif);
+background-repeat:no-repeat;
+padding-left:5px;
+padding-right:5px;
+}
+
+.qb_views_slideshow_singleframe_previous {
+background-image:url(images/prev.gif);
+background-repeat:no-repeat;
+padding-left:5px;
+padding-right:5px;
+}
+
+.qbhometables .qbhomerollingmessages {
+padding-left:10px;
+}
+
+#navigation a:hover,#navigation a:visited:hover,#navigation .active-trail a.active:hover,#navigation .active-trail a:hover,ul.pager li a:hover,ul.pager li a:visited:hover {
+background:#B3B3B3 url(images/bg-shade-medium.png) repeat-x 0 100%;
+}
+
+ul.menu *,ul.menu li,ul.menu li.leaf,ul.menu li.expanded,ul.menu li.collapsed,#user-login li,#user-login-form li {
+list-style:none;
+margin:0;
+padding:0;
+}
+
+.node .terms ul.links li a:visited:hover,.node .terms ul.links li a:hover,a:hover,a.active,#navigation .active-trail a,#navigation .active-trail a.active,#navigation ul li.active-trail ul li a.active {
+color:#000;
+}
+
+.book-navigation .page-links a,.vertical-tabs ul.vertical-tabs-list li a,th a,th a.active,.more-link a:hover,.node .links li a,.comment .links li a {
+color:#555;
+}
+
+#header #site-name a,.vertical-tabs ul.vertical-tabs-list li.selected span.description,.node .links li:hover a,.node .links li:hover a:hover,.comment .links li:hover a,.comment .links li:hover a:hover {
+color:#fff;
+}
+
+html,body,.form-radio,.form-checkbox,.form-file,.form-select,select,.form-text,input,.form-textarea,textarea {
+font-family:"Lucida Grande", "Lucida Sans", "Lucida Sans Unicode", "DejaVu Sans", Arial, sans-serif;
+}
+
+#wrapper,#footer,#user-login-form .form-text {
+width:90%;
+}
+
+#v3-main-form .form-item,#ver3-parent-teacher-form .form-item,#support-edit .form-item,#tprofile-create .form-item,#tprofile-edit .form-item,#busroute-create .form-item,#busroute-edit .form-item,#busroute-student-edit .form-item,#sprofile-create .form-item,#sprofile-edit .form-item,#v3-load-admindata-main-form .form-item,#v3-update-mobile-number-form .form-item,#busroutes-edit .form-item,#busroutes-stops-edit .form-item,#busroutes-student-edit .form-item,#busroutes-create .form-item,#qtxt-marksms-teacher-form .form-item {
+float:none;
+width:40%;
+margin-bottom:1em;
+}
+
+#v3-sms-first-page .form-item-radio,#v3-main-form .form-item-radio,#ver3-parent-teacher-form .form-item-radio,#tprofile-create .form-item-radio,#busroute-create .form-item-radio,#sprofile-create .form-item-radio {
+float:left;
+margin-bottom:1em;
+}

@@ -1,0 +1,345 @@
+<?php
+
+/**
+
+ * Implementation of hook_views_api().
+
+ *
+
+ */
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+function v3_cce_report_card_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', '  '),
+
+  );
+
+}
+
+
+
+
+
+function v3_cce_report_card_menu() {
+
+	$items['reportcard'] = array(
+
+			'title' => t('Report Card'),
+
+			'page callback' => 'cce_report_card_form',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);
+
+	$items['reportcard/ind/ahahjs2'] = array(
+
+        'page callback' => 'cce_report_ahah_field_js_for_ind2',
+
+    //    'access arguments' => array('administer ahahtestmodule'),
+
+        'type' => MENU_CALLBACK,
+
+    			'access callback' => 'user_access',
+
+    			'access arguments' => array('access content'),	
+
+  );
+
+return $items;
+
+}
+
+
+
+function cce_report_card_form() {
+
+			$output = drupal_get_form('cce_report_form');
+
+			return $output ;
+
+}
+
+
+
+
+
+
+
+function cce_report_form( $form_state) {
+
+
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$defusermobile = $myMobileNumber;
+
+$defadminuserid = "";
+
+$defadminpwd = "";
+
+
+
+
+
+	  $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+
+						'#title' => t('Report card For CCE '),
+
+						'#collapsible' => TRUE, 
+
+						'#collapsed' => FALSE,
+
+						'#tree' => TRUE
+
+	  );
+
+				  
+
+
+
+	  db_set_active('qtxt_db');	
+
+
+
+	  
+
+	  $resultg1 = db_query("SELECT account_grade_id,grade_name FROM {qtxt_sms_account_grades} a, {qtxt_sms_account} b where   a.account_id = b.account_id and 
+	  section !='ALL' and group_id is not null order by class_weight ");
+
+
+				  $igradeOptions = array('' => t('Select..'));
+
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+
+				  	$igradeOptions[$rowg1->account_grade_id ] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+
+				  	}
+
+				db_set_active('default');
+
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+
+				  				  		'#options' => $igradeOptions,
+
+				  				  		'#title' => t('Class'),
+
+				  				  		'#description' => t('Please select the class '),
+
+				  				  		'#disabled' => FALSE,
+
+				  				  		'#ahah' => array(
+
+				  				  		 'path' => 'markreport/ind/ahahjs2',
+
+				  				  		 'wrapper' => 'ahah-wrapper-grade',
+
+				  				  		 'method' => 'replace',
+
+				  				  						)
+
+				  );
+
+				  
+
+				  $form['adminOuter']['student'] = array('#type' => 'select',
+
+				  				  		'#title' => t('Student Name'),
+
+										'#options' =>  array( '' => t('Select ..') ),
+
+				  				  		'#description' => t('Please select the Student'),
+
+				  				  		'#disabled' => FALSE,
+
+				  				  	'#prefix' => '<div id = "ahah-wrapper-grade">',
+
+				  					'#suffix' => '</div>',
+
+				  				  		
+
+				  );
+
+				  
+
+				
+
+  $form['adminOuter']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Confirm'),
+
+    '#prefix' => '<br/>',
+
+  );
+
+ $form['adminOuter']['submit']['#attributes']['class']  = $form['adminOuter']['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+return $form;
+
+ 
+
+}
+
+
+
+
+
+
+
+
+
+function cce_report_form_submit($form, &$form_state) {
+$op = $form_state['values']['op'];
+ 
+	global $user;
+
+	$profile =  profile_load_profile($user);
+
+	$myMobileNumber =  $user->profile_mobile; 
+
+	$uid = $user->uid;
+
+	$_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+
+	$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+
+	if(!empty($_SESSION['t_student'])) {
+
+		$student = &$_SESSION['t_student'];
+
+	} else {
+
+		$student = 'null';
+
+	}
+
+
+
+	if(!empty($_SESSION['t_student_grade'])) {
+
+		$grade = &$_SESSION['t_student_grade'];
+
+	} else {
+
+		$grade = "";
+
+	}
+
+	// drupal_set_message(t("g $grade"));
+       // drupal_set_message(t("s $student"));
+ 
+
+
+	$form_state['redirect'] = "ccerc/$student";
+
+  return;
+
+
+
+}
+
+
+
+function cce_report_ahah_field_js_for_ind2 () {
+
+//  krumo($form_state);
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+
+		$form_build_id = $_POST['form_build_id'];
+
+
+
+		// Get for the form from the cache
+
+		$form = form_get_cache($form_build_id, $form_state);
+
+  
+
+		// Get the form set up to process
+
+		$args = $form['#parameters'];
+
+		$form_id = array_shift($args);
+
+		$form_state['post'] = $form['#post'] = $_POST;
+
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+
+
+
+
+		$gid = $form['#post']['adminOuter']['grade'];
+
+		db_set_active('qtxt_db');
+
+		$sqlg = " select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where account_grade_id = $gid order by SUBSTRING(student_name, LOCATE('.', student_name)+1)";
+
+		$resultg = db_query($sqlg);
+
+		$valueg[''] = 'Select a value';
+
+		while($datag = db_fetch_object($resultg))
+
+		{
+
+		$valueg[$datag->account_student_map_id] = $datag->student_name;
+
+		}
+
+		db_set_active('default');
+
+		//$valueg1 = drupal_map_assoc($valueg);
+
+		$form['adminOuter']['student']['#options'] = $valueg;
+
+		form_set_cache($form_build_id, $form, $form_state);
+
+				$form += array(
+
+					'#post' => $_POST,
+
+					'#programmed' => FALSE,
+
+				  );
+
+				$form = form_builder('qtext1_smsform', $form, $form_state);		
+
+				$output = $form['adminOuter']['student'];
+
+				unset($output['#prefix'],$output['#suffix']);
+
+				$out1 =  drupal_render($output);
+
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+
+
+
+}
+

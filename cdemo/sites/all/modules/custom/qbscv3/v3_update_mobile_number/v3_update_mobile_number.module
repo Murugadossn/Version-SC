@@ -1,0 +1,291 @@
+<?php
+
+/**
+
+ * Implementation of hook_views_api().
+
+ *
+
+ */
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+function v3_update_mobile_number_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', '  '),
+
+  );
+
+}
+
+function v3_update_mobile_number_menu() {
+
+	$items['update_mobile'] = array(
+
+			'title' => t('Update Mobile Numbers and Email Id'),
+
+			'page callback' => 'v3_update_mobile_form',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);
+
+return $items;
+
+}
+
+function v3_update_mobile_form() {
+
+			$output = drupal_get_form('v3_update_mobile_number_form');
+
+			return $output ;
+
+}
+
+
+
+function v3_update_mobile_number_form( $form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;  
+
+$uid = $user->uid;
+
+$defusermobile = $myMobileNumber;
+
+$defadminuserid = "";
+
+$defadminpwd = "";
+
+
+
+	  $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+
+						'#title' => t('Update Mobile Numbers'),
+
+						'#collapsible' => TRUE, 
+
+						'#collapsed' => FALSE,
+
+						'#tree' => TRUE
+
+	  );
+
+	  db_set_active('qtxt_db');	
+
+	  $field = db_fetch_object(db_query("select person_name,mobile_number,role_name,person_email,person_relationship_to_student 
+from qtxt_sms_mobile_numbers where drupal_uid =$uid "));
+
+	 			 
+
+				db_set_active('default');
+
+				  
+
+		$form['adminOuter']['sid'] = array(
+
+			'#type' => 'textfield',
+
+			'#title' => t('Name'),
+
+			'#size' => 60,
+
+			'#maxlength' => 100,
+
+			'#disabled' => false,
+
+    		'#default_value' => $field->person_name,
+
+		);
+
+		$form['adminOuter']['role'] = array(
+
+			'#type' => 'textfield',
+
+			'#title' => t('Category'),
+
+			'#size' => 60,
+
+			'#maxlength' => 100,
+
+			'#disabled' => false,
+
+    		'#default_value' => $field->role_name,
+
+		);
+              $form['adminOuter']['User_role'] = array(
+
+			'#type' => 'textfield',
+
+			'#title' => t('Role'),
+
+			'#size' => 60,
+
+			'#maxlength' => 100,
+
+			'#disabled' => false,
+
+    		'#default_value' => $field->person_relationship_to_student,
+
+		);
+
+
+		$form['adminOuter']['mobile'] = array(
+
+			'#type' => 'textfield',
+
+			'#title' => t('Mobile Number'),
+
+			'#size' => 60,
+
+			'#maxlength' => 100,
+
+			'#disabled' => false,
+'#required' => true,
+
+    		'#default_value' => $field->mobile_number,
+
+		);
+
+		$form['adminOuter']['email_id'] = array(
+
+			'#type' => 'textfield',
+
+			'#title' => t('Email Id'),
+
+			'#size' => 60,
+
+			'#maxlength' => 100,
+
+			'#disabled' => false,
+
+    		'#default_value' => $field->person_email,
+// '#prefix' => '<br/><br/><br/><br/>',
+
+		);
+
+  $form['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Confirm'),
+
+  );
+
+$form['buttons']['cancel'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Cancel'),
+
+  );
+
+
+
+
+
+return $form;
+
+}
+function v3_update_mobile_number_form_submit($form, &$form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+$uid = $user->uid;
+$op = $form_state['values']['op'];
+switch ($op) {
+    case t('Cancel'):
+ 
+  
+
+		  $form_state['redirect'] = 'cloneschoolcal';
+
+		  return;	
+break;
+
+	case t('Confirm'):
+
+
+	$mobile= $form_state['values']['adminOuter']['mobile'];
+	$email_id = $form_state['values']['adminOuter']['email_id'];
+
+      db_set_active('qtxt_db');	
+
+	$result4 = db_query("update {qtxt_sms_mobile_numbers} set mobile_number ='$mobile', person_email ='$email_id' where drupal_uid = $uid");
+
+$field = db_fetch_object(db_query("select account_student_map_id from qtxt_sms_mobile_numbers where drupal_uid = $uid"));
+$sid = $field->account_student_map_id;
+
+$result9 = db_query("update {qtxt_sms_account_staff} set mobile_number ='$mobile', staff_email ='$email_id' where staff_id = '$sid' ");
+
+
+	
+
+	db_set_active('default');
+
+	$result4 = db_query("update {profile_values} set value ='$mobile' where uid = $uid and fid =3");
+drupal_set_message(t("Mobile Number Updated "));
+
+ 		$form_state['redirect'] = 'user';
+
+		  return;	
+break;
+
+	}
+
+	
+
+
+	
+
+
+
+}
+
+function v3_update_mobile_number_form_validate($form, &$form_state) {
+$mobile= $form_state['values']['adminOuter']['mobile'];
+	$email_id = $form_state['values']['adminOuter']['email_id'];
+$element = $form_state['values']['adminOuter'];
+
+if(!is_numeric($element['mobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Numbers in  Mobile Number Field'));
+    }
+
+if($email_id != "")
+{
+if (!valid_email_address($email_id)) {
+  form_set_error(' ', t('The Email Id  %email_id is Invalid.', array('%email_id' => $values['email_id'])));
+}
+
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

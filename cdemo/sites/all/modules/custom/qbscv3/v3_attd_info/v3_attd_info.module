@@ -1,0 +1,531 @@
+<?php
+
+
+
+
+
+function v3_attd_info_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', 'v3_attd_info'),
+
+  );
+
+}
+
+
+
+function v3_attd_info_menu() {
+
+$items['attd_percent'] = array(
+
+			'title' => t('Overall Attendance Percentage'),
+
+			'page callback' => 'v3_attd_percentage_cb_form',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);
+
+	return $items;
+
+	
+
+	}
+
+	
+
+function v3_attd_percentage_cb_form() {
+ 
+			 $output = drupal_get_form('v3_attd_percent_filter_form');
+
+			 $output .= drupal_get_form('ver3_attd_percent_my_form');
+			return $output ;
+
+}
+
+function v3_attd_info_theme() {
+
+	return array(
+
+		'ver3_attd_percent_my_form_theme' => array('arguments'=> array('form' => NULL),),
+
+	);
+
+}
+
+
+
+
+
+function v3_attd_percent_filter_form($form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$clVal = &$_SESSION['user_section_filter_value'];
+
+ $_SESSION['user_section_filter_value'] = $clVal;
+
+
+ $i = 0;
+
+  $form['filters'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Filter'),
+
+   // '#theme' => 'user_filters',
+
+  );
+
+
+db_set_active('qtxt_db');	
+$result = db_query("select id,percentage from qtxt_percent ");
+$options = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $options[$row->id ] =  $row->percentage; 
+}
+db_set_active('default');	
+  
+
+    $form['filters'][ 'section'] = array(
+'#title' => t('Percentage'),
+        
+'#type' => 'select',
+      '#options' => $options,
+    );
+
+
+	
+  
+
+
+
+$form['filters']['section']['#default_value']	= $clVal;
+
+ $form['filters']['buttons']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Apply'),
+
+    '#prefix' => '<br/>',
+
+
+  );
+ $form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+return $form;
+
+
+
+}
+
+function v3_attd_percent_filter_form_submit($form, &$form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+
+ $op = $form_state['values']['op'];
+  $val1 = $form_state['values']['filters']['section'];
+  $val2 = $form_state['values'][ 'class'];
+
+  switch ($op) {
+
+    case t('Apply'): 
+
+      if (isset($form_state['values']['section'])) {
+
+			$filter = $form_state['values']['section'];
+			// drupal_set_message(t("After Submit, Value Selected $filter "));	  
+
+			$_SESSION['user_section_filter_value'] = $filter;
+
+      } else  {
+
+			// drupal_set_message(t("In the Filter, Class not selected"));	  
+	  }
+
+	  break;
+
+    case t('Undo'):
+
+//      array_pop($_SESSION['user_overview_filter']);
+
+      break;
+
+    case t('Reset'):
+
+      break;
+
+    case t('Delete'):
+
+      return;
+
+  }
+
+          $c1Val = &$_SESSION['user_section_filter_value'] ;
+
+$form_state['redirect'] = 'attd_percent';
+  return;
+
+}
+function ver3_attd_percent_my_form($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid;
+ $clVal = &$_SESSION['user_section_filter_value'] ;
+
+  $header = array(
+
+    array(),
+
+    array('data' => t('grade'), 'field' => 'b.grade_name'),
+
+	array('data' => t('Student Name'), 'field' => 'b.student_name'),
+
+    array('data' => t('percentage'), 'field' => 'b.attd_percentage'),
+
+    array('data' => t('Id'), 'field' => 'b.student_identifier'),
+
+    
+  );	
+
+		$accountArray = "";
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select distinct(account_grade_id) from {qtxt_sms_staff_mobile_v}   ");
+
+		$accountGradeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradeId[] =  $row->account_grade_id; 
+		  // This is the only line that changed from the code above.
+		}
+		db_set_active('default');
+		
+		if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( ",", $accountGradeId );
+		}
+		$filterClass = " and b.account_grade_id in (" . $accountArray . " ) ";
+
+db_set_active('qtxt_db');
+
+if($clVal == 6)
+{	
+
+		
+		$sql = "select b.grade, b.student_name, b.attd_percentage, b.student_identifier 
+   from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 90 and 100 " . $filterClass." order by account_grade_id desc";
+
+	   
+
+     $query_count = "select count(student_identifier) from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 90 and 100 " . $filterClass." order by account_grade_id desc";
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);			
+						
+	
+}
+else if($clVal == 5)
+{	
+
+		
+		$sql = "select b.grade, b.student_name, b.attd_percentage, b.student_identifier 
+   from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 80 and 90 " . $filterClass." order by account_grade_id desc";
+
+	   
+
+     $query_count = "select count(student_identifier) from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 80 and 90 " . $filterClass." order by account_grade_id desc";
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);			
+						
+	
+}
+else if($clVal == 4)
+{	
+
+		
+		$sql = "select b.grade, b.student_name, b.attd_percentage, b.student_identifier 
+   from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 70 and 80 " . $filterClass." order by account_grade_id desc";
+
+	   
+
+     $query_count = "select count(student_identifier) from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 70 and 80 " . $filterClass." order by account_grade_id desc";
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);			
+						
+	
+}
+else if($clVal == 3)
+{	
+
+		
+		$sql = "select b.grade, b.student_name, b.attd_percentage, b.student_identifier 
+   from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 60 and 70 " . $filterClass." order by account_grade_id desc";
+
+	   
+
+     $query_count = "select count(student_identifier) from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 60 and 70 " . $filterClass." order by account_grade_id desc";
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);			
+						
+	
+}
+else if($clVal == 2)
+{	
+
+		
+		$sql = "select b.grade, b.student_name, b.attd_percentage, b.student_identifier 
+   from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 50 and 60 " . $filterClass." order by account_grade_id desc";
+
+	   
+
+     $query_count = "select count(student_identifier) from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage between 50 and 60 " . $filterClass." order by account_grade_id desc";
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);			
+						
+	
+}
+else if($clVal == 1)
+{	
+
+		
+		$sql = "select b.grade, b.student_name, b.attd_percentage, b.student_identifier 
+   from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage < 50 " . $filterClass." order by account_grade_id desc";
+
+	   
+
+     $query_count = "select count(student_identifier) from {qtxt_sms_attd_det_summary_v} b where b.account_id=5 and b.attd_percentage < 50 " . $filterClass." order by account_grade_id desc";
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);			
+						
+	
+}
+
+
+
+else
+{
+$sql = "select b.grade, b.student_name, b.attd_percentage, b.student_identifier 
+   from {qtxt_sms_attd_det_summary_v} b where b.account_id=5  " . $filterClass." order by account_grade_id desc";
+
+	   
+
+     $query_count = "select count(student_identifier) from {qtxt_sms_attd_det_summary_v} b where b.account_id=5" . $filterClass." order by account_grade_id desc";
+
+	     
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 100, 0, $query_count);	
+
+}		
+
+
+
+     $form['access'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Access log settings'),
+
+    '#tree' => TRUE,
+
+	'#visible' => false,
+
+  );  
+
+
+
+
+  $account = array();
+
+
+
+$i = 1;  
+
+  while ($account = db_fetch_object($result)) {
+
+	$form['access']['account'][$i] = array(
+
+//		'#type' => 'checkbox',
+
+		// '#return_value' => $account->file_name,
+
+		'#return_value' => $account->student_identifier,
+
+		'#default_value' => 0,
+
+		'#tree' => TRUE,
+
+		'#disabled' => True,
+
+
+
+	  );
+
+$file_name = $account->file_name;
+
+    $form['access']['grade'][$account->student_identifier] = array('#value' => $account->grade);
+
+    $form['access']['studentname'][$account->student_identifier] = array('#value' => $account->student_name);
+
+	
+	$form['access']['percent'][$account->student_identifier] =  array('#value' => $account->attd_percentage);
+
+    
+	  $form['access']['studentid'][$account->student_identifier] =  array('#type' => 'hidden','#value' => $account->student_identifier);
+
+
+	$i = $i + 1;
+
+  }
+
+db_set_active('default');
+
+
+
+   $form['pager'] = array('#value' => theme('pager', NULL, 6, 0));
+
+  $form['#theme'] = 'ver3_attd_percent_my_form_theme';   
+
+  $form['totalcount'] = array(
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+  );  
+
+  return $form;
+
+}
+
+
+
+function theme_ver3_attd_percent_my_form_theme($form)
+
+{
+
+$rows = array();
+
+$i = 1;
+
+foreach(element_children($form['access']['studentid']) as $key) {
+
+	$row = array(); 
+
+  //     $row[] =  drupal_render($form['access']['account'][$i]);
+
+	   $row[] =  drupal_render($form['access']['grade'][$key]);
+	   
+	  $row[] =  drupal_render($form['access']['studentname'][$key]);
+
+
+       $row[] =  drupal_render($form['access']['percent'][$key]);
+
+     
+	//    $row[] =  drupal_render($form['access']['studentid'][$key]);
+
+	   $rows[] = $row; 
+
+	$i = $i +1 ;
+
+}
+
+
+
+if(count($rows)){
+
+			// $header = array( theme('table_select_header_cell'), t('Grade Name'), t('Student Name'), t('Percentage'));
+$header = array( t('Department'), t('Student Name'), t('Percentage'));
+
+
+  }
+
+  else{
+
+    $header = array(t(''), t('')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('No Data Found for the Selected Criteria'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+$output = theme('table', $header, $rows); 
+$output .= drupal_render($form['options']); 
+
+//return $output . drupal_render($form); 
+return $output ;
+
+}  
+
+

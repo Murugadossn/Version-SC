@@ -1,0 +1,1895 @@
+<?php
+
+
+
+function v3_staff_profile_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', 'v3_staff_profile'),
+
+  );
+
+}
+
+
+
+
+
+function v3_staff_profile_help($path, $arg) {
+
+  global $user;
+
+
+
+  switch ($path) {
+
+    case 'tprofile':
+
+      return '<p>'. t('Load Staff Details.') .'</p>';
+
+	
+
+	}
+
+  
+
+}  
+
+function v3_staff_profile_menu() {
+
+	$items['tprofile'] = array(
+
+    'title' => 'Staff Profile',
+
+    'description' => 'List, add, and edit School Admin Data.',
+
+    'page callback' => 'v3_tprofile_cb',
+
+    'page arguments' => array('list'),
+
+    // 'access arguments' => array('administer users'),
+
+	'type' => MENU_CALLBACK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+	
+
+	);
+
+
+
+  $items['tprofile/list'] = array(
+
+    'title' => 'List',
+
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+    'weight' => -10,
+
+  );
+
+  $items['tprofile/create'] = array(
+
+    'title' => 'Add Staff Data',
+
+    'page arguments' => array('create'),
+
+    // 'access arguments' => array('administer users'),
+
+    'type' => MENU_LOCAL_TASK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+  );	
+
+  
+
+  $items['tprofile/edit'] = array(
+
+    'title' => 'Edit Staff Details',
+
+    'page callback' => 'drupal_get_form',
+
+    'page arguments' => array('tprofile_edit'),
+
+ //   'access arguments' => array('administer users'),
+
+    'type' => MENU_CALLBACK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+  );
+
+ 
+
+  $items['tprofile/delete'] = array(
+
+    'title' => 'Edit Staff Details',
+
+    'page callback' => 'drupal_get_form',
+
+    'page arguments' => array('tprofile_delete'),
+
+ //   'access arguments' => array('administer users'),
+
+    'type' => MENU_CALLBACK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+  );
+
+
+	
+
+ 
+
+ 
+
+	  
+
+  
+
+return $items;
+
+}
+
+
+
+function tprofile_edit(&$form_state, $fid) {
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+ $myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+		
+
+		
+
+
+
+		db_set_active('qtxt_db');	
+
+		$field = db_fetch_object(db_query("select staff_name,staff_id,mobile_number,contact_details,admin_type,admin_role,staff_email,staff_dob,gender from qtxt_sms_account_staff where staff_id = $fid and active_flag = 'Y'"));
+
+		$field1 = db_fetch_object(db_query("select account_grade_id,grade_name from qtxt_sms_staff_list_v where staff_id = $fid and active_flag = 'Y' "));
+
+		
+
+		
+
+            
+
+db_set_active('default');
+
+
+
+		if (!$field) {
+
+			drupal_not_found();
+
+			return;
+
+		  }
+
+		  $form['staff_id'] = array('#type' => 'value',
+
+			'#value' => $fid,
+
+		  );		  
+
+
+
+
+
+		
+
+		$form['sname'] = array(
+
+		  '#title' => 'Staff Name ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#required' => true,
+
+		  '#default_value' => $field->staff_name,
+		  '#required' => true,
+
+		);
+
+
+
+		
+
+		$form['address'] = array(
+
+		  '#title' => 'Address',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+// '#prefix' => '<br/>',
+
+
+
+		  '#maxlength' => 100,
+
+		  '#default_value' => $field->contact_details,
+
+		  
+
+		);
+
+		
+
+		  
+
+		
+
+
+
+          $form['mobile'] = array(
+
+		  '#title' => 'Mobile Number ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#default_value' => $field->mobile_number,
+		  '#required' => true,
+
+		); 
+
+		
+
+		
+		  
+
+		  $form['email_id'] = array(
+
+		  '#title' => 'Email id ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 60,
+ '#default_value' => $field->staff_email,
+// '#prefix' => '<br/><br/><br/>',
+
+
+		  
+
+		); 
+$form['gender'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Gender', 
+					  '#options' => array(			  
+                   'Select' => 'Select',
+				  'Female' => 'Female',
+				  'Male' => 'Male',
+	  				),
+					 '#default_value' => $field->gender,
+					 '#required' => true,
+// '#prefix' => '<br/><br/><br/>',
+
+
+					);
+
+
+
+$form['srole'] = array (
+
+					  '#type' => 'select', 
+
+					  '#title' => 'Admin Role', 
+					  '#options' => array(
+
+					'' => '',  
+					    'Driver' => 'Driver',
+                            'Subject Teacher' => 'Subject Teacher',
+                            'Class Teacher' => 'Class Teacher',
+                            'Office Staff' => 'Office Staff',
+                            'Receptionist' => 'Receptionist',
+				),
+				'#default_value' => $field->admin_role,
+				'#required' => true,
+
+
+				);
+				$form['stype'] = array (
+
+					  '#type' => 'select', 
+
+					  '#title' => 'Admin Type', 
+					  '#options' => array(
+
+					'' => '',  
+
+				'Teaching Staff' => 'Teaching Staff',
+				'Non Teaching Staff' => 'Non Teaching Staff',
+                           
+
+				),
+				'#default_value' => $field->admin_type,
+				'#required' => true,
+
+				);
+$form['dob'] = array(
+
+	  '#type' => 'date_popup',
+
+	  '#title' => t('Staff-Date Of Birth'),
+
+	  '#date_format' => 'd-m-Y',
+
+	  '#default_value' => $field->staff_dob,
+	  '#required' => true,
+
+      	  '#date_year_range' => '-50:-28',
+
+	);			
+
+/*		
+
+	 $form['buttons']['submit'] = array(                                                          
+
+		'#type' => 'submit',
+
+		'#value' => t('Submit'),    
+                                             
+
+	  );
+
+$form['edit']['buttons']['cancel'] = array(                                                          
+
+		'#type' => 'submit',
+
+		'#value' => t('Cancel'),                                                 
+
+	  );
+*/
+	  return confirm_form($form, t('<a href="@edit-field"></a> ', array('@edit-field' => url('tprofile'))),t('tprofile'));
+
+ $form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+ 
+
+
+	return $form;
+
+		
+
+
+
+
+
+}
+
+
+
+function tprofile_edit_submit ($form, &$form_state) {
+
+ $op = $form_state['values']['op'];
+
+
+
+if ( $op == "Cancel" ) {
+
+		  $form_state['redirect'] = 'tprofile/list';
+
+		  return;	
+
+	} 
+
+
+
+db_set_active('default');
+
+
+
+	$sid = $form_state['values']['staff_id'];	
+
+	$sname = $form_state['values']['sname'];
+
+	$address = $form_state['values']['address'];
+
+	$stype = $form_state['values']['stype'];
+	$srole = $form_state['values']['srole'];
+
+	$mobile = $form_state['values']['mobile'];
+
+	$email = $form_state['values']['email_id'];
+$dob = $form_state['values']['dob'];
+$gender = $form_state['values']['gender'];
+
+
+
+	// $grade = $form_state['values']['grade'];
+
+	
+
+	/*  drupal_set_message(t("staff name $sname"));
+
+drupal_set_message(t("Address $address"));	
+
+drupal_set_message(t(" Type $stype"));	
+
+drupal_set_message(t("Mobile $mobile"));	
+
+drupal_set_message(t("Father $father"));	
+
+drupal_set_message(t("Email $email"));
+
+drupal_set_message(t("Grade $grade"));
+*/
+
+
+	
+
+	db_set_active('qtxt_db');
+
+		
+
+		db_query("update {qtxt_sms_account_staff} set  staff_name ='$sname',contact_details = '$address',mobile_number ='$mobile',admin_type ='$stype',
+
+		staff_email = '$email',account_grade_id = '$grade', admin_role ='$srole',staff_dob = '$dob',gender = '$gender' where staff_id = $sid ");
+
+		
+
+		db_query("update {qtxt_sms_mobile_numbers} set  person_name ='$sname',mobile_number ='$mobile',person_address ='$address',person_email ='email'
+
+		 where account_student_map_id = $sid ");
+
+		 
+
+		
+		  
+
+		db_set_active('default');
+
+		drupal_set_message(t("Staff Data has been Updated Sucessfully")); 
+
+		$form_state['redirect'] = 'tprofile/list';
+
+		return;
+
+}
+
+function tprofile_edit_validate( $form, &$form_state ) {
+
+$sid = $form_state['values']['staff_id'];	
+
+	$sname = $form_state['values']['sname'];
+
+	$address = $form_state['values']['address'];
+
+	$stype = $form_state['values']['stype'];
+
+	$mobile = $form_state['values']['mobile'];
+
+	$email = $form_state['values']['email_id'];
+
+	$grade = $form_state['values']['grade'];
+$dob = $form_state['values']['dob'];
+
+/*
+
+$resultnMId = db_query("SELECT mobile_number from qtxt_sms_mobile_numbers where account_id = 5 and account_student_map_id != '$sid' ");
+
+  $nMId = array( );
+
+	while ( $row = db_fetch_object($resultnMId) ) {
+
+		$nMId = $row->mobile_number;
+
+	} 
+
+if ($mobile == $nMId) {
+
+    form_set_error('', t('Mobile Number is already Registered.'));
+
+  }
+*/
+
+
+$values = $form_state['values'];
+
+  if($email != "")
+{
+if (!valid_email_address($email)) {
+  form_set_error(' ', t('The Email Id  %email is Invalid.', array('%email' => $values['email_id'])));
+}
+}
+$element = $form_state['values'];
+
+    if(!is_numeric($element['mobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Number in Mobile Number Field'));
+    }
+
+ if(is_numeric($element['sname'])){
+        form_set_error('profile_pno' , t('Enter only Characters in Staff Name Field'));
+    }
+
+$year = $form_state['values']['dob']['year'];
+if($year > 1)
+{
+form_set_error('profile_pno' , t('Date of Birth  Year should be lesser than or equal to 1984'));
+   
+}
+
+if (!checkdate($element['dob']['month'], $element['dob']['day'], $element['dob']['year'])) {
+    form_error($element, t('The specified date is invalid.'));
+  }
+
+
+ 
+
+
+
+
+}
+
+
+function tprofile_delete(&$form_state, $fid) {
+
+
+  
+		db_set_active('qtxt_db');
+		
+		$field = db_fetch_object(db_query("select staff_name,staff_id,mobile_number,contact_details,admin_type,admin_role,staff_email,staff_dob,gender from qtxt_sms_account_staff where staff_id = %d and active_flag = 'Y' ", $fid));
+		
+		
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+          $form['delstaff_id'] = array('#type' => 'value', '#value' => $fid);
+		  $form['delstaff_name'] = array('#type' => 'value', '#value' => $field->staff_name);
+		  $form['delastaffid'] = array('#type' => 'value', '#value' => $field->staff_id);
+		
+		  return confirm_form($form,
+		  t('Are you sure you want to delete the Staff - %field ?', array('%field' => $field->staff_name)),'tprofile',
+		  t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('tprofile/edit/'. $fid))),t('Delete'), t('Cancel'));
+		}
+
+
+function tprofile_delete_submit($form, &$form_state) {
+
+$form['delstaff_id'] = array('#type' => 'value', '#value' => $fid);
+$userdelastaffid = $form_state['values']['delastaffid'];
+		db_set_active('qtxt_db');
+	db_query("UPDATE {qtxt_sms_account_staff} SET `active_flag` = 'N' WHERE staff_id = %d", $userdelastaffid);
+
+	
+	db_query("insert into qtxt_sms_account_staff_archeive  select * from qtxt_sms_account_staff where staff_id = %d",$userdelastaffid);
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The Staff %field has been deleted.', array('%field' => $form_state['values']['delstaff_name'])));
+  		unset ( $_SESSION['t_student_grade'] );
+ 
+		
+		$form_state['redirect'] = 'tprofile/list';
+		return;
+}
+
+
+
+
+
+
+
+
+function v3_tprofile_cb($callback_arg = '') {
+
+
+
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+
+
+//  drupal_set_message("Operamd - $op ");	
+
+  
+
+  switch ($op) {
+
+    case t('Save'):
+
+    case 'create':
+
+case 'Cancel':
+
+      $output = drupal_get_form('tprofile_create');
+
+      break;
+
+
+
+	  default:
+
+      if (!empty($_POST['assess']) && isset($_POST['operation']))
+{
+
+        $output = drupal_get_form('tprofile_filter1_form');
+
+      }
+
+      else {
+
+        $output = drupal_get_form('tprofile_filter_form');
+
+        $output .= drupal_get_form('tprofile_details');
+
+      }
+
+  }
+
+  return $output;
+
+  
+
+}
+
+
+
+function tprofile_create() {
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+ $myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+db_set_active('default');
+
+
+
+		$form['sname'] = array(
+
+		  '#title' => 'Staff Name ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#required' => true,
+
+		  
+		);
+
+
+
+		
+
+		$form['address'] = array(
+
+		  '#title' => 'Address',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  
+
+		  
+
+		);
+
+		
+		  db_set_active('qtxt_db');
+
+		$field1 = db_fetch_object(db_query("SELECT mobile_number,mobile_number_id,person_name FROM {qtxt_sms_mobile_numbers} 
+
+		WHERE account_student_map_id = %d ", $fid));
+
+		db_set_active('default');
+
+
+
+$form['mobile'] = array(
+
+		  '#title' => 'Mobile Number ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+		  '#required' => true,
+
+
+		  
+
+		); 
+		
+
+		  
+
+		 
+ $form['uname'] = array(
+
+		  '#title' => 'User Name ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+                '#required' => TRUE,
+
+		  
+
+		); 
+
+ $form['password'] = array(
+
+		  '#title' => 'Password',
+
+		  '#type' => 'password',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#required' => TRUE,
+// '#prefix' => '<br/><br/><br/><br/>',
+
+
+		); 
+db_set_active('qtxt_db');	
+		$result1 = db_query("select account_grade_id,grade_name from qtxt_sms_account_grades where account_id =5 and grade_name != 'ALLALL' order by class_weight");
+		$accessOptions = array( '' => t('Select') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');	
+$form['gender'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Gender', 
+					  '#options' => array(			  
+                   'Select' => 'Select',
+				  'Female' => 'Female',
+				  'Male' => 'Male',
+	  				),
+					 '#default_value' => $field->gender,
+					 '#required' => true,
+// '#prefix' => '<br/><br/><br/><br/><br/>',
+
+
+					);
+					$form['stype'] = array (
+
+					  '#type' => 'select', 
+
+					  '#title' => 'Admin Type', 
+					  '#options' => array(
+
+					'' => '',  
+
+				'Teaching Staff' => 'Teaching Staff',
+				'Non Teaching Staff' => 'Non Teaching Staff',
+                           
+
+				),
+				'#required' => true,
+
+
+				);
+
+
+		
+		$form['grade'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Grade Name'),
+			'#options'=> $accessOptions,
+			'#title' => t('Class Name'),
+			'#disabled' => FALSE,
+					
+		);
+		
+$form['srole'] = array (
+
+					  '#type' => 'select', 
+
+					  '#title' => 'Admin Role', 
+					  '#options' => array(
+
+					'' => '',  
+
+				
+							'Driver' => 'Driver',
+                            'Subject Teacher' => 'Subject Teacher',
+                            'Class Teacher' => 'Class Teacher',
+                            'Office Staff' => 'Office Staff',
+                            'Receptionist' => 'Receptionist',
+
+				),
+				'#required' => true,
+
+
+				);
+				$form['stype'] = array (
+
+					  '#type' => 'select', 
+
+					  '#title' => 'Admin Type', 
+					  '#options' => array(
+
+					'' => '',  
+
+				'Teaching Staff' => 'Teaching Staff',
+				'Non Teaching Staff' => 'Non Teaching Staff',
+                           
+
+				),
+				'#required' => true,
+
+
+				);
+
+				/* $form['email_address'] = array(
+	                                  '#type' => 'select',
+                                         '#title' => t('Send User Crdentials through Email'),
+ 					      '#options' => array(			  
+                                         'Select' => 'Select',
+				             'Send an Email' => 'Send an Email',				  
+	  				),
+     
+	                           );
+							   */
+$form['dob'] = array(
+
+	  '#type' => 'date_popup',
+
+	  '#title' => t('Staff-Date Of Birth'),
+
+	  '#date_format' => 'd-m-Y',
+
+	 //  '#default_value' => $field->dob,
+	  '#required' => true,
+
+      	  '#date_year_range' => '-50:-28',
+
+	);	
+	  $form['v3AdminOuter'] = array(
+						'#type' => 'fieldset',
+						// '#title' => t('Testing Message'),
+						'#collapsible' => FALSE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+	  );
+$form['v3AdminOuter']['check'] = array(
+  '#type' => 'checkbox',
+  '#title' => t('Send User Credentials As Email'),
+  '#attributes' => array('checked' => 'checked','onclick' => "showSubject(this.checked)"),
+);
+	
+	 $form['v3AdminOuter']['subject'] = array(
+
+		//   '#title' => ' ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+'#default_value' => $dvalue,
+
+
+		  
+
+		); 
+
+					
+
+		
+
+	 $form['buttons']['submit'] = array(                                                          
+
+		'#type' => 'submit',
+		'#value' => t('Save'),
+'#prefix' => '<br/>',
+                                              
+
+	  );
+
+
+
+
+ $form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+	return $form;
+
+
+
+}
+
+
+
+function tprofile_create_submit($form,&$form_state) {
+
+
+
+
+
+		  
+
+   $op = $form_state['values']['op'];
+
+
+
+if ( $op == "Cancel" ) {
+
+		  $form_state['redirect'] = 'tprofile/list';
+
+		  return;	
+
+	} 
+
+
+
+  
+
+   
+
+
+
+	 $sid = $form_state['values']['uname'];
+$pass = $form_state['values']['password'];
+$encrypt_password = md5($pass);		
+
+	$sname = $form_state['values']['sname'];
+
+	$address = $form_state['values']['address'];
+
+	$stype = $form_state['values']['stype'];
+	$srole = $form_state['values']['srole'];
+
+	$mobile = $form_state['values']['mobile'];
+
+	$email = $form_state['values']['v3AdminOuter']['subject'];
+
+$dob = $form_state['values']['dob'];
+$gender = $form_state['values']['gender'];
+
+// drupal_set_message(t("v $email"));
+
+
+	$grade = $form_state['values']['grade'];
+	// $email_address =$form_state['values']['email_address'];
+
+$result01 = db_query( "INSERT INTO `users`(`uid`,`name`,`pass`,`mail`,`mode`,`sort`,`threshold`,`theme`,`signature`,`signature_format`,`created`,`access`,`login`,`status`,`timezone`,`language`,`picture`,`init`,`data`,`timezone_name`)
+VALUES(null,'$sid','$encrypt_password','$email_id',0,0,0,'','',0,0,0,0,1,-18000,'','','','','')");
+
+ $resultnUId = db_query("SELECT uid from users where  name = '$sid' ");
+
+  $uid = array( );
+
+	while ( $row = db_fetch_object($resultnUId) ) {
+		$uid = $row->uid;
+
+	} 
+
+
+$result02 = db_query( "insert into {profile_values} (fid,uid,value) values   (1,'$uid','$sname')");
+$result03 = db_query( "insert into {profile_values} (fid,uid,value) values  (3,'$uid','$mobile')");
+$result04 = db_query( "insert into {profile_values} (fid,uid,value) values (4,'$uid','Teacher')");
+
+$result = db_query( "INSERT INTO `users_roles` (`uid`,`rid`)VALUES($uid,7)");
+
+
+drupal_set_message(t("Teacher User Credentials"));
+
+drupal_set_message(t("User Name: $sid"));
+drupal_set_message(t("Password $pass"));
+if ( $email != "Enter Your Email Id" ) {
+
+$msg = "Url:www.igradenow.com/cdemo User Name = $sid and Password = $pass";
+$params = array(
+  'myVar' => $msg,
+);
+$emailTo = 'yuvaranim@quadrobay.com';
+drupal_mail('v3_staff_profile', 'invitation', $email, language_default(), $params, "support@quadrobay.com");
+}
+
+/* db_set_active('default');
+
+	
+
+	 drupal_set_message(t("staff name $sname"));
+
+drupal_set_message(t("Address $address"));	
+
+drupal_set_message(t(" Type $stype"));	
+
+drupal_set_message(t("Mobile $mobile"));	
+
+drupal_set_message(t("Email $email"));
+
+drupal_set_message(t("Grade $grade"));
+
+*/
+
+
+
+db_set_active( 'qtxt_db' );
+
+
+
+  $result = db_query( "insert into qtxt_sms_account_staff (staff_id,staff_name,contact_details,admin_type,admin_role,staff_email,account_grade_id,account_id,mobile_number,staff_dob,gender) values 
+
+  (null,'$sname','$address','$stype','$srole','$email','$grade',5,'$mobile','$dob','$gender')");
+
+   $resultnSId = db_query("SELECT staff_id from qtxt_sms_account_staff where account_id = 5 and staff_name = '$sname' ");
+
+  $nSId = array( );
+
+	while ( $row = db_fetch_object($resultnSId) ) {
+
+		$nSId = $row->staff_id;
+
+	} 
+
+
+
+  
+
+  
+
+  $result1 = db_query( "insert into qtxt_sms_mobile_numbers (mobile_number_id,mobile_number,preferred_language_id,active_flag,person_address,person_name,creation_date,last_update_date,created_by,last_updated_by,
+
+  role_name,person_relationship_to_student,account_notified_flag,primary_flag,account_id,account_student_map_id,default_pwd,drupal_uid) values 
+
+  (null,'$mobile',1,'Y','$address','$sname',sysdate(),sysdate(),'School admin','School admin','$stype','Teacher','N','Y',5,$nSId,'$pass',$uid)");
+
+  
+
+  $result2 = db_query( "insert into qtxt_sms_staff_grade (staff_grade_id,staff_id,account_grade_id) values (null,$nSId,'$grade')"); 
+
+$resultnMId = db_query("SELECT mobile_number_id from qtxt_sms_mobile_numbers where account_id = 5 and account_student_map_id = '$nSId' ");
+
+  $nMId = array( );
+
+	while ( $row = db_fetch_object($resultnMId) ) {
+
+		$nMId = $row->mobile_number_id;
+
+	} 
+
+$result2 = db_query( "insert into qtxt_sms_admin_mobile(admin_mobile_id,mobile_number_id,staff_id,account_id) values (null,$nMId,'$nSId',5)"); 
+
+
+
+    
+
+	db_set_active( 'default' );
+
+
+
+	
+
+	 drupal_set_message(t("Staff Details were Inserted "));  
+
+ 
+
+			
+
+		  $form_state['redirect'] = 'tprofile/create';
+
+		  return;
+
+
+
+}
+function v3_staff_profile_mail($key, &$message, $params) {
+      $message['subject'] = t('User Id and Password of School Connect ');
+    //  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+	  $message['body'][] =  $params['myVar'] ;
+	 
+}
+
+
+function tprofile_create_validate( $form, &$form_state ) {
+
+$sid = $form_state['values']['staff_id'];	
+
+	$sname = $form_state['values']['sname'];
+      $uname = $form_state['values']['uname'];
+
+
+	$address = $form_state['values']['address'];
+
+	$stype = $form_state['values']['stype'];
+
+	$mobile = $form_state['values']['mobile'];
+
+	$email = $form_state['values']['v3AdminOuter']['subject'];
+
+	$grade = $form_state['values']['grade'];
+$values = $form_state['values'];
+	
+if($email != "Enter Your Email Id")
+{
+if (!valid_email_address($email)) {
+   form_set_error(' ', t('The Email Id  %email is Invalid.', array('%email' => $values['v3AdminOuter']['subject'])));
+
+}
+}
+
+$element = $form_state['values'];
+
+    if(!is_numeric($element['mobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Number in Mobile Number Field'));
+    }
+
+ if(is_numeric($element['sname'])){
+        form_set_error('profile_pno' , t('Enter only Characters in Staff Name Field'));
+    }
+ $year = $form_state['values']['dob']['year'];
+// drupal_set_message (t("Year $year"));
+if($year > 1)
+{
+form_set_error('profile_pno' , t(' Date of Birth Year should be lesser than or equal to 1984'));
+   
+}
+
+if (!checkdate($element['dob']['month'], $element['dob']['day'], $element['dob']['year'])) {
+    form_error($element, t('The specified date is invalid.'));
+  }
+
+ 
+
+
+
+
+
+
+	
+
+
+
+
+
+
+$sDrpUid = $row->uid;
+	
+	 if (!$sDrpUid || ($GLOBALS['user']->uid == $sDrpUid && user_access('change own username')) || user_access('administer users')) {
+    if ($error = user_validate_name($values[ 'uname' ])) {
+      form_set_error('name', $error);
+    }
+    else if (db_result(db_query("SELECT COUNT(*) FROM {users} WHERE uid != %d AND LOWER(name) = LOWER('%s')", $sDrpUid, $values[ 'uname' ])) > 0) {
+      form_set_error('name', t('The username %name is already taken.', array('%name' => $values[ 'uname' ])));
+    }
+    else if (drupal_is_denied('user', $values[ 'uname' ])) {
+      form_set_error('name', t('The username %name has been denied access.', array('%name' => $values[ 'uname' ])));
+    }
+  }
+
+
+	db_set_active( 'qtxt_db' );
+
+
+
+ 
+
+   $resultnSId = db_query("SELECT staff_name from qtxt_sms_account_staff where account_id = 5 and staff_name != '$sname' and active_flag = 'Y' ");
+
+  $nSId = array( );
+
+	while ( $row = db_fetch_object($resultnSId) ) {
+
+		$nSId = $row->staff_name;
+
+	} 
+db_set_active( 'default' );
+
+
+if($sname == $nSId)
+{
+form_set_error('name', t('Staff Name is Already registered...'));
+
+
+}
+
+	
+
+
+
+}
+function tprofile_filter1_form() {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+
+
+
+
+			
+
+	
+
+		
+
+
+
+		
+
+		 $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+						'#title' => t('Staff Profile'),
+						'#collapsible' => TRUE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+
+	  );
+
+	  db_set_active('qtxt_db');	
+
+	  $resultg1 = db_query("SELECT distinct(admin_type) from qtxt_sms_account_staff where account_id = 5 and active_flag = 'Y' ");
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->admin_type ] =  $rowg1->admin_type; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('Admin Type'),
+				  				  		'#description' => t('Please select the Staff Role '),
+				  				  		'#disabled' => FALSE,
+                                                                       '#required' => true,
+	  				  	
+				  );
+db_set_active('qtxt_db');	
+
+// Department Admin User
+/*				  
+	$resultg2 = db_query("SELECT a.account_grade_id,a.grade_name,b.mobile_number,b.account_grade_id from {qtxt_sms_account_grades} a,{qtxt_staff_map_with_grade} b where a.account_id = 5 and a.grade_name != 'ALLALL' and b.mobile_number = $myMobileNumber and a.account_grade_id = b.account_grade_id order by a.class_weight");
+*/
+
+  $resultg2 = db_query("SELECT account_grade_id,grade_name from qtxt_sms_account_grades where account_id = 5 and grade_name != 'ALLALL' order by class_weight");
+
+
+				  $igradeOptions1 = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg2)) {
+				  	$igradeOptions1[$rowg1->account_grade_id] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['sgrade'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions1,
+				  				  		'#title' => t('Class Name'),
+				  				  		'#description' => t('Please select the Staff Role '),
+				  				  		'#disabled' => FALSE,
+	  				  	
+				  );
+
+  $form['adminOuter']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+
+
+'#prefix' => '<br/>',
+ 
+
+
+
+
+  );
+ $form['adminOuter']['submit']['#attributes']['class']  = $form['adminOuter']['submit']['#attributes']['class'] . ' qbsubmit';
+	return $form;
+
+
+
+}
+
+
+
+
+
+
+
+function tprofile_filter1_form_submit($form, &$form_state) {
+
+ 
+
+$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+$_SESSION['t_grade'] = $form_state['values']['adminOuter']['sgrade'];
+
+	if(!empty($_SESSION['t_student_grade'])) {
+		$grade = &$_SESSION['t_student_grade'];
+	} else {
+
+		$grade = "";
+}
+if(!empty($_SESSION['t_grade'])) {
+		$sgrade = &$_SESSION['t_grade'];
+	} else {
+
+		$sgrade = "";
+}
+
+
+
+
+
+
+	// drupal_set_message(t("g $grade"));
+
+
+
+       // drupal_set_message(t("s $student"));
+
+
+
+
+
+  
+
+  $form_state['redirect'] = 'tprofile/list';
+
+  return;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+
+ * Form builder; Return form for user administration filters.
+
+ *
+
+ * @ingroup forms
+
+ * @see user_filter_form_submit()
+
+ */
+
+function tprofile_filter_form() {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+
+
+
+
+
+
+		
+
+		 $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+						'#title' => t('Staff Profile'),
+						'#collapsible' => TRUE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+
+	  );
+$c2Val = &$_SESSION['t_student_grade'] ;
+$c3Val = &$_SESSION['t_grade'] ;
+
+
+
+
+
+	  db_set_active('qtxt_db');	
+
+	  $resultg1 = db_query("SELECT admin_type from qtxt_sms_account_staff where account_id = 5 and active_flag = 'Y' ");
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->admin_type ] =  $rowg1->admin_type; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('Admin Type'),
+				  				  		'#description' => t('Please select the Staff Role '),
+				  				  		'#disabled' => FALSE,
+                                                                       '#default_value' => $c2Val,
+
+                                                                         
+	  				  	
+				  );
+db_set_active('qtxt_db');	
+
+// Department Admin Filter
+/*			  
+	$resultg2 = db_query("SELECT a.account_grade_id,a.grade_name,b.mobile_number,b.account_grade_id from {qtxt_sms_account_grades} a,{qtxt_staff_map_with_grade} b where a.account_id = 5 and a.grade_name != 'ALLALL' and b.mobile_number = $myMobileNumber and a.account_grade_id = b.account_grade_id order by a.class_weight");
+*/
+				  
+  $resultg2 = db_query("SELECT account_grade_id,grade_name from qtxt_sms_account_grades where account_id = 5 and grade_name != 'ALLALL' order by class_weight");
+				  $igradeOptions1 = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg2)) {
+				  	$igradeOptions1[$rowg1->account_grade_id] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['sgrade'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions1,
+				  				  		'#title' => t('Class Name'),
+				  				  		'#description' => t('Please select the Staff Role '),
+				  				  		'#disabled' => FALSE,
+                                                                      '#default_value' => $c3Val,
+
+	  				  	
+				  );
+
+  $form['adminOuter']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+
+
+'#prefix' => '<br/>',
+ 
+
+
+
+
+  );
+ $form['adminOuter']['submit']['#attributes']['class']  = $form['adminOuter']['submit']['#attributes']['class'] . ' qbsubmit';
+	return $form;
+
+
+
+}
+
+
+
+
+
+
+
+function tprofile_filter_form_submit($form, &$form_state) {
+
+ 
+
+$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+$_SESSION['t_grade'] = $form_state['values']['adminOuter']['sgrade'];
+
+	if(!empty($_SESSION['t_student_grade'])) {
+		$grade = &$_SESSION['t_student_grade'];
+	} else {
+
+		$grade = "";
+}
+if(!empty($_SESSION['t_grade'])) {
+		$sgrade = &$_SESSION['t_grade'];
+	} else {
+
+		$sgrade = "";
+}
+
+
+
+
+
+
+	// drupal_set_message(t("g $grade"));
+
+
+
+       // drupal_set_message(t("s $student"));
+
+
+
+
+
+  
+
+  $form_state['redirect'] = 'tprofile';
+
+  return;
+
+}
+
+
+
+
+function tprofile_details($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;  
+
+$uid = $user->uid;
+
+
+
+  $header = array(
+
+    array(),
+
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+
+	t('Operations'),
+
+  );
+
+
+
+
+
+
+
+
+$c2Val = &$_SESSION['t_student_grade'] ;
+$c3Val = &$_SESSION['t_grade'] ;
+
+
+
+
+ // drupal_set_message(t("student - $clVal"));	
+
+
+
+ // drupal_set_message(t("grade - $c2Val"));	
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+$filterClass = "";
+
+
+
+    if ( $c3Val != "" ) {
+
+
+			$filterClass = " and b.account_grade_id = '$c3Val'";
+	} 
+else
+{
+$filterClass = " and b.account_grade_id = b.account_grade_id ";
+
+}
+
+if ( $c2Val != "" ) {
+
+
+			$filterSection = " and b.admin_type = '$c2Val'";
+	} 
+else
+{
+$filterSection = " and b.admin_type = b.admin_type ";
+
+}
+
+
+
+
+	
+
+//	drupal_set_message(t("student_1 - $filterSection"));	
+
+
+
+ // drupal_set_message(t("grade_1 - $filterClass"));	
+
+
+
+  db_set_active('qtxt_db');	
+
+
+  $sql = "select staff_name,mobile_number,contact_details,grade_name,staff_id,staff_email,admin_role,str_dob from  {qtxt_sms_staff_list_v} b where account_id = 5 and active_flag = 'Y' " . $filterClass  . $filterSection  ; 
+
+// Department Admin Filter
+
+/*
+  $sql = "select b.staff_name,b.mobile_number,b.contact_details,b.grade_name,b.staff_id,b.staff_email,b.admin_role,b.str_dob,c.account_grade_id from  {qtxt_sms_staff_list_v} b,{qtxt_staff_map_with_grade} c where b.account_id = 5 and b.active_flag = 'Y' and c.mobile_number = $myMobileNumber and b.account_grade_id = c.account_grade_id  " . $filterClass  . $filterSection  ; 
+
+*/
+ 
+   $query_count = "select COUNT(staff_id) from  {qtxt_sms_staff_list_v} b where account_id =5 and active_flag = 'Y' " . $filterClass . $filterSection  ;
+
+
+
+  
+
+   $sql .= tablesort_sql($header);
+
+
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+
+  db_set_active('default');
+
+
+
+
+
+    $form['access'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Access log settings'),
+
+    '#tree' => TRUE,
+
+	'#visible' => false,
+
+  );
+
+
+
+
+
+  $account = array();
+
+
+
+$i = 1;  
+
+  while ($account = db_fetch_object($result)) {
+
+
+
+  $form['access']['account'][$i] = array(
+
+		'#type' => 'checkbox',
+
+		'#return_value' => $account->staff_id,
+
+		'#default_value' => 0,
+
+		'#tree' => TRUE,
+
+
+
+	  );
+
+
+
+ 
+
+ 
+
+    $form['access']['sname'][$account->staff_id] = array('#value' => $account->staff_name);
+
+    $form['access']['address'][$account->staff_id] =  array('#value' => $account->contact_details);
+
+    $form['access']['mobile'][$account->staff_id] = array('#value' => $account->mobile_number);
+
+    $form['access']['grade'][$account->staff_id] =  array('#value' => $account->grade_name);
+
+    $form['access']['stype'][$account->staff_id] = array('#value' => $account->str_dob);
+$form['access']['srole'][$account->staff_id] = array('#value' => $account->admin_role);
+
+    $form['access']['sid'][$account->staff_id] =  array('#type' => 'hidden','#value' => $account->staff_id);
+   $form['access']['semail'][$account->staff_id] =  array('#value' => $account->staff_email);
+
+
+	$form['access']['operations'][$account->staff_id] = array('#value' => l(t('edit'), "tprofile/edit/$account->staff_id", array('query' => $destination)));	
+
+	$form['access']['operations2'][$account->staff_id] = array('#value' => l(t('delete'), "tprofile/delete/$account->staff_id", array('query' => $destination)));	
+	$i = $i + 1;
+
+  }
+
+// db_set_active('default');
+
+
+
+ // $form['pager'] = array('#value' => theme('pager', 100, 1000, 0));
+
+  $form['#theme'] = 'tprofile_description_theme';   
+
+  $form['totalcount'] = array(
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+  );  
+
+  return $form;
+
+}
+
+
+
+function v3_staff_profile_theme() {
+
+	return array(
+
+		'tprofile_description_theme' => array('arguments'=> array('form' => NULL),),
+
+	);
+
+}
+
+
+
+function theme_tprofile_description_theme($form)
+
+{
+
+$rows = array();
+
+$i = 1;
+
+
+
+foreach(element_children($form['access']['sid']) as $key) {
+
+	$row = array(); 
+
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+
+       $row[] =  drupal_render($form['access']['sname'][$key]);
+
+       $row[] =  drupal_render($form['access']['mobile'][$key]);
+
+       $row[] =  drupal_render($form['access']['address'][$key]);
+
+       $row[] =  drupal_render($form['access']['grade'][$key]);
+     
+	   $row[] =  drupal_render($form['access']['srole'][$key]);
+   $row[] =  drupal_render($form['access']['stype'][$key]);
+       $row[] =  drupal_render($form['access']['semail'][$key]);
+
+
+
+	   $row[] =  drupal_render($form['access']['operations'][$key]);	
+
+          
+	   $row[] =  drupal_render($form['access']['operations2'][$key]);	
+
+	$rows[] = $row; 
+
+	$i = $i +1 ;
+
+}
+
+
+
+if(count($rows)){
+
+				$header = array(  t('Staff Name'), t('Mobile Number'), t('Address'), t('Class Name'),t('Admin Role'),t('Staff Date of Birth'),t('Email Id'));
+
+				
+
+				  $header[] = array('data' => t('Action'), 'colspan' => 2);
+
+  }
+
+  else{
+
+    $header = array(t(''), t('')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('Select the admin type'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+$output = theme('table', $header, $rows); 
+
+//$output .= drupal_render($form['options']); 
+
+// $output .= drupal_render($form['options']['submit']); 
+
+  $form['access']['#access'] = false;
+
+ return $output . drupal_render($form); 
+
+ return $output ; 
+
+}  

@@ -1,0 +1,1632 @@
+<?php
+function v3_cce_schol_descriptors_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_schol_descriptors'),
+  );
+}
+function v3_cce_schol_descriptors_help($path, $arg) {
+  global $user;
+drupal_add_js( drupal_get_path('MODULE', 'v3_cce_schol_descriptors').'/cceScholDesc.js' );
+  switch ($path) {
+    case 'scholdesc':
+      return '<p>'. t('Define a scholastic descriptors for the scholastic assessment categories. If all the default values has been defined, then we can create our own descriptors') .'</p>';
+	
+	}
+  
+}  
+function v3_cce_schol_descriptors_menu() {
+	$items['scholdesc'] = array(
+    'title' => 'CCE - Define Assessment Category Type',
+    'description' => 'List, add, and edit scholdesc.',
+    'page callback' => 'cce_scholdesc',
+    'page arguments' => array('list'),
+    // 'access arguments' => array('administer users'),
+	'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+		'access arguments' => array('access content'),		
+	);
+
+  $items['scholdesc/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+    'weight' => -10,
+  );
+  $items['scholdesc/create'] = array(
+    'title' => 'Add Assessment Category Descriptor Type',
+    'page arguments' => array('create'),
+    // 'access arguments' => array('administer users'),
+    'type' => MENU_LOCAL_TASK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );	
+
+	$items['scholdesc/create/next'] = array(
+    'title' => 'CCE - Define Scholastic Details',
+    'description' => 'CCE - Define Scholastic Details',
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('scholdesc_next_create'),	
+   // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+	);  
+ 
+  
+  $items['scholdesc/edit'] = array(
+    'title' => 'Edit Assessment Category Type',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('scholdesc_edit'),
+    // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+  $items['scholdesc/delete'] = array(
+    'title' => 'Delete Assessment Category Type',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('scholdesc_delete'),
+   // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );  
+
+  
+
+	  
+  
+ $items['scholdesc/year/ahahjs1'] = array(
+        'page callback' => 'scholdesc_ahah_for_category_details',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	  
+ $items['scholdesc/year/ahahjs0'] = array(
+        'page callback' => 'scholdesc_ahah_for_group',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	 
+  $items['scholdesc/year/ahahjs11'] = array(
+        'page callback' => 'scholdesc_ahah_for_filter_class',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+
+  $items['scholdesc/year/ahahjs12'] = array(
+        'page callback' => 'scholdesc_ahah_for_filter_assessname',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );  
+ 
+
+return $items;
+}
+
+function scholdesc_edit(&$form_state, $fid) {
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT descriptor_name, max_marks , descriptor_description, category_short_code, category_order  
+		FROM {cce_schol_assesment_cat_det_descriptor_v} WHERE assessment_cat_det_descriptor_id = %d", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+		  $form['assessment_cat_det_descriptor_id'] = array('#type' => 'value',
+			'#value' => $fid,
+		  );		  
+
+
+
+		$form['userdefinedvalue'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter your own assessment category types'),
+			'#title' => t('Assessment Category Type'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->descriptor_name,
+		);			
+
+		$form['userdefineddesc'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Descriptor Group if needed'),
+			'#title' => t('Descriptor Group'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->descriptor_description,				  
+		);
+
+		$form['userdefinedmarks'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter max marks for the descriptor'),
+			'#title' => t('Max Marks'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->max_marks,			  
+		);				
+		$form['userdefinedshortcode'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter unique short code for this descriptor'),
+			'#title' => t('Descriptor Short Code'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->category_short_code,				  
+		);			
+		$form['userdefinedcategoryorder'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter order of this descriptor'),
+			'#title' => t('Descriptor Category Order'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->category_order,				  
+		);			
+
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Edit Assessment Category Descriptor Type'),                                                 
+	  );
+ $form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+
+	return $form;
+		
+
+
+}
+
+function scholdesc_edit_submit ($form, &$form_state) {
+$op = $form_state['values']['op'];
+ // drupal_set_message(t("$op"));  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'scholdesc/list';
+		  return;	
+	} 
+	
+
+		
+	$scholdescId = $form_state['values']['assessment_cat_det_descriptor_id'];
+	
+	$userdefinedvalue = $form_state['values']['userdefinedvalue'];
+	$userdefinedmarks = $form_state['values']['userdefinedmarks'];
+	$userdefinedshortcode = $form_state['values']['userdefinedshortcode'];
+	$userdefineddesc = $form_state['values']['userdefineddesc'];
+	$userdefinedcategoryorder = $form_state['values']['userdefinedcategoryorder'];
+	
+	
+	$userdefinedvalue = str_replace("'", "''", $userdefinedvalue);
+	$userdefineddesc = str_replace("'", "''", $userdefineddesc);		
+	$userdefinedshortcode = str_replace("'", "''", $userdefinedshortcode);			
+
+			
+		db_set_active('qtxt_db');
+		
+		db_query("update {cce_assesment_cat_det_descriptor} set  descriptor_name = '%s', max_marks = '%d', descriptor_description = '%s',  category_short_code = '%s', category_order = '%d'  WHERE assessment_cat_det_descriptor_id = %d ", $userdefinedvalue, $userdefinedmarks, $userdefineddesc, $userdefinedshortcode,  $userdefinedcategoryorder,  $scholdescId);
+			
+
+		db_set_active('default');
+
+		drupal_set_message(t('The Assessment Category Descriptor  %field has been updated.', array('%field' => $form_state['values']['userdefinedvalue'])));
+
+		cache_clear_all();
+  		unset ( $_SESSION['group_filter_value'] );
+  		unset ( $_SESSION['scholAccountGradeId'] );
+  		unset ( $_SESSION['scholAssessmentName'] );
+  		unset ( $_SESSION['scholAssessmentCategory'] );
+
+		$form_state['redirect'] = 'scholdesc/list';
+		return;
+}
+
+function scholdesc_delete(&$form_state, $fid) {
+
+
+  
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT descriptor_name, assessment_category_type, assessment_name  FROM {cce_schol_assesment_cat_det_descriptor_v} WHERE assessment_cat_det_descriptor_id = %d", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+
+		  $form['scholdescid'] = array('#type' => 'value', '#value' => $fid);
+		  $form['scholdescname'] = array('#type' => 'value', '#value' => $field->descriptor_name);
+		  $form['scholcategtype'] = array('#type' => 'value', '#value' => $field->assessment_category_type);
+		  $form['scholassessname'] = array('#type' => 'value', '#value' => $field->assessment_name);
+		 // $form['groupdesc'] = array('#type' => 'value', '#value' => $field->group_description);
+
+		  return confirm_form($form,
+			t('Are you sure you want to delete the Descriptor Name -  %field  defined for Assessment Name %field2 and category type %field3 ?', array('%field' => $field->descriptor_name, '%field2' => $field->assessment_name, '%field3' => $field->assessment_category_type)), 'scholdesc',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('scholdesc/edit/'. $fid))),
+			t('Delete'), t('Cancel'));
+		}
+
+/**
+ * Process a field delete form submission.
+ */
+function scholdesc_delete_submit($form, &$form_state) {
+		db_set_active('qtxt_db');
+		db_query('DELETE FROM {cce_assesment_cat_det_descriptor} WHERE assessment_cat_det_descriptor_id = %d', $form_state['values']['scholdescid']);
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The Descriptor %field has been deleted.', array('%field' => $form_state['values']['scholdescname'])));
+  		unset ( $_SESSION['group_filter_value'] );
+  		unset ( $_SESSION['scholAccountGradeId'] );
+  		unset ( $_SESSION['scholAssessmentName'] );
+  		unset ( $_SESSION['scholAssessmentCategory'] );
+		
+		$form_state['redirect'] = 'scholdesc/list';
+		return;
+}
+
+
+function cce_scholdesc($callback_arg = '') {
+/*
+        $output = drupal_get_form('scholdesc_filter_form');
+        $output .= drupal_get_form('scholdesc_details');
+  return $output;
+  */
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+//    case t('Create Scholastic Assessment Category Descriptor Type'):
+    case t('Define Scholastic Assessment Info'):	
+    case 'create':
+      $output = drupal_get_form('scholdesc_create');
+      break;
+
+	  default:
+      if (!empty($_POST['scholdesc']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+        $output = drupal_get_form('group_multiple_delete_confirm');
+      }
+      else {
+        $output = drupal_get_form('scholdesc_filter_form');
+        $output .= drupal_get_form('scholdesc_details');
+      }
+  }
+  return $output;
+  
+}
+
+
+function scholdesc_create() {
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT group_id, concat( group_name , ' - ' , group_description ) 'groupdesc' FROM {cce_groups} order by group_name ");
+		$accessOptions = array( '' => t('Select the Group Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->group_id ] = $row->groupdesc; 
+		}
+		db_set_active('default');	
+
+		
+		$form['group'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Group Name'),
+			'#options'=> $accessOptions,
+			'#title' => t('Group'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'scholdesc/year/ahahjs0',
+				  	'wrapper' => 'ahah-wrapper-group',
+				  	'method' => 'replace',
+				  			)			
+		);
+
+
+		$form['groupfields'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Select the Assessment'),
+		'#tree' => TRUE,
+		'#visible' => true,	   
+		 '#prefix' => '<div id = "ahah-wrapper-group">',
+		'#suffix' => '</div>',
+               '#prefix' => '<br/><br/><br/><br/>',		
+		 );	
+		 
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT a.account_grade_id, a.grade_name FROM {qtxt_sms_account_grades} a , 
+{cce_year} b where b.year_id = a.year_id and b.active_flag = 'Y' and section != 'ALL' order by grade_name ");
+		$gradeOptions = array( '' => t('Select the Class Name') );
+		while ($row = db_fetch_object($result1)){
+		  $gradeOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');
+                     
+$form['groupfields']['default_list'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+//			'#options'=>  $gradeOptions,
+			'#options'=> array( '' => t('Select ..') ),			
+			'#title' => t('Class'),
+			'#disabled' => FALSE,
+			'#multiple' => true,
+			'#attributes'=>array('size'=>10),
+				
+		);
+
+
+		$form['groupfields']['assessname'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Assessment Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Assessment Name'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'scholdesc/year/ahahjs1',
+				  	'wrapper' => 'ahah-wrapper-catdetlist',
+				  	'method' => 'replace',
+				  			),
+								
+		);
+		
+		
+
+
+		
+				
+		//$catOptions = array( '' => t('Select the Assessment Category Detail') );
+
+		$form['numrows'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter Number of assessment descriptors you want to create'),
+			'#default_value' => 5,
+			'#title' => t('Number of Assessment Descriptors '),
+			  '#size' => 10,
+			  '#maxlength' => 10,	
+		);			
+		
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Define Scholastic Assessment Info'), 
+                '#prefix' => '<br/><br/><br/><br/>',                                                
+	  );
+
+	return $form;
+
+		
+}
+function scholdesc_create_validate($form, &$form_state) {
+  if ($form_state['values']['group'] == '') {
+    form_set_error('', t('You must select a Group Name.'));
+  }
+  if ($form_state['values']['groupfields']['assessname'] == '') {
+    form_set_error('', t('You must select an Assessment Name.'));
+  }  
+	$default_list = $form_state['values']['groupfields']['default_list'];  
+	$new_array = array_values($default_list); 		
+	foreach($new_array as $key => $value) {
+	  if($value == "") {
+		unset($new_array[$key]);
+	  }
+	}
+	$final_array = array_values($new_array); 	
+	$finalcount= count(	$final_array );
+	if ( $finalcount < 1 ) {
+	    form_set_error('', t('You must select at least one class'));
+	}
+
+
+  if ( ($form_state['values']['numrows'] == '' ) || ($form_state['values']['numrows'] < 1  ) || ($form_state['values']['numrows'] > 20  )) {
+    form_set_error('', t('You must enter a value between 1 and 20.'));
+  } 
+		
+}	
+
+function scholdesc_create_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+  
+	$group = $form_state['values']['group'];
+	$assessId = $form_state['values']['groupfields']['assessname'];
+	$default_list = $form_state['values']['groupfields']['default_list'];
+	$totalrows =  $form_state['values']['numrows'];
+
+	$_SESSION['group_value'] = $group;	
+	$_SESSION['assess_value'] = $assessId;		
+	$_SESSION['class_value'] = $default_list;	
+	$_SESSION['num_rows'] = $totalrows;	
+	
+	
+	
+	
+/*
+	$subject = $form_state['values']['subject'];	
+	$assesscatdetlistId  = $form_state['values']['assesscatdetlist'];
+	$userdefinedvalue = $form_state['values']['userdefinedvalue'];
+	$userdefinedmarks = $form_state['values']['userdefinedmarks'];
+	$userdefinedshortcode = $form_state['values']['userdefinedshortcode'];
+	$userdefineddesc = $form_state['values']['userdefineddesc'];
+	$userdefinedcategoryorder = $form_state['values']['userdefinedcategoryorder'];
+	$assessdate = serialize($form_state['values']['assessdate']);
+	$nonserassessdate = $form_state['values']['assessdate'];
+	
+	$fromDateExp = "$nonserassessdate[year]-$nonserassessdate[month]-$nonserassessdate[day]";	
+
+//	drupal_set_message("user defined date - $assessdate ");	
+	
+//	drupal_set_message("user defined date non serialized - $fromDateExp ");  
+	
+	$userdefinedvalue = str_replace("'", "''", $userdefinedvalue);
+	$userdefineddesc = str_replace("'", "''", $userdefineddesc);		
+	$userdefinedshortcode = str_replace("'", "''", $userdefinedshortcode);			
+
+	$new_array = array_values($default_list); 		
+	foreach($new_array as $key => $value) {
+	  if($value == "") {
+		unset($new_array[$key]);
+	  }
+	}
+
+	$final_array = array_values($new_array); 	
+	$finalcount= count(	$final_array );
+	$comma_separated = implode(",", $final_array);
+	
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("select assessment_category_code, assessment_category_type, assessment_type_code from cce_assesment_category_details where assessment_category_detail_id = %d", $assesscatdetlistId));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }	
+		$asscategcode = $field->assessment_category_code;
+		$asscategtype = $field->assessment_category_type;		
+		$asstypecode = $field->assessment_type_code;
+
+	//drupal_set_message(t("Your scholdescment Type - $comma_separated"));	
+	//drupal_set_message("user defined - $userdefinedvalue ");	
+	//drupal_set_message("user defined desc - $userdefineddesc ");	
+
+	//drupal_set_message("Count - $finalcount ");	
+	
+	if ( $userdefinedmarks == "") {
+		$userdefinedmarks = 'null';
+	} 
+	if ( $userdefinedcategoryorder == "") {
+		$userdefinedcategoryorder = 'null';
+	} 
+		
+
+	if ( $finalcount > 0 ) {
+		foreach ( $final_array as $k => $v) {
+
+			db_set_active('qtxt_db');	
+		$result = db_query( "INSERT INTO `cce_assesment_cat_det_descriptor` (`assessment_cat_det_descriptor_id`,  `assessment_category_detail_id`,  `assessment_category_code`,  `assessment_category_type`,  `descriptor_name`,  `max_marks`,  `descriptor_description`,  `category_short_code`,  `category_order`,  `assessment_id`,  `assessment_type_code`,  `creation_date`,  `update_date`,  `created_by`,  `updated_by`,  `subject_id`,  `subject_name`,  `assessment_date`,  `account_grade_id`,  `master_assessment_cat_det_descriptor_id`)  VALUES  (  null ,  $assesscatdetlistId,  '$asscategcode' ,  '$asscategtype',  '$userdefinedvalue',  $userdefinedmarks,  '$userdefineddesc' , '$userdefinedshortcode',  $userdefinedcategoryorder,   $assessId,  '$asstypecode',  sysdate(),   sysdate(),   'admin',   'admin', $subject,  null,  '$fromDateExp' ,  $v,  null  )");  
+		
+			db_set_active('default');	
+			}
+	}	
+	
+	drupal_set_message(t("Your Assessment Category Types have been inserted successfully."));	
+	
+	
+			unset ( $_SESSION['group_filter_value'] );
+			
+		  $form_state['redirect'] = 'scholdesc/list';
+		  return;
+*/		  
+		  $form_state['redirect'] = 'scholdesc/create/next';
+		  return;
+}
+
+/*
+function scholdesc_next_create_wrap() {
+			$output = drupal_get_form('scholdesc_next_create');
+			return $output ;
+}
+*/
+// function scholdesc_next_create() {
+function scholdesc_next_create_test(&$form_state, $fid) {
+		$group = &$_SESSION['group_value'] ;	
+		$assessId = &$_SESSION['assess_value'] ;		
+		$default_list = &$_SESSION['class_value'] ;		
+		$num_rows = &$_SESSION['num_rows'];
+		
+	 $form['buttons']['submit1'] = array(                                                          
+		'#type' => 'button',
+		'#value' => t('Add New Row'), 
+		'#name' => "check",
+	  );
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Create Scholastic Assessment Category Descriptor Type'),                                                 
+	  );
+
+
+	return $form;
+}
+
+//function scholdesc_next_create_test(&$form_state, $fid) {
+function scholdesc_next_create() {
+
+		$group = &$_SESSION['group_value'] ;	
+		$assessId = &$_SESSION['assess_value'] ;		
+		$default_list = &$_SESSION['class_value'] ;		
+		$num_rows = &$_SESSION['num_rows'];
+		
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT group_name  FROM {cce_groups} WHERE group_id = %d", $group));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+		$myGroupName = $field->group_name ;
+		
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT assessment_name  FROM {cce_assesment_types} WHERE assessment_id = %d", $assessId));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }		
+		$myAssessName = $field->assessment_name ;
+		
+		// derive classs		
+		$new_array = array_values($default_list); 		
+		foreach($new_array as $key => $value) {
+		  if($value == "") {
+			unset($new_array[$key]);
+		  }
+		}
+		$final_array = array_values($new_array); 	
+		$finalcount= count(	$final_array );
+		$comma_separated = implode(",", $final_array);
+		$myGrade = array();
+		db_set_active('qtxt_db');
+		$sqlg = "select  grade_name from qtxt_sms_account_grades  where account_grade_id in ($comma_separated)   ";
+		$resultg = db_query($sqlg);
+		while($datag = db_fetch_object($resultg))
+		{
+		$myGrade[] = $datag->grade_name;
+		}
+		db_set_active('default');
+
+		$myStringArray = implode(',', $myGrade);
+		drupal_set_message(t("Your Selections"));			
+		drupal_set_message(t("Group Name - $myGroupName"));			
+		drupal_set_message(t("Assessment Name - $myAssessName"));			
+		drupal_set_message(t("Classes Selected - $myStringArray"));			
+		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_category_type, b.assessment_category_detail_id from cce_assesment_category_details_v b  where assessment_id = $assessId   ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_category_detail_id] = $datag->assessment_category_type;
+		}
+		db_set_active('default');
+		 
+		$form['access'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Access log settings'),
+		'#tree' => TRUE,
+		'#visible' => false,	   
+		 );			
+
+		 
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT subject_id, subject_name FROM {qtxt_sms_subjects}  order by subject_name");
+		$subjectOptions = array( '' => t('Select the Subject Name') );
+		while ($row = db_fetch_object($result1)){
+		  $subjectOptions[$row->subject_id ] = $row->subject_name; 
+		}
+		db_set_active('default');	
+
+		$i = 1;
+		while( $i < ($num_rows +1 )) {
+		
+				$form['access']['subject'][$i] = array(
+					'#type' => 'select',
+					'#description' => t('Please select the Subject Name'),
+					'#options'=> $subjectOptions,
+			//		'#title' => t('Subject'),
+					'#disabled' => FALSE,
+				);		
+						 
+				 
+				 $form['access']['assesscatdetlist'][$i] = array(
+					'#type' => 'select',
+					'#description' => t('Please select the Category'),
+					'#options'=> $valueg,
+			//		'#title' => t('Category Detail'),
+					'#disabled' => FALSE,
+				);
+
+
+
+				/*
+$form['access']['assessdate'][$i] = array(
+				  '#type' => 'date',
+				  '#description' => t('Please enter assessment date'),
+			//	  '#title' => 'Assessment date',
+		//		  '#default_value' => $date_array,  
+				);
+*/
+$currdate = date("Y-m-d");
+$defdoa = $currdate;
+if ( !empty($_SESSION['create']['doa'])) {
+$defdoa = &$_SESSION['doa'];
+// drupal_set_message(t("doa  - $defdoa"));
+} else {
+$defdoa = $currdate;
+}
+
+
+$form['access']['assessdate'][$i] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('From Date'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $defdoa,
+      	  '#date_year_range' => '-1:+1',
+	);	
+
+				
+
+
+				$form['access']['userdefinedvalue'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please enter descriptor name'),
+				//	'#title' => t('Other Descriptor'),
+					  '#size' => 20,
+					  '#maxlength' => 500,	
+				);			
+					
+				$form['access']['userdefinedmarks'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please enter max marks'),
+				//	'#title' => t('Max Marks'),
+					  '#size' => 20,
+					  '#maxlength' => 500,	
+				);				
+/*				
+				$form['access']['userdefineddesc'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Descriptor Group if needed'),
+					'#title' => t('Descriptor Group'),
+					  '#size' => 20,
+					  '#maxlength' => 500,	
+				);
+				$form['access']['userdefinedshortcode'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please enter unique short code for this descriptor'),
+					'#title' => t('Descriptor Short Code'),
+					  '#size' => 20,
+					  '#maxlength' => 500,	
+				);			
+				$form['access']['userdefinedcategoryorder'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please enter order of this descriptor'),
+					'#title' => t('Descriptor Category Order'),
+					  '#size' => 20,
+					  '#maxlength' => 500,	
+				);
+*/				
+				$form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+				
+				$i = $i + 1;
+		}
+	$form['#theme'] = 'test_form_scholastic_theme';  
+/*	
+	 $form['buttons']['submit1'] = array(                                                          
+		'#type' => 'button',
+		'#value' => t('Add New Row'), 
+		'#name' => "check",
+	  );
+*/	  
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Create Scholastic Assessment Category Descriptor Type'),                                                 
+	  );
+
+$form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+	return $form;
+
+}
+
+function scholdesc_next_create_submit($form, &$form_state) {
+$op = $form_state['values']['op'];
+if($op == "Cancel")
+{
+ $form_state['redirect'] = 'scholdesc/create';
+		  return;
+}
+		$group = &$_SESSION['group_value'] ;	
+		$assessId = &$_SESSION['assess_value'] ;		
+		$default_list = &$_SESSION['class_value'] ;		
+		$num_rows = &$_SESSION['num_rows'];
+
+		// derive classs		
+		$new_array = array_values($default_list); 		
+		foreach($new_array as $key => $value) {
+		  if($value == "") {
+			unset($new_array[$key]);
+		  }
+		}
+		$final_array = array_values($new_array); 	
+		$finalcount= count(	$final_array );
+		$comma_separated = implode(",", $final_array);
+
+//		dpm($form_state);
+	//	if ( $finalcount > 0 ) {
+
+		
+		$subjectArray = array();
+		$assesscatDetList = array();		
+		$assessDate = array();
+		$userDefinedValue = array();
+		$userDefinedMarks = array();
+	//	$assessDate = array();
+		
+	if ( isset( $form_state['clicked_button']['#post']['access']['subject']) ) {
+	$subjectArray = $form_state['clicked_button']['#post']['access']['subject'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['assesscatdetlist']) ) {
+	$assesscatDetList = $form_state['clicked_button']['#post']['access']['assesscatdetlist'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['assessdate']) ) {
+	$assessDate = $form_state['clicked_button']['#post']['access']['assessdate'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['userdefinedvalue']) ) {
+	$userDefinedValue = $form_state['clicked_button']['#post']['access']['userdefinedvalue'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['userdefinedmarks']) ) {
+	$userDefinedMarks = $form_state['clicked_button']['#post']['access']['userdefinedmarks'];
+	}
+	
+	$a = 1;
+	foreach ( $subjectArray as $key => $value ) {
+			//db_set_active('qtxt_db');	
+
+			$assesscatdetlistId = $assesscatDetList[$key] ;
+			$subjectId = $subjectArray[$key] ;
+			// $assessDate
+			$nonserassessdate = $assessDate[$key] ;
+			$name = $userDefinedValue[$key] ;
+			$maxmarks = $userDefinedMarks[$key] ;
+			
+			if ( ($assesscatdetlistId != "") && ($subjectId != "") && ($nonserassessdate != "") && ($name != "") && ($maxmarks != "" ) && ($finalcount > 0)) {
+				$fromDateExp = "$nonserassessdate[year]-$nonserassessdate[month]-$nonserassessdate[day]";
+				db_set_active('qtxt_db');
+					$field = db_fetch_object(db_query("select assessment_category_code, assessment_category_type, assessment_type_code from cce_assesment_category_details where assessment_category_detail_id = %d", $assesscatdetlistId));
+				db_set_active('default');
+
+				if (!$field) {
+					drupal_not_found();
+					return;
+				  }	
+				$asscategcode = $field->assessment_category_code;
+				$asscategtype = $field->assessment_category_type;		
+				$asstypecode = $field->assessment_type_code;
+				foreach ( $final_array as $k => $v) 
+				global $user;
+   $uid=$user->uid; 
+                 $sql = "select account_id from {cce_account_admin} where drupal_uid=$uid "   ; 
+
+   $resultg2 = db_query($sql);   
+   while ($rowg2 = db_fetch_object($resultg2)) {
+       $cceArray =  $rowg2->account_id ; 
+   }
+    
+   db_set_active('default');
+   $cceaccountid=$cceArray;
+   echo $cceaccountid;
+				{
+					db_set_active('qtxt_db');	
+					$result = db_query( "INSERT INTO `cce_assesment_cat_det_descriptor` (`assessment_cat_det_descriptor_id`,  `assessment_category_detail_id`,  `assessment_category_code`,  `assessment_category_type`,  `descriptor_name`,  `max_marks`,  `descriptor_description`,  `category_short_code`,  `category_order`,  `assessment_id`,  `assessment_type_code`,  `creation_date`,  `update_date`,  `created_by`,  `updated_by`,  `subject_id`,  `subject_name`,  `assessment_date`,  `account_grade_id`,  `master_assessment_cat_det_descriptor_id`,`account_id`)  VALUES  (  null ,  $assesscatdetlistId,  '$asscategcode' ,  '$asscategtype',  '$name',  $maxmarks,  '$name' , '$name',  $a,   $assessId,  '$asstypecode',  sysdate(),   sysdate(),   'admin',   'admin', $subjectId,  null,  '$fromDateExp' ,  $v,  null ,$cceaccountid )");  
+					db_set_active('default');	
+				}
+			}
+			$a = $a + 1;
+	}
+	drupal_set_message(t("Your Assessment Category Types have been inserted successfully."));	
+	unset ( $_SESSION['group_filter_value'] );
+  		unset ( $_SESSION['scholAccountGradeId'] );
+  		unset ( $_SESSION['scholAssessmentName'] );
+  		unset ( $_SESSION['scholAssessmentCategory'] );
+	
+    $form_state['redirect'] = 'scholdesc/list';
+	return;
+}
+
+function v3_cce_schol_descriptors_theme() {
+	return array(
+		'test_form_scholastic_theme' => array('arguments'=> array('form' => NULL),),
+		'schol_access_cat_det_descriptor_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_test_form_scholastic_theme($form)
+{
+	$rows = array();
+	$i = 1;
+	foreach(element_children($form['access']['index']) as $key) {
+		$row = array(); 
+		   $row[] =  drupal_render($form['access']['subject'][$key]);
+		   $row[] =  drupal_render($form['access']['assesscatdetlist'][$key]);
+		   $row[] =  drupal_render($form['access']['assessdate'][$key]);
+		   $row[] =  drupal_render($form['access']['userdefinedvalue'][$i]);
+		   $row[] =  drupal_render($form['access']['userdefinedmarks'][$key]);
+		//   $row[] =  drupal_render($form['access']['userdefineddesc'][$key]);
+	//	   $row[] =  drupal_render($form['access']['userdefinedshortcode'][$i]);
+//		   $row[] =  drupal_render($form['access']['userdefinedcategoryorder'][$key]);
+		   $row[] =  drupal_render($form['access']['index'][$key]);
+		   $rows[] = $row; 
+		$i = $i +1 ;
+	}
+  if(count($rows)){
+				$header = array(
+					t('Subject'), t('Assesment Type'), t('Date'), t('Unique Name'), t('Max Marks') );
+	  }
+  else{
+    $header = array(t('First Name'), t('Last Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+ $form['access']['#access'] = false;
+return $output . drupal_render($form); 
+}  
+
+
+
+/*
+function scholdesc_create_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+  
+	$group = $form_state['values']['group'];
+	$assessId = $form_state['values']['assessname'];
+	$assesscatdetlistId  = $form_state['values']['assesscatdetlist'];
+
+	$subject = $form_state['values']['subject'];	
+	$default_list = $form_state['values']['default_list'];
+	$userdefinedvalue = $form_state['values']['userdefinedvalue'];
+	$userdefinedmarks = $form_state['values']['userdefinedmarks'];
+	$userdefinedshortcode = $form_state['values']['userdefinedshortcode'];
+	$userdefineddesc = $form_state['values']['userdefineddesc'];
+	$userdefinedcategoryorder = $form_state['values']['userdefinedcategoryorder'];
+	$assessdate = serialize($form_state['values']['assessdate']);
+	$nonserassessdate = $form_state['values']['assessdate'];
+	
+	$fromDateExp = "$nonserassessdate[year]-$nonserassessdate[month]-$nonserassessdate[day]";	
+	
+//	drupal_set_message("user defined date - $assessdate ");	
+	
+//	drupal_set_message("user defined date non serialized - $fromDateExp ");  
+	
+	$userdefinedvalue = str_replace("'", "''", $userdefinedvalue);
+	$userdefineddesc = str_replace("'", "''", $userdefineddesc);		
+	$userdefinedshortcode = str_replace("'", "''", $userdefinedshortcode);			
+
+	$new_array = array_values($default_list); 		
+	foreach($new_array as $key => $value) {
+	  if($value == "") {
+		unset($new_array[$key]);
+	  }
+	}
+
+	$final_array = array_values($new_array); 	
+	$finalcount= count(	$final_array );
+	$comma_separated = implode(",", $final_array);
+	
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("select assessment_category_code, assessment_category_type, assessment_type_code from cce_assesment_category_details where assessment_category_detail_id = %d", $assesscatdetlistId));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }	
+		$asscategcode = $field->assessment_category_code;
+		$asscategtype = $field->assessment_category_type;		
+		$asstypecode = $field->assessment_type_code;
+
+	//drupal_set_message(t("Your scholdescment Type - $comma_separated"));	
+	//drupal_set_message("user defined - $userdefinedvalue ");	
+	//drupal_set_message("user defined desc - $userdefineddesc ");	
+
+	//drupal_set_message("Count - $finalcount ");	
+	
+	if ( $userdefinedmarks == "") {
+		$userdefinedmarks = 'null';
+	} 
+	if ( $userdefinedcategoryorder == "") {
+		$userdefinedcategoryorder = 'null';
+	} 
+		
+
+	if ( $finalcount > 0 ) {
+		foreach ( $final_array as $k => $v) {
+
+			db_set_active('qtxt_db');	
+		$result = db_query( "INSERT INTO `cce_assesment_cat_det_descriptor` (`assessment_cat_det_descriptor_id`,  `assessment_category_detail_id`,  `assessment_category_code`,  `assessment_category_type`,  `descriptor_name`,  `max_marks`,  `descriptor_description`,  `category_short_code`,  `category_order`,  `assessment_id`,  `assessment_type_code`,  `creation_date`,  `update_date`,  `created_by`,  `updated_by`,  `subject_id`,  `subject_name`,  `assessment_date`,  `account_grade_id`,  `master_assessment_cat_det_descriptor_id`)  VALUES  (  null ,  $assesscatdetlistId,  '$asscategcode' ,  '$asscategtype',  '$userdefinedvalue',  $userdefinedmarks,  '$userdefineddesc' , '$userdefinedshortcode',  $userdefinedcategoryorder,   $assessId,  '$asstypecode',  sysdate(),   sysdate(),   'admin',   'admin', $subject,  null,  '$fromDateExp' ,  $v,  null  )");  
+		
+			db_set_active('default');	
+			}
+	}	
+	
+	drupal_set_message(t("Your Assessment Category Types have been inserted successfully."));	
+	
+	
+			unset ( $_SESSION['group_filter_value'] );
+			
+		  $form_state['redirect'] = 'scholdesc/list';
+		  return;
+
+}
+*/
+
+
+/**
+ * Form builder; Return form for user administration filters.
+ *
+ * @ingroup forms
+ * @see user_filter_form_submit()
+ */
+function scholdesc_filter_form() {
+
+			
+	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only scholdesc where'),
+		'#tree' => TRUE,
+	  );
+		$c1Val = "";
+		if(!empty($_SESSION['group_filter_value'])) {
+			$c1Val = &$_SESSION['group_filter_value'];
+		} else {
+			$c1Val = "";
+		}
+
+		$c2Val = "";
+		if(!empty($_SESSION['scholAccountGradeId'])) {
+			$c2Val = &$_SESSION['scholAccountGradeId'];
+		} else {
+			$c2Val = "";
+		}
+
+		$c3Val = "";
+		if(!empty($_SESSION['scholAssessmentName'])) {
+			$c3Val = &$_SESSION['scholAssessmentName'];
+		} else {
+			$c3Val = "";
+		}
+
+		$c4Val = "";
+		if(!empty($_SESSION['scholAssessmentCategory'])) {
+			$c4Val = &$_SESSION['scholAssessmentCategory'];
+		} else {
+			$c4Val = "";
+		}		
+		
+		/*
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select assessment_category_type, descriptor_name, assessment_cat_det_descriptor_id  from {cce_assesment_category_details}  order by assessment_category_type" );
+
+		$options = array('' => t('Select..'));
+
+		$c2Val = "";
+		if(!empty($_SESSION['group_filter_value'])) {
+			$c2Val = &$_SESSION['group_filter_value'];
+		} else {
+			$c2Val = "";
+		}
+		
+		while ($row = db_fetch_object($result)) {
+				$options[$row->assessment_category_detail_id ] =  $row->assessment_category_type; 
+		}
+
+		db_set_active('default');	 
+		*/
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_grade_id, concat( b.grade_name, ' - ' , a.group_name , ' - ' , a.group_description ) 'groupdesc' 
+FROM {cce_groups} a , {qtxt_sms_account_grades} b where b.group_id = a.group_id order by group_name ");
+		$accessOptions = array( '' => t('Select the Class Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->account_grade_id ] = $row->groupdesc; 
+		}
+		db_set_active('default');
+		
+		$form['filters']['class'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+			'#options'=> $accessOptions,
+			'#title' => t('Group'),
+			'#disabled' => FALSE,
+			'#default_value' => $c1Val,
+			'#ahah' => array(
+				  	'path' => 'scholdesc/year/ahahjs11',
+				  	'wrapper' => 'ahah-wrapper-filter-class',
+				  	'method' => 'replace',
+				  			)			
+		);
+
+		
+		$form['filters']['assessname'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Assessment Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Assessment Name'),
+			'#disabled' => FALSE,
+			'#default_value' => $c2Val,
+			'#ahah' => array(
+				  	'path' => 'scholdesc/year/ahahjs12',
+				  	'wrapper' => 'ahah-wrapper-filter-assessname',
+				  	'method' => 'replace',
+				  			),
+		 '#prefix' => '<div id = "ahah-wrapper-filter-class">',
+		'#suffix' => '</div>',									
+		);
+		db_set_active('qtxt_db');	
+		$result1 = db_query("select distinct(subject_id),subject_name from cce_schol_assesment_cat_det_descriptor_v order by subject_name ");
+		$accessOptions4 = array( '' => t('Select') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions4[$row->subject_id ] = $row->subject_name; 
+		}
+		db_set_active('default');
+		$form['filters']['subject'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the subject Name'),
+			'#options'=> $accessOptions4,
+			'#title' => t('Subject Name'),
+			'#disabled' => FALSE,
+												
+		);
+			
+		
+		$form['filters']['accesscatdet'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Assessment Category'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Assessment Category Name'),
+			'#disabled' => FALSE,
+			'#default_value' => $c3Val,
+		 '#prefix' => '<div id = "ahah-wrapper-filter-assessname">',
+		'#suffix' => '</div>',									
+		);
+
+		
+		$form['filters']['group'] = array(
+		  '#title' => 'Assessment Category Descriptor like ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 200,
+		  '#default_value' => $c4Val,
+		);
+
+
+		
+
+	 $form['filters']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Filter'), 
+                '#prefix' => '<br/><br/><br/><br/><br/><br/><br/>',                                                
+	  );
+       $form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+	return $form;
+
+}
+
+
+
+function scholdesc_filter_form_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+//  drupal_set_message("Filter Form Submit Operamd - $op ");	  
+  switch ($op) {
+    case t('Filter'): 
+
+
+      if (isset($form_state['values']['filters']['group'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['filters']['group'];
+			$_SESSION['group_filter_value'] = $form_state['values']['filters']['group'];
+	  }
+	  
+      if (isset($form_state['values']['filters']['class'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$accountGradeId = $form_state['values']['filters']['class'];
+			$_SESSION['scholAccountGradeId'] = $form_state['values']['filters']['class'];
+	  }
+
+      if (isset($form_state['values']['filters']['assessname'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['filters']['assessname'];
+			$_SESSION['scholAssessmentName'] = $form_state['values']['filters']['assessname'];
+	  }
+
+      if (isset($form_state['values']['filters']['accesscatdet'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['filters']['accesscatdet'];
+			$_SESSION['scholAssessmentCategory'] = $form_state['values']['filters']['accesscatdet'];
+	  }	
+if (isset($form_state['values']['filters']['subject'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['filters']['subject'];
+			$_SESSION['subject_name'] = $form_state['values']['filters']['subject'];
+	  }	  	  
+      break;
+  }
+  
+  $form_state['redirect'] = 'scholdesc';
+  return;
+}
+
+
+
+function scholdesc_details($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+	t('Operations'),
+  );
+
+$clVal = &$_SESSION['group_filter_value'] ;
+$c2Val = &$_SESSION['scholAccountGradeId'] ;
+$c3Val = &$_SESSION['scholAssessmentName'] ;
+$c4Val = &$_SESSION['scholAssessmentCategory'] ;
+$c5Val = &$_SESSION['subject_name'] ;
+
+
+/*
+drupal_set_message(t("Class Filter 1 - $clVal"));	
+drupal_set_message(t("Class Filter 2 - $c2Val"));	
+drupal_set_message(t("Class Filter 3 - $c3Val"));	
+drupal_set_message(t("Class Filter 4 - $c4Val"));
+*/	
+
+
+//drupal_set_message(t("Class Filter 1 - $clVal"));	
+
+  
+$filterClass = "";
+    if ( $clVal != "" ) {
+		$clVal = strtoupper($clVal);
+			$filterClass1 = " and upper(b.descriptor_name) like '%$clVal%' ";
+	} else {
+			$filterClass1 = " and b.descriptor_name = b.descriptor_name ";
+	}
+
+    if ( $c2Val != "" ) {
+			$filterClass2 = " and b.account_grade_id =  $c2Val ";
+	} 
+else 
+{
+$filterClass2 = " and b.account_grade_id =  b.account_grade_id ";
+}
+    if ( $c3Val != "" ) {
+			$filterClass3 = " and b.assessment_id  =  $c3Val ";
+	} 
+else
+{
+$filterClass3 = " and b.assessment_id  = b.assessment_id "; 
+}
+    if ( $c4Val != "" ) {
+			$filterClass4 = " and b.assessment_category_detail_id  =  $c4Val ";
+	} 
+else
+{
+$filterClass4 = " and b.assessment_category_detail_id  =  b.assessment_category_detail_id  ";
+}
+if ( $c5Val != "" ) {
+			$filterClass5 = " and b.subject_id  =  $c5Val ";
+	} 
+else
+{
+$filterClass5 = " and b.subject_id  =  b.subject_id  ";
+}
+
+
+	
+  db_set_active('qtxt_db');	
+  $sql = "select descriptor_name, descriptor_description, category_short_code , assessment_category_type, assessment_name, group_name, 
+term_name, year, assessment_type_code , assessment_category_detail_id, assessment_id, assessment_cat_det_descriptor_id, subject_name, 
+grade_name, assessment_date,max_marks  from  {cce_schol_assesment_cat_det_descriptor_v} b  where 1 = 1  " . $filterClass1 . $filterClass2 . $filterClass3 . $filterClass4 . $filterClass5 ." 
+order by assessment_name, assessment_category_type,subject_name " ; 
+    $query_count = "select COUNT(assessment_cat_det_descriptor_id) from  {cce_schol_assesment_cat_det_descriptor_v} b  where 1 = 1 " 
+. $filterClass1 . $filterClass2 . $filterClass3 . $filterClass4 . $filterClass5 ;
+
+
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+  db_set_active('default');
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+
+  $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->assessment_cat_det_descriptor_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+
+ 
+    $form['access']['descriptor_name'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->descriptor_name);
+   //  $form['access']['descriptor_description'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->descriptor_description);
+   // $form['access']['category_short_code'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->category_short_code);
+ 
+    $form['access']['assessment_category_type'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->assessment_category_type);
+    $form['access']['assessment_name'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->assessment_name);
+   // $form['access']['group_name'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->group_name);
+   //  $form['access']['term_name'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->term_name);
+    $form['access']['year'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->year);
+    $form['access']['assessment_type_code'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->assessment_type_code);
+    $form['access']['assessment_id'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->assessment_id);
+    $form['access']['assessment_category_detail_id'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->assessment_category_detail_id);
+	
+    $form['access']['subject_name'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->subject_name);
+    $form['access']['grade_name'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->grade_name);
+ $form['access']['max_marks'][$account->assessment_cat_det_descriptor_id] = array('#value' => $account->max_marks);
+ 
+
+    $form['access']['assessment_date'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->assessment_date);
+	
+    $form['access']['assessment_cat_det_descriptor_id'][$account->assessment_cat_det_descriptor_id] =  array('#value' => $account->assessment_cat_det_descriptor_id);
+	$form['access']['operations'][$account->assessment_cat_det_descriptor_id] = array('#value' => l(t('edit'), "scholdesc/edit/$account->assessment_cat_det_descriptor_id", array('query' => $destination)));	
+	$form['access']['operations2'][$account->assessment_cat_det_descriptor_id] = array('#value' => l(t('delete'), "scholdesc/delete/$account->assessment_cat_det_descriptor_id", array('query' => $destination)));	
+	$i = $i + 1;
+  }
+// db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'schol_access_cat_det_descriptor_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+/*
+function v3_cce_schol_descriptors_theme() {
+	return array(
+		'schol_access_cat_det_descriptor_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+*/
+function theme_schol_access_cat_det_descriptor_theme($form)
+{
+$rows = array();
+$i = 1;
+
+foreach(element_children($form['access']['assessment_cat_det_descriptor_id']) as $key) {
+	$row = array(); 
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+       $row[] =  drupal_render($form['access']['descriptor_name'][$key]);
+      // $row[] =  drupal_render($form['access']['descriptor_description'][$key]);
+      //  $row[] =  drupal_render($form['access']['category_short_code'][$key]);
+       $row[] =  drupal_render($form['access']['assessment_category_type'][$key]);
+       $row[] =  drupal_render($form['access']['assessment_name'][$key]);
+
+       $row[] =  drupal_render($form['access']['subject_name'][$key]);
+       $row[] =  drupal_render($form['access']['grade_name'][$key]);
+       $row[] =  drupal_render($form['access']['assessment_date'][$key]);	   
+	 $row[] =  drupal_render($form['access']['max_marks'][$key]);	   
+	   
+    //   $row[] =  drupal_render($form['access']['group_name'][$key]);
+    //    $row[] =  drupal_render($form['access']['term_name'][$key]);
+//       $row[] =  drupal_render($form['access']['year'][$key]);
+  //     $row[] =  drupal_render($form['access']['assessment_type_code'][$key]);
+//       $row[] =  drupal_render($form['access']['assessment_id'][$key]);
+//       $row[] =  drupal_render($form['access']['assessment_category_detail_id'][$key]);
+//       $row[] =  drupal_render($form['access']['assessment_cat_det_descriptor_id'][$key]);
+       $row[] =  drupal_render($form['access']['operations'][$key]);	   
+       $row[] =  drupal_render($form['access']['operations2'][$key]);	   
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+
+
+if(count($rows)){
+//			$header = array( theme('table_select_header_cell'), t('Group Name'), t('Group Desc'), t('Group Id') );
+//				$header = array(  t('Descriptor Name'), t('Descriptor Description'), t('Descriptor Short Code'), t('Assessment Category Type'), t('Assessment Name'), t('Subject Name'), t('Grade Name'), t('Assessment Date'), t('Group Name'), t('Term Name'), t('Year'), t('Assessment Type Code'), t('Assessment Id'), t('Assessment Category Detial Id'), t('Assessment Category Detial Descriptor Id') );
+				
+				$header = array(  t('Descriptor Name'), t('Assessment Category Type'), t('Assessment Name'), t('Subject Name'), t('Grade Name'), t('Assessment Date'),t('Total Marks') );
+
+				$header[] = array('data' => t('Operations'), 'colspan' => 2);
+  }
+  else{
+    $header = array(t('Descriptor Name'), t('Year')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No Scholostics Descriptors were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//$output .= drupal_render($form['options']); 
+// $output .= drupal_render($form['options']['submit']); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+
+
+
+
+function scholdesc_ahah_for_category_details() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['groupfields']['assessname'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_category_type, b.assessment_category_detail_id from cce_assesment_category_details_v b 
+ where assessment_id = $gid order by assessment_category_type";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_category_detail_id] = $datag->assessment_category_type;
+		}
+		db_set_active('default');
+		
+		
+		
+		
+		$form['assesscatdetlist']['#options'] = $valueg;
+		
+		$form['assesscatdetlist']['#ahah'] = array(
+				  	'path' => 'scholdesc/year/ahahjs2',
+				  	'wrapper' => 'ahah-wrapper-defaultlist',
+				  	'method' => 'replace',
+				  			)	;
+		$form['assesscatdetlist']['#prefix'] = '<div id = "ahah-wrapper-catdetlist">';
+		$form['assesscatdetlist']['#suffix'] =  '</div>';		
+							
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assesscatdetlist'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+
+function scholdesc_ahah_for_group() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$account_id = $form['#post']['account'];
+		$gid = $form['#post']['group'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_id, b.assessment_name  from cce_assesment_types b  where group_id = $gid   and assessment_category_code in ( 'FA', 'SA') order by assessment_name ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_id] = $datag->assessment_name;
+		}
+		db_set_active('default');
+
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_grade_id, grade_name FROM {qtxt_sms_account_grades} a , {cce_year} b
+ where b.year_id = a.year_id and b.active_flag = 'Y' and section != 'ALL' and group_id = $gid  order by grade_name ");
+		$gradeOptions = array( '' => t('Select the Class Name') );
+		while ($row = db_fetch_object($result1)){
+		  $gradeOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');	
+		
+		
+		$form['groupfields']['default_list']['#options'] = $gradeOptions;		
+//		$form['default_list']['#prefix'] = '<div id = "ahah-wrapper-group">';
+//		$form['default_list']['#suffix'] =  '</div>';		
+							
+		$form['groupfields']['assessname']['#options'] = $valueg;
+		
+		$form['groupfields']['assessname']['#ahah'] = array(
+				  	'path' => 'scholdesc/year/ahahjs1',
+				  	'wrapper' => 'ahah-wrapper-catdetlist',
+				  	'method' => 'replace',
+				  			)	;
+	//	$form['assessname']['#prefix'] = '<div id = "ahah-wrapper-group">';
+	//	$form['assessname']['#suffix'] =  '</div>';		
+							
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	// unset($form['default_list']);
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['groupfields'];
+	//			$output .= $form['default_list'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+
+				
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+
+function scholdesc_ahah_for_filter_class() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['filters']['class'];
+		db_set_active('qtxt_db');
+
+		$sqlg =  "select  b.assessment_id, b.assessment_name  from cce_assesment_types b , qtxt_sms_account_grades c 
+where c.account_grade_id  = $gid  and assessment_category_code in ( 'FA', 'SA') and c.group_id = b.group_id order by assessment_name";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_id] = $datag->assessment_name;
+		}
+		db_set_active('default');
+		
+		
+		
+		
+		$form['filters']['assessname']['#options'] = $valueg;
+		
+		$form['filters']['assessname']['#ahah'] = array(
+				  	'path' => 'scholdesc/year/ahahjs12',
+				  	'wrapper' => 'ahah-wrapper-filter-assessname',
+				  	'method' => 'replace',
+				  			)	;
+		$form['filters']['assessname']['#prefix'] = '<div id = "ahah-wrapper-filter-class">';
+		$form['filters']['assessname']['#suffix'] =  '</div>';		
+							
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['filters']['assessname'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+function scholdesc_ahah_for_filter_assessname() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['filters']['assessname'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_category_type, b.assessment_category_detail_id from cce_assesment_category_details_v b  
+where assessment_id = $gid order by assessment_category_type   ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_category_detail_id] = $datag->assessment_category_type;
+		}
+		db_set_active('default');
+		
+		
+		$form['filters']['accesscatdet']['#options'] = $valueg;
+
+		$form['filters']['accesscatdet']['#prefix'] = '<div id = "ahah-wrapper-filter-assessname">';
+		$form['filters']['accesscatdet']['#suffix'] =  '</div>';		
+							
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['filters']['accesscatdet'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}

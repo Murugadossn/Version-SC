@@ -1,0 +1,33 @@
+
+.ic_type_tips{
+    float:left;
+    margin-right:10px;
+    margin-left:10px;
+    border:solid 1px #f2f2f2;
+}
+ 
+.ic_type_tips_container{
+  text-align:left;
+  z-index:99;
+  line-height:1em;
+  position:fixed;
+  width:80%;
+  bottom:0px;
+  left:180px;
+  background:#EDF5FA;
+  border:solid 1px #336699;
+  color:#336699;
+}
+
+#indic_script_selector{
+  text-align:left;
+  z-index:99;
+  line-height:1em;
+  position:fixed;
+  width:150px;
+  bottom:0px;
+  left:10px;
+  background:#EDF5FA;
+  border:solid 1px #336699;
+  display:none;
+}

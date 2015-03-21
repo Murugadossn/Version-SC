@@ -1,0 +1,23 @@
+<?php
+/**
+* Implementation of hook_action_info().
+*/
+function Trigger1_action_info() {
+$info['trigger1_action'] = array(
+'type' => 'user',
+'description' => t('Rebuild Menu'),
+'configurable' => FALSE,
+'hooks' => array(
+'user' => array('logout', 'login'),
+),
+);
+return $info;
+}
+
+function trigger1_action()
+{
+menu_rebuild();
+//drupal_set_message(t('The menu router has been rebuilt.'));
+}
+
+

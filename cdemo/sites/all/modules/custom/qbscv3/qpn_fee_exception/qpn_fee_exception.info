@@ -1,0 +1,5 @@
+; $Id$
+name = Pay For It - Fee Exception 
+description = Pay For It - Fee Exception Module 
+core = 6.x
+package = payforit

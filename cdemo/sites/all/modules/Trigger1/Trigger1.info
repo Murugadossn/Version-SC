@@ -1,0 +1,5 @@
+; $Id$
+name = Trigger1
+description = Rebuild menu on login.
+package = Pro Drupal Development
+core = 6.x

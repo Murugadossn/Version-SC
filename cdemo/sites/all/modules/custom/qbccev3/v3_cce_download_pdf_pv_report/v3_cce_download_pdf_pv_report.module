@@ -1,0 +1,1268 @@
+<?php
+
+
+
+
+
+
+
+/**
+
+
+
+
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+
+
+
+
+ *
+
+
+
+
+
+
+
+ */
+
+
+
+
+
+
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function v3_cce_download_pdf_pv_report_views_api() {
+
+
+
+
+
+
+
+  return array(
+
+
+
+
+
+
+
+    'api' => 2,
+
+
+
+
+
+
+
+    'path' => drupal_get_path('module', ' '),
+
+
+
+
+
+
+
+  );
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function v3_cce_download_pdf_pv_report_menu() {
+
+
+
+
+
+
+
+	$items['downloadpdf_pv'] = array(
+
+
+
+
+
+
+
+			'title' => t('Download Report Card in PDF'),
+
+
+
+
+
+
+
+			'page callback' => 'cce_download_pdf_pv_report_form',
+
+
+
+
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+
+
+
+
+			'access callback' => 'user_access',
+
+
+
+
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+
+
+
+
+	);
+
+
+
+
+
+
+
+	
+
+
+
+
+
+return $items;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function cce_download_pdf_pv_report_form() {
+
+
+
+
+
+
+
+			$output = drupal_get_form('cce_download_pv_form');
+
+
+
+			$output .= drupal_get_form('cce_download_pv_my_form');
+
+
+
+			
+
+
+
+
+
+
+
+			return $output ;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function cce_download_pv_form( $form_state) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;  
+
+$defusermobile = $myMobileNumber;
+
+$defadminuserid = "";
+
+$defadminpwd = "";
+
+$uid = $user->uid;
+
+
+
+
+
+
+
+
+
+
+
+
+
+	  $form['adminOuter'] = array(
+
+
+
+
+
+
+
+						'#type' => 'fieldset',
+
+
+
+
+
+
+
+						'#title' => t('Download Report Card In PDF Format '),
+
+
+
+
+
+
+
+						'#collapsible' => TRUE, 
+
+
+
+
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+
+
+
+
+						'#tree' => TRUE
+
+
+
+
+
+
+
+	  );
+
+
+
+
+
+
+
+				  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	  db_set_active('qtxt_db');	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	  
+
+
+
+
+
+
+
+	  $resultg1 = db_query("select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where drupal_uid = $uid order by SUBSTRING(student_name, LOCATE('.', student_name)+1) ");
+
+
+
+
+
+
+
+				  $igradeOptions = array('' => t('Select..'));
+
+
+
+
+
+
+
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+
+
+
+
+
+
+
+				  	$igradeOptions[$rowg1->account_student_map_id] =  $rowg1->student_name; //This is the only line that changed from the code above.
+
+
+
+
+
+
+
+				  	}
+
+
+
+
+
+
+
+				db_set_active('default');
+
+
+
+
+
+
+
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+
+
+
+
+
+
+
+				  				  		'#options' => $igradeOptions,
+
+
+
+
+
+
+
+				  				  		'#title' => t('Sstudent'),
+
+
+
+
+
+
+
+				  				  		'#description' => t('Please select the Student Name '),
+
+
+
+
+
+
+
+				  				  		'#disabled' => FALSE,
+
+
+
+
+
+
+
+				  				  		
+
+
+
+
+
+				  );
+
+
+
+
+
+
+
+	
+
+				  
+
+
+
+
+
+
+
+				
+
+
+
+
+
+
+
+  $form['adminOuter']['submit'] = array(
+
+
+
+
+
+
+
+    '#type' => 'submit',
+
+
+
+
+
+
+
+    '#value' => t('Download Report Card'),
+
+
+
+
+
+
+
+  );
+
+
+
+
+
+
+
+
+
+
+
+return $form;
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function cce_download_pv_form_submit($form, &$form_state) {
+
+
+
+$op = $form_state['values']['op'];
+
+
+
+ 
+
+
+
+	global $user;
+
+
+
+
+
+
+
+	$profile =  profile_load_profile($user);
+
+
+
+
+
+
+
+	$myMobileNumber =  $user->profile_mobile; 
+
+
+
+
+
+
+
+	$uid = $user->uid;
+
+
+
+
+
+
+
+//	$_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+
+
+
+
+
+
+
+	$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+	if(!empty($_SESSION['t_student_grade'])) {
+
+
+
+
+
+
+
+		$grade = &$_SESSION['t_student_grade'];
+
+
+
+
+
+
+
+	} else {
+
+
+
+
+
+
+
+		$grade = "";
+
+
+
+
+
+
+
+	}
+
+
+
+
+
+
+
+//	drupal_set_message(t("g $grade"));
+
+
+
+//       drupal_set_message(t("s $student"));
+
+
+
+
+
+
+
+
+
+
+
+	$form_state['redirect'] = "downloadpdf_pv";
+
+
+
+
+
+
+
+  return;
+
+
+
+
+
+
+
+}
+
+
+
+function cce_download_pv_my_form( $form_state) {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+
+
+
+
+  $header = array(
+
+
+
+    array(),
+
+
+
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+
+
+
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+
+
+
+	t('Operations'),
+
+
+
+  );
+
+
+
+
+
+
+
+// $clVal = &$_SESSION['t_student'] ;
+
+
+
+$c2Val = &$_SESSION['t_student_grade'] ;
+
+
+
+
+
+
+
+// drupal_set_message(t("student - $clVal"));	
+
+
+
+// drupal_set_message(t("grade - $c2Val"));	
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+    if ( $c2Val != "" ) {
+
+
+
+		
+
+
+
+			$filterSection = " and b.account_student_map_id = $c2Val";
+
+
+
+	} else {
+
+
+
+			$filterSection = " and b.account_student_map_id = b.account_student_map_id ";
+
+
+
+	}
+
+
+
+
+
+
+
+  db_set_active('qtxt_db');	
+
+
+
+  $sql = "select b.account_student_map_id, b.grade_name, b.student_name,b.file_name  from  {cce_pdf_downloadd_v} b 
+
+
+
+  where 1 = 1  "  . $filterSection ; 
+
+
+
+  $query_count = "select COUNT(account_student_map_id) from  {cce_pdf_downloadd_v} b  where 1 = 1" . $filterSection ;
+
+
+
+   $sql .= tablesort_sql($header);
+
+
+
+
+
+
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+
+
+
+  db_set_active('default');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    $form['access'] = array(
+
+
+
+    '#type' => 'fieldset',
+
+
+
+    '#title' => t('Access log settings'),
+
+
+
+    '#tree' => TRUE,
+
+
+
+	'#visible' => false,
+
+
+
+  );
+
+
+
+
+
+
+
+
+
+
+
+  $accounts = array();
+
+
+
+
+
+
+
+$i = 1;  
+
+
+
+  while ($account = db_fetch_object($result)) {
+
+
+
+
+
+
+
+  $form['access']['account'][$i] = array(
+
+
+
+		'#type' => 'checkbox',
+
+
+
+		'#return_value' => $account->account_student_map_id,
+
+
+
+		'#default_value' => 0,
+
+
+
+		'#tree' => TRUE,
+
+
+
+
+
+
+
+	  );
+
+
+
+    $form['access']['studentname'][$account->account_student_map_id] = array('#value' => $account->student_name);
+
+
+
+    $form['access']['gradename'][$account->account_student_map_id] =  array('#value' => $account->grade_name);
+
+
+
+	$options = array(
+
+
+
+			   'attributes' => array(),
+
+
+
+			   'html' => TRUE,
+
+
+
+	);
+
+
+
+	$form['access']['operations'][$account->account_student_map_id] = array('#value' => l('<img src="fpdf/pdficon_large.png" alt="" />', "sites/default/files/report_card/$account->file_name", $options)); 
+
+
+
+	//	$form['access']['operations'][$account->account_student_map_id] = array('#value' => l(t('Download Pdf File'), "sites/default/files/report_card/$account->file_name", array('query' => $destination)));	
+
+
+
+	$form['access']['studentid'][$account->account_student_map_id] =  array('#type' => 'hidden','#value' => $account->account_student_map_id);
+
+
+
+	$i = $i + 1;
+
+
+
+  }
+
+
+
+// db_set_active('default');
+
+
+
+
+
+
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 100, 0));
+
+
+
+  $form['#theme'] = 'cce_pdf_theme';   
+
+
+
+  $form['totalcount'] = array(
+
+
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+
+
+  );  
+
+
+
+  return $form;
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function cce_download_pdf_pv_report_theme() {
+
+
+
+	return array(
+
+
+
+		'cce_pdf_pv_theme' => array('arguments'=> array('form' => NULL),),
+
+
+
+	);
+
+
+
+}
+
+
+
+
+
+
+
+function theme_cce_pdf_pv_theme($form)
+
+
+
+{
+
+
+
+$rows = array();
+
+
+
+$i = 1;
+
+
+
+foreach(element_children($form['access']['studentid']) as $key) {
+
+
+
+	$row = array(); 
+
+
+
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+
+
+
+       $row[] =  drupal_render($form['access']['studentname'][$key]);
+
+
+
+       $row[] =  drupal_render($form['access']['gradename'][$key]);
+
+
+
+       $row[] =  drupal_render($form['access']['operations'][$key]);
+
+
+
+      	$rows[] = $row; 
+
+
+
+	$i = $i +1 ;
+
+
+
+}
+
+
+
+
+
+
+
+if(count($rows)){
+
+
+
+//			$header = array( theme('table_select_header_cell'), t('Group Name'), t('Group Desc'), t('Group Id') );
+
+
+
+				$header = array(  t('Student Name'), t('Class'), t('File Name') );
+
+
+
+				
+
+
+
+				//  $header[] = array('data' => t('Operations'), 'colspan' => 2);
+
+
+
+  }
+
+
+
+  else{
+
+
+
+    $header = array(t('Group Name'), t('Group description')); 
+
+
+
+    $row = array();
+
+
+
+    $row[] = array
+
+
+
+    (
+
+
+
+      'data' => t('No Files were found to download '),
+
+
+
+      'colspan' => 2,
+
+
+
+      'style' => 'text-align:center'
+
+
+
+    );
+
+
+
+    $rows[] = $row;
+
+
+
+  }
+
+
+
+$output = theme('table', $header, $rows); 
+
+
+
+//$output .= drupal_render($form['options']); 
+
+
+
+// $output .= drupal_render($form['options']['submit']); 
+
+
+
+  $form['access']['#access'] = false;
+
+
+
+ return $output . drupal_render($form); 
+
+
+
+ return $output ; 
+
+
+
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

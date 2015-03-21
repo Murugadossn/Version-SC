@@ -1,0 +1,5 @@
+; $Id$
+name = Download payforit receipts
+description = Download payforit receipts 
+core = 6.x
+package = payforit

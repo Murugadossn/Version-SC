@@ -1,0 +1,279 @@
+<?php
+
+/**
+
+ * Implementation of hook_views_api().
+
+ *
+
+ */
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+
+
+function v3_cce_student_page_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', 'cce_student_page'),
+
+  );
+
+}
+
+
+
+function v3_cce_student_page_menu() {
+
+	$items['spage'] = array(
+
+			'title' => t('Submit self Awareness Report Online'),
+
+			'page callback' => 'cce_student_page_form_cb',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);
+
+	
+
+
+
+	return $items;
+
+	
+
+	}
+
+	function cce_student_page_form_cb() {
+
+			$output = drupal_get_form('cce_student_page_form');
+
+			 
+
+			return $output ;
+
+}
+
+function cce_student_page_form( $form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;  
+
+$uid = $user->uid;
+
+$defusermobile = $myMobileNumber;
+
+$defadminuserid = "";
+
+$defadminpwd = "";
+
+
+
+
+
+	  $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+
+						'#title' => t('Submit Awareness Report Online'),
+
+						'#collapsible' => TRUE, 
+
+						'#collapsed' => FALSE,
+
+						'#tree' => TRUE
+
+	  );
+
+	  db_set_active('qtxt_db');	
+
+	  $resultg2 = db_query("select concat( student_name, '-', xx.grade_name) student_name,  account_student_map_id FROM  {qtxt_sms_mobile_students_v} xx
+where xx.account_grade_id =170  order by SUBSTRING(student_name, LOCATE('.', student_name)+1)");
+
+				  $studentOptions = array('' => t('Select..'));
+
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+
+				  	$studentOptions[$rowg2->account_student_map_id ] =  $rowg2->student_name; 
+
+				  	}
+
+	db_set_active('default');
+
+
+
+				  $form['adminOuter']['student'] = array('#type' => 'select',
+
+				  				  		'#options' => $studentOptions,
+
+				  				  		'#title' => t('From'),
+
+				  				  		'#description' => t('Please select the Student'),
+
+				  				  		'#disabled' => FALSE,
+
+  				  				
+
+				  );
+
+				  
+
+
+
+	  		  
+
+				  $form['adminOuter']['text1'] = array(
+
+				  		'#title' => t('Goals'),
+
+				  		'#type' => 'textfield',
+
+						  '#size' => 40, 
+
+						  '#maxlength' => 500, 
+
+				  		'#disabled' => FALSE,
+
+				  		'#description' => t('Please enter yours goals '),
+
+					);
+
+					$form['adminOuter']['text2'] = array(
+
+				  		'#title' => t('Your Strengths'),
+
+				  		'#type' => 'textfield',
+
+						  '#size' => 40, 
+
+						  '#maxlength' => 500, 
+
+				  		'#disabled' => FALSE,
+
+				  		'#description' => t('Please enter your strenghts'),
+
+					);
+
+					$form['adminOuter']['text3'] = array(
+
+				  		'#title' => t('Interests and Hobbies'),
+
+				  		'#type' => 'textfield',
+
+						  '#size' => 40, 
+
+						  '#maxlength' => 500, 
+
+				  		'#disabled' => FALSE,
+
+			  		'#description' => t('Please enter interests and hobbies'),
+
+					);
+
+
+
+					$form['adminOuter']['text4'] = array(
+
+				  		'#title' => t('Responsibilities Discharged/Exceptional Achievements: '),
+
+				  		'#type' => 'textfield',
+
+						  '#size' => 40, 
+
+						  '#maxlength' => 500, 
+
+				  		'#disabled' => FALSE,
+
+				  		'#description' => t('Please enter your responsiblities and achievements'),
+
+					);
+
+
+
+  $form['adminOuter']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Submit your report'),
+
+  );
+
+return $form;
+
+
+
+
+
+}
+
+function cce_student_page_form_submit($form,&$form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid;
+
+// $grade = $form_state['values']['adminOuter']['teacher'];
+
+$studentid = $form_state['values']['adminOuter']['student'];
+
+//drupal_set_message(t("id $studentid"));		
+
+$text1 = $form_state['values']['adminOuter']['text1'];
+
+$text1 = str_replace("'", "''", $text1);
+
+// drupal_set_message(t("t $text1"));
+
+$text2 = $form_state['values']['adminOuter']['text2'];
+
+$text2 = str_replace("'", "''", $text2);
+
+$text3 = $form_state['values']['adminOuter']['text3'];
+
+$text3 = str_replace("'", "''", $text3);
+
+$text4 = $form_state['values']['adminOuter']['text4'];
+
+$text4 = str_replace("'", "''", $text4);
+
+
+
+
+
+
+
+		db_set_active('qtxt_db');
+
+		$result = db_query( "INSERT INTO `cce_self_awarness`(`year_id`,`account_student_map_id`,`text1`,`text2`,`text3`,`text4`)
+VALUES(1,$studentid,'$text1','$text2','$text3','$text4')");
+
+
+
+
+db_set_active('default');
+
+
+
+drupal_set_message(t("Your Report has been Submitted."));	
+
+  return;
+
+
+
+}
+

@@ -1,0 +1,9 @@
+name = qpn_parent_payforit
+
+description = "qpn_parent_payforit"
+
+package = qpn_parent_payforit
+
+core = 6.x
+
+package = payforit

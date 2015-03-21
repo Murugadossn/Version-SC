@@ -1,0 +1,217 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+
+function v3_parent_msg_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', '  '),
+  );
+}
+
+function v3_parent_msg_menu( ) {
+	$items[ 'ver3_parentform' ]             = array(
+		 'title' => t( 'Message To Staff - via Email and Online' ),
+		'page callback' => 'ver3_parent_to_teacher_submit_form',
+		'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array(
+			 'access content' 
+		) 
+	);
+	$items[ 'ver3_parentform/ind/ahahjs2' ] = array(
+		 'page callback' => 'ver3_parent_ahah_field_js_for_ind2',
+		//    'access arguments' => array('administer ahahtestmodule'),
+		'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array(
+			 'access content' 
+		) 
+	);
+	return $items;
+}
+function v3_parent_msg_mail( $key, &$message, $params ) {
+	$message[ 'subject' ] = t( 'Mail from DIS DELHI Website' );
+	//  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+	$message[ 'body' ][ ] = $params[ 'myVar' ];
+}
+function ver3_parent_to_teacher_submit_form( ) {
+	$output = drupal_get_form( 'ver3_parent_teacher_form' );
+	return $output;
+}
+function ver3_parent_teacher_form( $form_state ) {
+	global $user;
+	$profile                   = profile_load_profile( $user );
+	$myMobileNumber            = $user->profile_mobile;
+	$uid                       = $user->uid;
+	$defusermobile             = $myMobileNumber;
+	$defadminuserid            = "";
+	$defadminpwd               = "";
+	$form[ 'ver3_adminOuter' ] = array(
+		 '#type' => 'fieldset',
+		'#title' => t( 'Compose a Message To Staff' ),
+		'#collapsible' => FALSE,
+		'#collapsed' => FALSE,
+		'#tree' => TRUE 
+	);
+	db_set_active( 'qtxt_db' );
+	$resultg2       = db_query( "select concat( student_name, '-', xx.grade_name) student_name,  account_student_map_id FROM  {qtxt_sms_mobile_students_v} xx where  xx.drupal_uid = $uid  " );
+	$studentOptions = array(
+		 '' => t( 'Select ..' ) 
+	);
+	while ( $rowg2 = db_fetch_object( $resultg2 ) ) {
+		$studentOptions[ $rowg2->account_student_map_id ] = $rowg2->student_name;
+	} //$rowg2 = db_fetch_object( $resultg2 )
+	db_set_active( 'default' );
+	$form[ 'ver3_adminOuter' ][ 'student' ]                            = array(
+		 '#type' => 'select',
+		'#options' => $studentOptions,
+		'#title' => t( 'Student Name' ),
+		'#description' => t( 'Please Select The Student' ),
+		'#disabled' => FALSE,
+		'#ahah' => array(
+			 'path' => 'ver3_parentform/ind/ahahjs2',
+			'wrapper' => 'ahah-wrapper-student',
+			'method' => 'replace' 
+		) 
+	);
+	$form[ 'ver3_adminOuter' ][ 'teacher' ]                            = array(
+		 '#type' => 'select',
+		//'#options' => $igradeOptions,
+		'#title' => t( 'To Staff' ),
+		'#options' => array(
+			 '' => t( 'Select ..' ) 
+		),
+		'#description' => t( 'Please Select The Staff' ),
+		'#disabled' => FALSE,
+		'#prefix' => '<div id = "ahah-wrapper-student">',
+		'#suffix' => '</div>' 
+	);
+	$form[ 'ver3_adminOuter' ][ 'inMsg' ]                              = array(
+		'#title' => t( 'Message To Staff' ),
+		'#type' => 'textarea',
+		'#size' => 65,
+		'#maxlength' => 500,
+		'#disabled' => FALSE,
+		'#resizable' => FALSE,
+	//	'#prefix' => '<br/><br/><br/><br/>'
+	);
+	$form[ 'ver3_adminOuter' ][ 'submit' ]  = array(
+		 '#type' => 'submit',
+		'#value' => t( 'Send Message' ),
+		'#prefix' => '<br/>' 
+	);
+	$form[ 'ver3_adminOuter' ][ 'submit' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_adminOuter' ][ 'submit' ][ '#attributes' ][ 'class' ] . ' qbsubmit';
+	$form[ 'ver3_adminOuter' ][ 'student' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_adminOuter' ][ 'student' ][ '#attributes' ][ 'class' ] . ' qbleaveletetrform';
+	$form[ 'ver3_adminOuter' ][ 'teacher' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_adminOuter' ][ 'teacher' ][ '#attributes' ][ 'class' ] . ' qbleaveletetrform';
+	
+	return $form;
+}
+function ver3_parent_teacher_form_submit( $form, &$form_state ) {
+	global $user;
+	$profile        = profile_load_profile( $user );
+	$myMobileNumber = $user->profile_mobile;
+	$uid            = $user->uid;
+	$teacherid          = $form_state[ 'values' ][ 'ver3_adminOuter' ][ 'teacher' ];
+	$studentid      = $form_state[ 'values' ][ 'ver3_adminOuter' ][ 'student' ];
+	$msg            = $form_state[ 'values' ][ 'ver3_adminOuter' ][ 'inMsg' ];
+	$msg            = str_replace( "'", "''", $msg );
+	$accountArray   = "";
+	// drupal_set_message(t("log 2 c1Val Not Set "));	
+	db_set_active( 'qtxt_db' );
+	$result         = db_query( "select distinct(person_relationship_to_student) from {qtxt_sms_mobile_numbers}  where drupal_uid = $uid  " );
+	$accountGradeId = array( );
+	while ( $row = db_fetch_object( $result ) ) {
+		$accountGradeId[ ] = $row->person_relationship_to_student;
+		// This is the only line that changed from the code above.
+	} //$row = db_fetch_object( $result )
+	db_set_active( 'default' );
+	if ( count( $accountGradeId ) > 0 ) {
+		$accountArray = join( " ", $accountGradeId );
+		// drupal_set_message(t("Id $accountArray"));
+	} //count( $accountGradeId ) > 0
+	$filterClass = "  " . $accountArray . "  ";
+	db_set_active( 'qtxt_db' );
+	$result = db_query( "INSERT INTO`qtxt_sms_parent_message`(`parent_message_id`,`staff_id`, account_student_map_id, `message`,`parent_uid`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`msg_type`,`Process_flag`,type_id) VALUES(null,$teacherid,$studentid,'$msg',$uid,  sysdate(), sysdate(), 'admin', 'admin','$filterClass',1,5)" );
+	db_set_active( 'default' );
+	db_set_active( 'qtxt_db' );
+	$result = db_query( "SELECT staff_email FROM {qtxt_sms_account_staff} a where a.staff_id =  '%d' ", $teacherid );
+	while ( $row = db_fetch_object( $result ) ) {
+		$emailTo = $row->staff_email;
+	} //$row = db_fetch_object( $result )
+	db_set_active( 'default' );
+	$params = array(
+		 'myVar' => $msg 
+	);
+	// $emailTo = 'yuvaranim@quadrobay.com';
+	drupal_mail( 'v3_parent_msg', 'invitation', $emailTo, language_default(), $params, "demoadmin@demo.com" );
+	drupal_set_message( t( "Your Message Has Been Submitted." ) );
+	return;
+}
+
+function ver3_parent_teacher_form_validate( $form, &$form_state ) 
+{
+//Re-Write: Deepak Mani - 02/28/2012
+
+	$values    = $form_state[ 'values' ][ 'ver3_adminOuter' ];
+	$teacherid = $values[ teacher ];
+	$studentid = $values[ student ];
+	$msg       = $values[ inMsg ];
+
+	
+	$errortxt="";
+	
+	if ( $studentid == '' ) { $errortxt = $errortxt . "Select a Student Name"; }
+	if ( $teacherid == '' ) { $errortxt = $errortxt . "<br/>Select a Staff Name"; }
+	if ( $msg == '' ) { $errortxt = $errortxt . "<br/>Enter the Messge To Staff"; }
+
+	if ( strlen($errortxt) != 0 )
+	{
+		$errortxt = "<h4>Validation Error - Please review and correct the following.</h4>" . $errortxt; 
+		form_set_error( '', t( $errortxt ) );
+	}
+
+}
+
+
+function ver3_parent_ahah_field_js_for_ind2( ) {
+	$form_state           = array(
+		 'storage' => NULL,
+		'submitted' => FALSE 
+	);
+	$form_build_id        = $_POST[ 'form_build_id' ];
+	// Get for the form from the cache
+	$form                 = form_get_cache( $form_build_id, $form_state );
+	// Get the form set up to process
+	$args                 = $form[ '#parameters' ];
+	$form_id              = array_shift( $args );
+	$form_state[ 'post' ] = $form[ '#post' ] = $_POST;
+	//		$form['#programmed'] = $form['#redirect'] = FALSE;
+	$gid                  = $form[ '#post' ][ 'ver3_adminOuter' ][ 'student' ];
+	db_set_active( 'qtxt_db' );
+	$sqlg         = " select distinct staff_id,concat ( staff_name, '-', xx.grade_name , '-',a.staff_subject) staff_name FROM {qtxt_sms_staff_mobile_v1} a , {qtxt_sms_mobile_students_v} xx where xx.account_grade_id = a.account_grade_id and xx.account_student_map_id = $gid ";
+	$resultg      = db_query( $sqlg );
+	$valueg[ '' ] = 'Select a value';
+	while ( $datag = db_fetch_object( $resultg ) ) {
+		$valueg[ $datag->staff_id ] = $datag->staff_name;
+	} //$datag = db_fetch_object( $resultg )
+	db_set_active( 'default' );
+	//$valueg1 = drupal_map_assoc($valueg);
+	$form[ 'ver3_adminOuter' ][ 'teacher' ][ '#options' ] = $valueg;
+	form_set_cache( $form_build_id, $form, $form_state );
+	$form += array(
+		 '#post' => $_POST,
+		'#programmed' => FALSE 
+	);
+	$form   = form_builder( 'qtext1_smsform', $form, $form_state );
+	$output = $form[ 'ver3_adminOuter' ][ 'teacher' ];
+	unset( $output[ '#prefix' ], $output[ '#suffix' ] );
+	$out1 = drupal_render( $output );
+	drupal_json( array(
+		 'status' => TRUE,
+		'data' => $out1 
+	) );
+}

@@ -1,0 +1,413 @@
+<?php
+
+/**
+
+ * Implementation of hook_views_api().
+
+ *
+
+ */
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+function v3_student_msg_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', '  '),
+
+  );
+
+}
+
+
+
+
+
+function v3_student_msg_menu() {
+
+	$items['ver3_studentform'] = array(
+
+			'title' => t('Message To Staff - via Email and Online'),
+
+			'page callback' => 'ver3_student_to_teacher_submit_form',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);
+
+
+
+ 
+
+return $items;
+
+}
+
+
+
+
+
+function v3_student_msg_mail($key, &$message, $params) {
+
+      $message['subject'] = t('Mail from Demo Website');
+
+    //  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+
+	  $message['body'][] =  $params['myVar'] ;
+
+	 
+
+}
+
+
+
+
+
+function ver3_student_to_teacher_submit_form() {
+
+			$output = drupal_get_form('ver3_student_teacher_form');
+
+			return $output ;
+
+}
+
+
+
+function ver3_student_teacher_form( $form_state) {
+
+
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;  
+
+$uid = $user->uid;
+
+$defusermobile = $myMobileNumber;
+
+$defadminuserid = "";
+
+$defadminpwd = "";
+
+
+
+
+
+	  $form['ver3_adminOuter'] = array(
+
+						'#type' => 'fieldset',
+
+						'#title' => t(' Information to be delivered to Staff'),
+
+						'#collapsible' => TRUE, 
+
+						'#collapsed' => FALSE,
+
+						'#tree' => TRUE
+
+	  );
+
+	  db_set_active('qtxt_db');	
+
+	  $resultg2 = db_query("select concat( student_name, '-', xx.grade_name) student_name,  account_student_map_id FROM  {qtxt_sms_mobile_students_v} xx where  xx.drupal_uid = $uid ");
+
+				  $accountGradeId = array();
+                               $accountGradeId1 = array();
+
+
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+
+					 $accountGradeId1[] =  $rowg2->account_student_map_id; 
+
+				  	 $accountGradeId[] =  $rowg2->student_name; 
+
+
+
+				  	}
+
+	db_set_active('default');
+
+	if (  count( $accountGradeId ) > 0 ) {
+
+			$accountArray = join( " ", $accountGradeId );
+                    $accountArray1 = join( " ", $accountGradeId1 );
+
+
+		}
+
+$studentOptions = " $accountArray ";
+$studentOptions1 = " $accountArray1 ";
+
+  // drupal_set_message(t("ab $studentOptions1 "));
+
+
+
+
+
+
+
+				  $form['ver3_adminOuter']['student'] = array('#type' => 'select',
+
+				  				  		// '#options' => $studentOptions,
+
+										'#type' => 'textfield',
+                                                                              
+                                                                                '#type' => 'hidden',
+
+				  				  		'#title' => t('Student Name'),
+
+				  				  		'#default_value' => $studentOptions1,
+
+				  				  		'#disabled' => FALSE,
+
+										
+
+  				  				
+
+				  );	
+
+ db_set_active('qtxt_db');	
+
+	  $resultg2 = db_query("select distinct account_grade_id from {qtxt_sms_mobile_students_v} where drupal_uid=$uid ");
+
+				  $accountGradeId = array();
+
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+
+				  	 $accountGradeId[] =  $rowg2->account_grade_id; 
+
+
+
+				  	}
+
+	db_set_active('default');
+
+	if (  count( $accountGradeId ) > 0 ) {
+
+			$accountArray = join( " ", $accountGradeId );
+
+		}
+
+$studentOptions1 = "$accountArray";	
+// drupal_set_message(t("ab $studentOptions1"));
+
+db_set_active('qtxt_db');	
+
+	  $resultg2 = db_query("select distinct staff_id,staff_name from {qtxt_sms_staff_list_v} where account_grade_id = $studentOptions1");
+
+				  $studentOptions1 = array('' => t('Select..'));
+
+
+
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+
+
+
+				  	$studentOptions1[$rowg2->staff_id ] =  $rowg2->staff_name; 
+
+
+
+				  	}
+
+
+
+db_set_active('default');
+
+                                                                     $form['ver3_adminOuter']['teacher'] = array('#type' => 'select',				  				  		
+
+				  				  		'#title' => t('Staff Name'),
+   		
+                                                                      '#options' => $studentOptions1,
+
+										'#description' => t('Please select the Staff'),
+
+				  				  		'#disabled' => FALSE,
+
+										 
+
+  				  				
+
+				  );
+
+
+
+
+
+
+
+
+
+				  
+
+				  
+
+				  $form['ver3_adminOuter']['inMsg'] = array('#type' => 'textarea',
+
+
+                                                  '#title' => t('Message'),
+						  '#size' => 300, 
+
+                                                 // '#cols' =>10,
+
+
+
+						  '#maxlength' => 400, 
+
+
+
+                         	  		'#disabled' => FALSE, 
+
+                                                 '#resizable' => FALSE, 
+
+				  		//'#description' => t('Please enter Message'),
+                                                '#prefix' => '<br/><br/><br/><br/>'
+
+					);
+
+					
+
+
+
+									
+
+					
+
+  $form['ver3_adminOuter']['submit'] = array(
+
+    '#type' => 'submit',
+
+ //   '#value' => t('Confirm'),
+
+   '#value' => t('Write Message'),
+
+
+
+  );
+
+return $form;
+
+  
+
+  
+
+}
+
+
+
+
+
+
+
+function ver3_student_teacher_form_submit($form, &$form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid;
+
+$grade = $form_state['values']['ver3_adminOuter']['teacher'];
+
+$studentOptions1 = $form_state['values']['ver3_adminOuter']['student'];
+
+// drupal_set_message(t("submit Id  :  $studentOptions1 "));
+
+// drupal_set_message(t("submit Grade $grade "));
+
+
+$msg = $form_state['values']['ver3_adminOuter']['inMsg'];
+
+$msg = str_replace("'", "''", $msg);
+
+
+
+$accountArray = "";
+
+		// drupal_set_message(t("log 2 c1Val Not Set "));	
+
+		db_set_active('qtxt_db');	
+
+
+
+		$result = db_query("select distinct(person_relationship_to_student) from {qtxt_sms_mobile_numbers}  where drupal_uid = $uid  ");
+
+
+
+		$accountGradeId = array();
+
+
+
+		while ($row = db_fetch_object($result)) {
+
+
+
+		  $accountGradeId[] =  $row->person_relationship_to_student; 
+
+		  // This is the only line that changed from the code above.
+
+		}
+
+		db_set_active('default');
+
+		
+
+		if (  count( $accountGradeId ) > 0 ) {
+
+			$accountArray = join( " ", $accountGradeId );
+
+			// drupal_set_message(t("Id $accountArray"));
+
+		}
+
+		$filterClass = "  " . $accountArray . "  ";
+
+	
+
+
+
+
+		db_set_active('qtxt_db');
+		$result = db_query("INSERT INTO`qtxt_sms_parent_message`(`parent_message_id`,`staff_id`,`account_student_map_id`, `message`,
+`parent_uid`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`msg_type`,`Process_flag`,type_id)
+                  VALUES(null, $grade, '$studentOptions1', '$msg', $uid, sysdate(), sysdate(), 'admin', 'admin','$filterClass',1,5)");
+
+  db_set_active('default');
+  
+				db_set_active('qtxt_db');	
+				$result = db_query("SELECT staff_email FROM {qtxt_sms_account_staff} a where a.staff_id =  '%d' ", $grade);
+				while ($row = db_fetch_object($result)) {
+				  $emailTo = $row->staff_email ;
+				}
+				db_set_active('default');	
+  
+$params = array(
+  'myVar' => $msg,
+);
+// $emailTo = 'yuvaranim@quadrobay.com';
+drupal_mail('v3_student_msg', 'invitation', $emailTo, language_default(), $params, "demoadmin@demo.com");
+
+  
+  drupal_set_message(t("Your Message has been Submitted."));	
+  return;
+
+}
+
+
+
+
+
+
+

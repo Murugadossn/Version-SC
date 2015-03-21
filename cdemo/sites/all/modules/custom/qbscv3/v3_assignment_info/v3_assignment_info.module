@@ -1,0 +1,372 @@
+<?php
+
+
+
+/**
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+ *
+
+
+
+ */
+
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+
+
+
+
+
+
+function v3_assignment_info_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', 'v3_assignment_info'),
+
+
+
+  );
+
+
+
+}
+
+function v3_assignment_info_menu() {
+
+
+
+	
+
+	$items['amarks'] = array(
+
+
+
+			'title' => t('Assignment Marks'),
+
+
+
+			'page callback' => 'v3_assignment_form',
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+			'access callback' => 'user_access',
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+	);	
+
+
+
+	return $items;
+
+
+
+	}
+
+
+
+
+function v3_assignment_form() {
+
+
+
+			 $output = drupal_get_form('v3_assignment_filter_form');
+
+
+
+			 $output .= drupal_get_form('v3_assignment_my_form');
+
+
+
+			return $output ;
+
+
+
+}
+function v3_assignment_filter_form($form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+
+if(!empty($_SESSION['user_class_filter_value'])) {
+			$clVal = &$_SESSION['user_class_filter_value'];
+		} else {
+			$clVal = "";
+		}
+
+$clVal = &$_SESSION['user_class_filter_value'];
+
+
+
+ $i = 0;
+
+  $form['filters'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Filter'),
+
+   // '#theme' => 'user_filters',
+
+  );
+
+
+
+db_set_active('qtxt_db');	
+ $result = db_query("select distinct(a.account_student_map_id),a.student_name from {qtxt_assignments_v} a where a.drupal_uid = $uid ");
+
+ 
+$options = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $options[$row->account_student_map_id] =  $row->student_name; 
+
+}
+db_set_active('default');	
+  
+
+    $form['filters']['class'] = array(
+ '#title' => t('Student Name'),
+      
+'#type' => 'select',
+      '#options' => $options,
+    );
+  
+
+$form['filters']['class']['#default_value']	= $clVal;
+
+
+ $form['filters']['buttons']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Apply'),
+
+    '#prefix' => '<br/>',
+  );
+$form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+return $form;
+
+
+/*
+$form['filters']['class']['#default_value']	= $clVal;
+
+
+ $form['filters']['buttons']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Apply'),
+
+
+  );
+
+return $form;
+*/
+
+
+}
+
+function v3_assignment_filter_form_submit($form, &$form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+
+
+  $op = $form_state['values']['op'];
+  
+  $val1 = $form_state['values']['filters']['class'];
+ 
+  switch ($op) {
+
+    case t('Apply'): 
+
+      if (isset($form_state['values']['class'])) {
+
+			$filter = $form_state['values']['class'];
+			//  drupal_set_message(t("After Submit, Value Selected $filter "));	  
+
+			$_SESSION['user_class_filter_value'] = $filter;
+
+      } else  {
+
+			// drupal_set_message(t("In the Filter, Class not selected"));	  
+	  }
+
+	  break;
+
+    case t('Undo'):
+
+      break;
+
+    case t('Reset'):
+
+//      $_SESSION['user_overview_filter'] = array();
+
+      break;
+
+    case t('Delete'):
+
+      return;
+
+  }
+
+
+$form_state['redirect'] = 'amarks';
+  return;
+
+}
+
+
+
+
+function v3_assignment_my_form($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+  $header = array(
+    array(),
+    array('data' => t('testid'), 'field' => 'b.student_name'),
+    array('data' => t('subject'), 'field' => 'b.subject_name'),
+	array('data' => t('marks'), 'field' => 'b.assignment_marks'),	
+	array('data' => t('Assignment Name'), 'field' => 'b.assignment_name'),	    
+    array('data' => t('id'), 'field' => 'b.id'),
+    
+  );
+/*
+$clVal = &$_SESSION['user_class_filter_value'] ;
+
+        $filterClass = " ";
+	$filterClass = " and b.account_student_map_id = '$clVal' ";
+*/
+$clVal = &$_SESSION['user_class_filter_value'] ;
+$filterClass = "";
+    if ( $clVal != "" ) {
+			$filterClass = " and b.account_student_map_id = '$clVal' ";
+	} else {
+			$filterClass = " and b.drupal_uid = b.drupal_uid ";
+	}
+
+
+
+
+// drupal_set_message(t("Class Filter4, $filterClass"));	
+
+  db_set_active('qtxt_db');	
+  
+  $sql = "select b.student_name,b.subject_name,b.assignment_marks,b.assignment_name,b.id from {qtxt_assignments_v} b where b.drupal_uid =$uid ".$filterClass ; 
+	 
+	   
+     $query_count = "select count(b.id) from {qtxt_assignments_v} b where b.drupal_uid =$uid ".$filterClass ;
+	
+     
+	 $sql .= tablesort_sql($header);
+
+   $result = pager_query($sql, 10, 0, $query_count);
+
+  $account = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+		// '#type' => 'checkbox',
+		'#return_value' => $account->id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+              '#disabled'=>'false',
+
+	  );
+    $form['access']['subject'][$account->id] =  array('#value' => $account->subject_name);
+    $form['access']['student'][$account->id] =  array('#value' => $account->student_name);
+    $form['access']['assignment'][$account->id] =  array('#value' => $account->assignment_marks);
+    $form['access']['assignmentname'][$account->id] =  array('#value' => $account->assignment_name);    
+    $form['access']['quid'][$account->id] = array('#type' => 'hidden','#value' => $account->id);
+    
+	$i = $i + 1;
+  }
+db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 100, 0));
+  $form['#theme'] = 'v3_assignment_my_form_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function v3_assignment_info_theme() {
+	return array(
+		'v3_assignment_my_form_theme' => array('arguments'=> array('form' => NULL),),
+		);
+}
+
+
+function theme_v3_assignment_my_form_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['quid']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['access']['account'][$i]);
+       $row[] =  drupal_render($form['access']['student'][$key]);	        
+       $row[] =  drupal_render($form['access']['subject'][$key]);
+	
+	 $row[] =  drupal_render($form['access']['assignmentname'][$key]);	 
+	 $row[] =  drupal_render($form['access']['assignment'][$key]);
+       $rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+			$header = array(
+				theme('table_select_header_cell'), t('Student Name'),t('Subject Name'),t('Assignment Name'),t('Assignment Marks'));
+  }
+  else{
+    $header = array(t(''), t('')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No Data Found for the Selected Criteria'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+return $output . drupal_render($form); 
+}  
+
+
+

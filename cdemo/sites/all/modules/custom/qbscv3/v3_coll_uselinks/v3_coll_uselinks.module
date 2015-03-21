@@ -1,0 +1,318 @@
+<?php
+
+
+
+/**
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+ *
+
+
+
+ */
+
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+
+
+
+
+
+
+function v3_coll_uselinks_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', 'v3_coll_uselinks'),
+
+
+
+  );
+
+
+
+}
+
+function v3_coll_uselinks_menu() {
+
+
+
+	
+
+	$items['cuselink'] = array(
+
+
+
+			'title' => t('College Useful Links'),
+
+
+
+			'page callback' => 'v3_coll_uselinks_form',
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+			'access callback' => 'user_access',
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+	);	
+
+
+
+	return $items;
+
+
+
+	}
+
+
+function v3_coll_uselinks_form() {
+
+
+
+			$output = drupal_get_form('v3_coll_uselinks_filter_form');
+
+			return $output ;
+
+
+
+}
+
+function v3_coll_uselinks_filter_form($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid;
+
+
+
+		if(!empty($_SESSION['user_class_filter_value'])) {
+			$clVal = &$_SESSION['user_class_filter_value'];
+		} else {
+			$clVal = "";
+		}
+/*		
+		if(!empty($_SESSION['user_section_filter_value'])) {
+			$c2Val = &$_SESSION['user_section_filter_value'];
+		} else {
+			$c2Val = "";
+		}
+*/
+$_SESSION['user_class_filter_value'] = $clVal;
+
+// $_SESSION['user_section_filter_value'] = $c2Val;
+
+
+
+ $i = 0;
+ 
+
+
+  $form['filters'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Filters'),
+
+    // '#theme' => 'user_filters',
+
+  );
+
+
+/*
+db_set_active('qtxt_db');	
+
+// $result = db_query("select account_student_map_id,student_name from {qtxt_sms_mobile_students_v}  where drupal_uid = $uid ");
+
+$result = db_query("select distinct standard from {qtxt_sms_account_grades} where standard != 'ALL' and account_id = 5 ");
+
+
+$options = array('' => t('Select..'));
+
+while ($row = db_fetch_object($result)) {
+
+  $options[$row->standard] =  $row->standard; 
+
+  // This is the only line that changed from the code above.
+
+}
+
+  
+
+$key = 'class';				
+
+$names[$key] = 'Name';
+
+    $form['filters']['status'][$key] = array(
+
+
+ '#title' => 'Department',
+
+      '#type' => 'select',
+
+      '#options' => $options,
+
+    );
+
+	db_set_active('qtxt_db');	
+
+// $result = db_query("select account_test_map_id,test_code from {qtxt_sms_account_test_map} where account_id =5 ");
+$result = db_query("select distinct section from {qtxt_sms_account_grades} where section != 'ALL' and account_id = 5 ");
+
+$sectionoptions = array('' => t('Select..'));
+
+
+
+while ($row = db_fetch_object($result)) {
+
+  $sectionoptions[$row->section] =  $row->section; //This is the only line that changed from the code above.
+
+}
+
+db_set_active('default');
+
+
+
+$key = 'section';				
+
+ $names[$key] = 'Code';
+
+ $form['filters']['status'][$key] = array(
+
+      '#type' => 'select',
+
+ '#title' => 'Year',
+
+
+      '#options' => $sectionoptions,
+
+    );
+*/
+  
+  $form['filters']['status']['class'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Categories', 
+					  '#options' => array(			  
+                               ' ' => t('Select..'),
+				  'generalsites' => 'GeneralSites',
+			         'mba' => 'MBA',
+			  		'mca' => 'MCA',
+					'ece' => 'ECE',
+					'eee' => 'EEE',
+					'civil' => 'Civil',
+					'ece' => 'ECE',
+					'it' => 'IT',
+					'mechanical' => 'Mechanical'
+	  				),
+				//	 '#default_value' => $field->gender,
+				//	 '#required' => false,
+
+					);
+  
+  
+$form['filters']['status']['class']['#default_value']	= $clVal;
+
+// $form['filters']['status']['section']['#default_value']	= $c2Val;  
+
+  
+
+
+
+ $form['filters']['buttons']['submit'] = array(
+
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+    '#prefix' => '<br/>',
+  );
+$form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+return $form;
+
+}
+
+function v3_coll_uselinks_filter_form_submit($form, &$form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$val2 = $form_state['values'][ 'class'];
+// $val3=  $form_state['values']['section'];
+
+ drupal_set_message(t("Category - $val2"));	
+
+
+  $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Apply'): 
+case t('Apply'): 
+
+      if (isset($form_state['values'][ 'class'])) {
+
+			$filter = $form_state['values'][ 'class'];
+		//	drupal_set_message(t("After Submit, Value Selected $filter "));	  
+
+			$_SESSION['user_class_filter_value'] = $filter;
+
+      } else  {
+
+		//	drupal_set_message(t("In the Filter, Class not selected"));	  
+	  }
+/*	  if (isset($form_state['values'][ 'section'])) {
+
+			$filter = $form_state['values'][ 'section'];
+		//	drupal_set_message(t("After Submit, Value Selected $filter "));	  
+$_SESSION['user_section_filter_value'] = $filter;
+
+      } else  {
+
+		//	drupal_set_message(t("In the Filter, Class not selected"));	  
+	  }
+*/
+	  break;
+
+	
+    case t('Undo'):
+//      array_pop($_SESSION['user_overview_filter']);
+      break;
+    case t('Reset'):
+//      $_SESSION['user_overview_filter'] = array();
+      break;
+    case t('Delete'):
+      return;
+  }
+if($val2 == ' ')
+{
+$form_state['redirect'] = "cuselink";
+return;
+}
+$form_state['redirect'] = "cuselink/$val2";
+
+
+  return;
+}

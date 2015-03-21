@@ -1,0 +1,6 @@
+; $Id$
+name = New Sent Message Info[qbscv3]
+description = "New Sms Usage Statistics"
+core = 6.x
+package = School Connect Version 3.0
+version = 3.0

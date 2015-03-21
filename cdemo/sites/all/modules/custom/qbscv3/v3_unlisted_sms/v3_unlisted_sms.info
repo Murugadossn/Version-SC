@@ -1,0 +1,5 @@
+; $Id$
+name = V3 SMS for unlisted Mobile
+description = SMS for Mobile Numbers uploaded using File Upload
+core = 6.x
+package = CCE

@@ -1,0 +1,91 @@
+<?php
+// $Id$
+/**
+ * @file alert_box.module
+ * 
+ * Creates an easy-to-use alert box that is easy to turn on/off and displays 
+ * a custom message.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function alert_box_menu() {
+    $items['admin/settings/alert-box'] = array(
+        'title' => 'Alert Box',
+        'description' => 'Enable/disable Alert Box and change the message.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('alert_box_settings'),
+        'access arguments' => array('manage alert box settings'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    
+    return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function alert_box_perm() {
+    return array('manage alert box settings');
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function alert_box_block($op = 'list', $delta = 0, $edit = array()) {
+    switch ($op) {
+        case 'list':
+            $blocks[0] = array(
+                'info' => t('Alert Box'),
+                'cache' => BLOCK_CACHE_GLOBAL,
+            );
+            return $blocks;
+            
+        case 'view':
+            $block = '';
+            if (variable_get('alert_box_enabled', 0) == TRUE) {
+          //		  $block['subject'] = t('Alert Message');
+		  		  $block['subject'] = t('<center><big>Quadrobay Announcement</big></center>');
+
+                $block['content'] = check_markup(variable_get('alert_box_message', ''), variable_get('alert_box_format', FILTER_FORMAT_DEFAULT), FALSE);
+            }
+            return $block;
+    }
+}
+
+/**
+ * Module settings form.
+ */
+function alert_box_settings() {
+  $form['alert_box_enabled'] = array(
+    '#type' => 'radios',
+    '#title' => t('Alert Box Status'),
+    '#default_value' => variable_get('alert_box_enabled', 0),
+    '#options' => array(t('Disabled'), t('Enabled')),
+    '#description' => t('When set to "Disabled", no message will display. When set to "Enabled", all pages on the site will display the alert message that is specified below. The alert message will only show if the "Alert Box" block is in a visible region of the site\'s theme as set on the <a href="@blocks-url">blocks</a> page.', array('@blocks-url' => url('admin/build/block'))),
+  );
+
+  $form['alert_box']['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Alert Box Message'),
+    '#default_value' => variable_get('alert_box_message', ''),
+    '#description' => t('Message to show visitors when the alert box is enabled.')
+  );
+  $form['alert_box']['format'] = filter_form(variable_get('alert_box_format', FILTER_FORMAT_DEFAULT));
+  $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Save configuration') );
+  $form['#theme'] = 'system_settings_form';
+    
+  return $form;
+}
+
+function alert_box_settings_submit($form, &$form_state) {
+  variable_set('alert_box_enabled', $form_state['values']['alert_box_enabled']);
+  variable_set('alert_box_message', $form_state['values']['message']);
+  variable_set('alert_box_format', $form_state['values']['format']);
+    
+  drupal_set_message(t('The configuration options have been saved.'));
+
+  cache_clear_all();
+  drupal_rebuild_theme_registry();
+}

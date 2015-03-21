@@ -1,0 +1,181 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+require("tuto.php");
+require("tuto_7.php");
+ // require('fpdf/custompdf.php');
+
+function v3_cce_pdf_generator_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'cce_pdf_generator'),
+  );
+}
+
+
+function v3_cce_pdf_generator_menu() {
+	$items['ccepdf'] = array(
+			'title' => t('Screen To Generate PDF Report'),
+			'page callback' => 'cce_pdf_generator_form_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+return $items;
+
+
+}
+
+function cce_pdf_generator_form_cb() {
+			$output = drupal_get_form('cce_pdf_generator_form');
+			return $output ;
+}
+
+function cce_pdf_generator_form( $form_state) { 
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+$uid = $user->uid;
+
+	  db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_grade_id, grade_name FROM {qtxt_sms_account_grades} a ,
+		{cce_year} b where b.year_id = a.year_id and b.active_flag = 'Y' and section != 'ALL' order by class_weight ");
+		$gradeOptions = array( '' => t('Select the Class Name') );
+		while ($row = db_fetch_object($result1)){
+		  $gradeOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');	
+		$form['default_list'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+			'#options'=> $gradeOptions,
+			'#title' => t('Class'),
+			'#disabled' => FALSE,
+			'#multiple' => true,
+			'#attributes'=>array('size'=>20),			
+		);	
+ $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Create PDF Report'), 
+                '#prefix' => '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>',                                                
+	  );	 
+return $form;	
+}
+function sp_query($q)
+{
+    global $db_url;
+    $url = parse_url(is_array($db_url) ? $db_url['qtxt_db'] : $db_url);
+    $db_user = isset($url['user']) ? urldecode($url['user']) : '';
+    $db_pass = isset($url['pass']) ? urldecode($url['pass']) : '';
+    $db_host = isset($url['host']) ? urldecode($url['host']) : '';
+    $db_port = isset($url['port']) ? urldecode($url['port']) : '';
+    $db_path = ltrim(urldecode($url['path']), '/');
+// drupal_set_message(t("Calling spquery $db_path"));
+
+    $mysqli = new mysqli($db_host,$db_user,$db_pass,$db_path);
+
+    if(mysqli_connect_errno())
+    {
+        drupal_set_message("Could not connect to the database. MySQL error: ".mysqli_connect_error(), 'warning');
+    }
+
+    //For multi language sites
+    $mysqli->query('SET NAMES "utf8"');
+
+    $args = func_get_args();
+    $query = call_user_func_array('sprintf',$args);
+      //  drupal_set_message("Myquery : $query ");
+    if ($mysqli->multi_query($query))
+    {
+        if ($result = $mysqli->store_result())
+        {
+//			drupal_set_message(t("Success"));
+			$mysqli->close();
+            return $result;
+        }
+
+        else
+        {
+//            drupal_set_message("An error occurred while calling the stored procedure. MySQL error: ".mysqli_error( $mysqli), 'warning');
+			$mysqli->close();
+            return false;
+        }
+    }
+$mysqli->close();
+}
+
+
+function cce_pdf_generator_form_submit($form,&$form_state) {
+$accountgradeid = $form_state['values']['default_list'];
+$new_array = array_values($accountgradeid); 
+foreach($new_array as $key => $value) {
+if($value == "") {
+unset($new_array[$key]);
+ }
+}
+$final_array = array_values($new_array); 	
+	$finalcount = count($final_array );
+	$comma_separated = implode(",", $final_array);
+	$accountArray = "";
+	db_set_active('qtxt_db');	
+		$result = db_query("SELECT group_id,account_grade_id FROM qtxt_sms_account_grades where account_grade_id in ($comma_separated)");
+		// $accountGradeId = array();
+		while ($row = db_fetch_object($result)) {
+		  $accountGradeId =  $row->account_grade_id; 
+		  $groupid=$row->group_id;
+		  // This is the only line that changed from the code above.
+		  if($groupid == 1)
+		  {
+			$ret = sp_query("call  SP_GENERATE_MARKS_SUMMARY(%d);",$accountGradeId);
+			$ret = sp_query("call  SP_GENERATE_MARKS_FOR_RC(%d);",$accountGradeId);
+			$report= new cce_pdf_report_7;
+			$outputString = $report->main_generatepdf_7($accountGradeId);
+	 	  } else {
+			$ret = sp_query("call  SP_GENERATE_MARKS_SUMMARY(%d);",$accountGradeId);
+			$ret = sp_query("call  SP_GENERATE_MARKS_FOR_RC(%d);",$accountGradeId);
+			$report= new cce_pdf_report;
+			$outputString = $report->main_generatepdf($accountGradeId);
+		  }
+		}
+		db_set_active('default');
+/*
+		
+		if ( count( $accountGradeId ) > 0 ) {
+			$accountArray = join( " ", $accountGradeId );
+		}
+		drupal_set_message(t("group id: $accountArray"));
+		if($accountArray == 1)
+		{
+		foreach ( $final_array as $k => $v) {
+		db_set_active('qtxt_db');
+		$rc = "call SP_GENERATE_MARKS_FOR_RC($v)";
+		$marks_summary = "call SP_GENERATE_MARKS_SUMMARY($v)";
+		 $report= new cce_pdf_report_7;
+		 $outputString = $report->main_generatepdf_7($v);
+		}
+*/		
+drupal_set_message(t("Reports created successfully "));
+$form_state['redirect'] = 'ccepdf';
+return;
+}
+/*
+else
+{
+foreach ( $final_array as $k => $v) {
+db_set_active('qtxt_db');
+$rc = "call SP_GENERATE_MARKS_FOR_RC($v)";
+$marks_summary = "call SP_GENERATE_MARKS_SUMMARY($v)";
+ $report= new cce_pdf_report;
+ $outputString = $report->main_generatepdf($v);
+}
+drupal_set_message(t("Report has Created"));
+$form_state['redirect'] = 'ccepdf';
+return;
+}
+
+}
+*/

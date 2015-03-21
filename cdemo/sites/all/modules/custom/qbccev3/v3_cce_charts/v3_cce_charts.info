@@ -1,0 +1,5 @@
+; $Id$
+name = V3 CCE Charts
+description = Charts for CCE
+core = 6.x
+package = CCE

@@ -1,0 +1,5 @@
+; $Id$
+name = v3_staff_grade_map
+description = v3_staff_grade_map
+core = 6.x
+package = v3_staff_grade_map

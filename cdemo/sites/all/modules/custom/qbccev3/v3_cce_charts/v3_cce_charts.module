@@ -1,0 +1,84 @@
+<?php
+
+
+
+function v3_cce_charts_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_charts'),
+  );
+}
+
+
+function v3_cce_charts_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'assess':
+      return '<p>'. t('Drupal allows users to register, login, log out, maintain user profiles, etc. Users of the site may not use their own names to post content until they have signed up for a user account.') .'</p>';
+	
+	}
+  
+}  
+function v3_cce_charts_menu() {
+	$items['chartshelp'] = array(
+			'title' => t('Define Title'),
+			'page callback' => 'cce_charts_test_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			 'access arguments' => array('administer users'),			
+	);
+  
+return $items;
+}
+
+function cce_charts_test_form() {
+			$output = drupal_get_form('cce_charts_test');
+			return $output ;
+}
+/*
+function charts_graphs_test2() {    dpm('test'); 
+  $canvas = charts_graphs_get_graph('amcharts'); 
+     $canvas->title = "AmCharts Chart"; 
+  $canvas->type = "line"; 
+  $canvas->y_legend = "Y Legend"; 
+  $canvas->colour = '#808000'; 
+  $canvas->theme = 'keynote'; 
+   $canvas->series = array(    'Some Value' => array(9,6,7,9,5,7,6,9,7),    
+   'Page Views' => array(6,7,9,5,7,6,9,7,3),  ); 
+  $canvas->x_labels = array('one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'); 
+  $out = $canvas->get_chart(); 
+  return $out; 
+}
+*/
+function charts_graphs_test2() {
+$chart = array(  '#chart_id' => 'test_chart',  '#title' => t('Servings'),  '#type' => CHART_TYPE_PIE_3D,);$chart['#data']['fruits'] = 3;$chart['#data']['meats']  = 2;$chart['#data']['dairy']  = 5;
+$out = theme('chart', array('chart' => $chart));
+}
+
+/*
+function charts_graphs_test5() {   $canvas = charts_graphs_get_graph('open-flash'); 
+      $canvas->title = "OpenFlashCharts Chart"; 
+  $canvas->type = "line"; 
+   $canvas->y_legend = "Y Legend"; 
+  $canvas->colour = '#808000'; 
+  $canvas->width = 700; 
+  $canvas->height = 300; 
+  $canvas->series = array(    'Some Value' => array(9,6,7,9,5,7,6,9,7),    'Page Views' => array(6,7,9,5,7,6,9,7,3),  ); 
+  $canvas->x_labels = array('one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'); 
+    $out = $canvas->get_chart(); 
+  return $out; 
+}
+*/
+
+function cce_charts_test( $form_state) {
+ $output = charts_graphs_test2();  
+// $output = charts_graphs_test5();
+dpm($output);    
+return $output;
+}
+
+
+
+
+

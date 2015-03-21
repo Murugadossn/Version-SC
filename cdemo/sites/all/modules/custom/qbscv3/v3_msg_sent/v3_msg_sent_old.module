@@ -1,0 +1,495 @@
+<?php
+
+
+function v3_msg_sent_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_msg_sent'),
+  );
+}
+
+/*
+function v3_msg_sent_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'assess':
+      return '<p>'. t('Can define the number of assessments or exams required for the current academic year.  ') .'</p>';
+	
+	}
+  
+}  
+*/
+function v3_msg_sent_menu() {
+	$items['msg'] = array(
+    'title' => 'Message Send',
+    'description' => 'List, add, and edit assess.',
+    'page callback' => 'v3_msg',
+    'page arguments' => array('list'),
+    // 'access arguments' => array('administer users'),
+	'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+	
+	);
+return $items;
+}
+
+
+
+function v3_msg($callback_arg = '') {
+
+        $output = drupal_get_form('v3_msg_filter_form');
+        $output .= drupal_get_form('v3_msg_details');
+  return $output;
+  
+ 
+}
+
+
+
+
+/**
+ * Form builder; Return form for user administration filters.
+ *
+ * @ingroup forms
+ * @see user_filter_form_submit()
+ */
+function v3_msg_filter_form() {
+
+			
+	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only assess where'),
+
+	  );
+
+		db_set_active('qtxt_db');	
+
+//		$result = $result = db_query("select  distinct(assessment_id), assessment_name  from {cce_assesment_category_details_v} order by assessment_name " );
+   //     $result = $result = db_query("select  staff_name from {qtxt_sms_log_req_res_v} order by staff_name" );
+$result = $result = db_query("select  distinct(log_response_id), staff_name  from {qtxt_sms_log_req_res_v} order by staff_name " );
+
+		$options = array('' => t('Select..'));
+
+		$c2Val = "";
+		$c6Val = "";
+		$c7Val = "";
+		$c3Val = "";
+		$c4Val = "";
+//		$c5Val = "";
+		
+		if(!empty($_SESSION['group_filter_value'])) {
+			$c2Val = &$_SESSION['group_filter_value'];
+		} else {
+			$c2Val = "";
+		}
+		if(!empty($_SESSION['fgroup_filter_value'])) {
+			$c6Val = &$_SESSION['fgroup_filter_value'];
+		} else {
+			$c6Val = "";
+		}
+		if(!empty($_SESSION['tgroup_filter_value'])) {
+			$c7Val = &$_SESSION['tgroup_filter_value'];
+		} else {
+			$c7Val = "";
+		}
+		if(!empty($_SESSION['section_filter_value'])) {
+			$c3Val = &$_SESSION['section_filter_value'];
+		} else {
+			$c3Val = "";
+		}
+		if(!empty($_SESSION['section1_filter_value'])) {
+			$c4Val = &$_SESSION['section1_filter_value'];
+		} else {
+			$c4Val = "";
+		}
+		
+/*		
+		if(!empty($_SESSION['section2_filter_value'])) {
+			$c5Val = &$_SESSION['section2_filter_value'];
+		} else {
+			$c5Val = "";
+		}
+*/		
+
+		
+		while ($row = db_fetch_object($result)) {
+				$options[$row->staff_name] =  $row->staff_name; 
+		}
+		
+		
+ $currdate      = date( "Y-m-d" );
+	$edefdoa       = $currdate;
+	if ( !empty( $_SESSION[ 'doa' ] ) ) {
+		$defdoa =& $_SESSION[ 'doa' ];
+						// drupal_set_message(t("doa  - $defdoa"));
+	} 					//!empty( $_SESSION[ 'doa' ] )
+	else {
+		$defdoa = $currdate;
+	}
+	$form['filters']['status'][ 'doa' ] = array(
+		 '#type' => 'date_popup',
+		'#title' => t( 'From Date' ),
+		'#date_format' => 'D, M j, Y',
+		'#default_value' => $defdoa,
+		'#date_year_range' => '-1:+1',
+	//	'#prefix' => '<div style="margin-left:19px;">',	//margin-left:20px;float: left;
+	//	'#suffix' => '</div>' 
+	);
+	
+$currdate      = date( "Y-m-d" );
+	$tedefdoa       = $currdate;
+	if ( !empty( $_SESSION[ 'doe' ] ) ) {
+		$tdefdoa =& $_SESSION[ 'doe' ];
+						// drupal_set_message(t("doa  - $defdoa"));
+	} 					//!empty( $_SESSION[ 'doa' ] )
+	else {
+		$tdefdoa = $currdate;
+	}
+	$form['filters']['status'][ 'doe' ] = array(
+		 '#type' => 'date_popup',
+		'#title' => t( 'To Date' ),
+		'#date_format' => 'D, M j, Y',
+		'#default_value' => $tdefdoa,
+		'#date_year_range' => '-1:+1',
+	//	'#prefix' => '<div style="margin-left:19px;">',	//margin-left:20px;float: left;
+	//	'#suffix' => '</div>' 
+	);
+		
+		
+db_set_active('default');
+
+$key = 'group';				
+ $names[$key] = 'Type';
+ $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+	  '#title' => 'Staff Name',
+      '#options' => $options,
+    );
+	
+		
+		db_set_active('qtxt_db');	
+	//	$result = db_query("select  group_id, group_description  from {cce_groups} order by group_description " );
+	$result = db_query("select msg_id  from {qtxt_sms_log_req_res_v} order by msg_id" );
+
+$sectionoptions = array('' => t('Select..'));
+
+while ($row = db_fetch_object($result)) {
+  $sectionoptions[$row->msg_id] =  $row->msg_id; //This is the only line that changed from the code above.
+}
+db_set_active('default');
+
+$key = 'section';				
+ $names[$key] = 'Type';
+ $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+	  '#title' => 'Message Type',
+      '#options' => $sectionoptions,
+    );
+	
+	db_set_active('qtxt_db');	
+//		$result = db_query("select  grading_type_id, grading_name  from {cce_assesment_types_v} order by grading_name  " );
+$result = db_query("select atowi_status  from qtxt_sms_log_req_res_v order by atowi_status " );
+
+$sectionoptions1 = array('' => t('Select..'));
+
+while ($row = db_fetch_object($result)) {
+  $sectionoptions1[$row->atowi_status] =  $row->atowi_status; //This is the only line that changed from the code above.
+}
+db_set_active('default');
+
+$key = 'section1';				
+ $names[$key] = 'Type';
+ 
+ $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+	  '#title' => 'Msg Status',
+      '#options' => $sectionoptions1,
+    );
+	
+/*	
+	db_set_active('qtxt_db');	
+		$result = db_query("select   assessment_category_desc  from {cce_assesment_types_v} order by assessment_category_desc " );
+
+$sectionoptions2 = array('' => t('Select..'));
+
+while ($row = db_fetch_object($result)) {
+  $sectionoptions2[$row->assessment_category_desc ] =  $row->assessment_category_desc; //This is the only line that changed from the code above.
+}
+db_set_active('default');
+
+$key = 'section2';				
+ $names[$key] = 'Type ';
+
+ $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+	   '#title' => 'Assessment Category Description',
+      '#options' => $sectionoptions2,
+	  );
+
+*/
+
+
+	 $form['filters']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Filter'),  
+              '#prefix' => '<br/>',                                               
+	  );
+ $form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+	return $form;
+
+}
+
+
+
+function v3_msg_filter_form_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+//  drupal_set_message("Filter Form Submit Operamd - $op ");	  
+  switch ($op) {
+    case t('Filter'): 
+
+
+      if (isset($form_state['values']['group'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['group'];
+			$_SESSION['group_filter_value'] = $form_state['values']['group'];
+	  }
+	  if (isset($form_state['values']['doa'])) {
+			drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['doa'];
+			$_SESSION['doa_filter_value'] = $form_state['values']['doa'];
+	  }
+	  if (isset($form_state['values']['doe'])) {
+			drupal_set_message(t("In the To date Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['doe'];
+			$_SESSION['doe_filter_value'] = $form_state['values']['doe'];
+	  }
+	  if (isset($form_state['values']['section'])) {
+			// drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['section'];
+			// drupal_set_message(t("In the Filter, Class  $filter"));	 	  
+			
+			$_SESSION['section_filter_value'] = $form_state['values']['section'];
+	  }
+	   if (isset($form_state['values']['section1'])) {
+			// drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['section1'];
+			// drupal_set_message(t("In the Filter, Class  selected $filter"));	 	  
+			
+			$_SESSION['section1_filter_value'] = $form_state['values']['section1'];
+	  }
+/*	
+	if (isset($form_state['values']['section2'])) {
+			// drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['section2'];
+			// drupal_set_message(t("In the Filter, Class  selected - $filter"));	 	  
+			
+			$_SESSION['section2_filter_value'] = $form_state['values']['section2'];
+	  }
+*/
+	  
+      break;
+  }
+  
+  $form_state['redirect'] = 'msg';
+  return;
+}
+
+
+
+function v3_msg_details($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+ //   array('data' => t('Group Name'), 'field' => 'b.standard'),
+ //   array('data' => t('Group Description'), 'field' => 'b.section'),
+	t('Operations'),
+  );
+
+$clVal = &$_SESSION['group_filter_value'] ;
+$c5Val = &$_SESSION['doa_filter_value'] ;
+$c6Val = &$_SESSION['doe_filter_value'] ;
+$c2Val = &$_SESSION['section_filter_value'] ;
+$c3Val = &$_SESSION['section1_filter_value'] ;
+// $c4Val = &$_SESSION['section2_filter_value'] ;
+
+// drupal_set_message(t("Class Filter 1 - $clVal"));	
+// drupal_set_message(t("Class Date Filter 5 - $c5Val"));	
+// drupal_set_message(t("To Dtae filter Class Date Filter 5 - $c7Val"));	
+
+  
+$filterClass = "";
+    if ( $clVal != "" ) {
+	//	$clVal = strtoupper($clVal);
+		//	$filterClass = " and upper(b.staff_name) like '%$clVal%' ";
+			$filterClass = " and b.staff_name = '$clVal' ";
+			  drupal_set_message(t("Class - $filterClass"));
+	} else {
+			$filterClass = " and b.staff_name = b.staff_name ";
+			drupal_set_message(t("Class00 - $filterClass"));
+	}
+	$filterClass6 = "";
+    if ( $c5Val != "" ) {
+			$filterClass6 = " and b.s_creation_date between '$c5Val' and '$c6Val' ";
+              // 	$filterClass6 = " and b.s_creation_date between '$c6Val' and '$c5Val' ";
+   
+			  drupal_set_message(t("From Date Class - $filterClass6"));
+	} else {
+			$filterClass = " and b.s_creation_date = b.s_creation_date ";
+              //       $filterClass = " b.s_creation_date between '$c5Val' and '$c6Val' ";
+			drupal_set_message(t("From Date Class00 - $filterClass6"));
+	}
+/*	
+	$filterClass7 = "";
+    if ( $c6Val != "" ) {
+			$filterClass7 = " and b.s_creation_date = '$c6Val' ";
+			  drupal_set_message(t("To Date Class - $filterClass7"));
+	} else {
+			$filterClass = " and b.s_creation_date = b.s_creation_date ";
+			drupal_set_message(t("To Date Class00 - $filterClass7"));
+	}
+*/	
+	$filterClass1 = "";
+	if ( $c2Val != "" ) {
+					$filterClass1 = " and b.msg_id  = '$c2Val' ";
+					  drupal_set_message(t("Class1 - $filterClass1"));
+	} else {
+			$filterClass1 = " and  b.msg_id = b.msg_id ";
+			drupal_set_message(t("Class11 - $filterClass1"));
+	}
+	$filterClass2 = "";
+	if ( $c3Val != "" ) {
+		
+			$filterClass2 = " and b.atowi_status = '$c3Val' ";
+			 drupal_set_message(t("Class2 - $filterClass2"));
+	} else {
+			$filterClass2 = " and b.atowi_status = b.atowi_status ";
+			drupal_set_message(t("Class22 - $filterClass2"));
+	}
+/*	
+	$filterClass3 = "";
+	if ( $c4Val != "" ) {
+			$filterClass3 = " and b.assessment_category_desc= '$c4Val' ";
+			// drupal_set_message(t("Class1 - $filterClass3"));
+	} else {
+			$filterClass3 = " and b.assessment_category_desc = b.assessment_category_desc ";
+	}
+*/	
+
+
+
+db_set_active('qtxt_db');	
+  $sql = "select log_response_id,staff_name,person_name,mobile_number,broadcast_message,str_creation_date,s_creation_date,msg_id,atowi_status 
+from {qtxt_sms_log_req_res_v} b where 1 = 1  ". $filterClass . $filterClass6  . $filterClass1  . $filterClass2  ." order by s_creation_date desc";
+   $query_count = "select COUNT(log_response_id) from  {qtxt_sms_log_req_res_v} b  where 1 = 1 " . $filterClass . $filterClass6 . $filterClass1  . $filterClass2 ;
+
+
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 50, 0, $query_count);
+  db_set_active('default');
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+
+  $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->log_response_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+
+
+ 
+    $form['access']['staff_name'][$account->log_response_id] = array('#value' => $account->staff_name);
+    $form['access']['person_name'][$account->log_response_id] =  array('#value' => $account->person_name);
+    $form['access']['mobile_number'][$account->log_response_id] =  array('#value' => $account->mobile_number);
+    $form['access']['broadcast_message'][$account->log_response_id] = array('#value' => $account->broadcast_message);
+    $form['access']['str_creation_date'][$account->log_response_id] =  array('#value' => $account->str_creation_date);
+	$form['access']['msg_id'][$account->log_response_id] =  array('#value' => $account->msg_id);
+    $form['access']['atowi_status'][$account->log_response_id] = array('#value' => $account->atowi_status);
+    $form['access']['responseid'][$account->log_response_id] =  array('#type' => 'hidden','#value' => $account->log_response_id);
+// '#type' => 'hidden',	   
+	$i = $i + 1;
+  }
+// db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'v3_msg_description_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function v3_msg_sent_theme() {
+	return array(
+		'v3_msg_description_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_v3_msg_description_theme($form)
+{
+$rows = array();
+$i = 1;
+
+foreach(element_children($form['access']['responseid']) as $key) {
+	$row = array(); 
+	//   $row[] =  drupal_render($form['access']['account'][$i]);
+       $row[] =  drupal_render($form['access']['staff_name'][$key]);
+       $row[] =  drupal_render($form['access']['person_name'][$key]);
+	   $row[] =  drupal_render($form['access']['mobile_number'][$key]);
+       $row[] =  drupal_render($form['access']['broadcast_message'][$key]);
+       $row[] =  drupal_render($form['access']['str_creation_date'][$key]);
+       $row[] =  drupal_render($form['access']['msg_id'][$key]);
+	   $row[] =  drupal_render($form['access']['atowi_status'][$key]);
+	//   $row[] =  drupal_render($form['access']['responseid'][$key]);
+	  
+       $rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+				$header = array(  t('Staff Name'), t('Msg Sent To'),t('Mobile Number'), t('Message'), t('Msg Deliver Date'), t('Msg Id'), t('Status') );
+				
+				//  $header[] = array('data' => t('Operations'), 'colspan' => 2);
+  }
+  else{
+    $header = array(t(' '), t(' ')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No Data Were Found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//$output .= drupal_render($form['options']); 
+// $output .= drupal_render($form['options']['submit']); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+

@@ -1,0 +1,146 @@
+<?php
+
+function v3_cce_test_rows_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_test_rows'),
+  );
+}
+
+
+function v3_cce_test_rows_help($path, $arg) {
+  global $user;
+  drupal_add_js( drupal_get_path('MODULE', 'v3_cce_test_rows').'/ccetest.js' );
+
+  switch ($path) {
+    case 'assess':
+      return '<p>'. t('Drupal allows users to register, login, log out, maintain user profiles, etc. Users of the site may not use their own names to post content until they have signed up for a user account.') .'</p>';
+	
+	}
+  
+}  
+function v3_cce_test_rows_menu() {
+	$items['test'] = array(
+    'title' => 'CCE - Data Format Download',
+    'description' => 'Download Data Format for CoScholastic or Scholastic',
+    'page callback' => 'cce_test',
+    'page arguments' => array('dload'),
+    'access arguments' => array('administer users'),
+	'type' => MENU_CALLBACK,	
+	);
+
+ 
+  
+return $items;
+}
+
+function cce_test($callback_arg = '') {
+/*
+        $output = drupal_get_form('assess_filter_form');
+        $output .= drupal_get_form('assess_details');
+  return $output;
+  */
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+    case t('Download Scholastic Format'):
+	case t('Download CoScholastic Format'):
+    case 'dload':
+      $output = drupal_get_form('test_create');
+      break;
+
+	  default:
+      $output = drupal_get_form('test_create');
+  }
+  return $output;
+  
+}
+
+function test_create() {
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,	   
+     );	
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_grade_id, grade_name  FROM {qtxt_sms_account_grades} a ");
+		$yearOptions = array( '' => t('Select the Class') );
+		while ($row = db_fetch_object($result1)){
+		  $yearOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');	
+
+// get the list of active Year
+	$i = 1;
+	while( $i < 5) {	
+    $form['access']['class'][$i] =  array('#type' => 'select', '#options'=> $yearOptions);
+    $form['access']['text1'][$i] =  array('#type' =>'textfield', '#size' => 30, '#maxlength' => 120);
+    $form['access']['text2'][$i] =  array('#type' =>'textfield', '#size' => 30, '#maxlength' => 120);
+    $form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+	$i = $i + 1;	
+	}
+
+		
+	 $form['buttons']['submit10000'] = array(                                                          
+		'#type' => 'button',
+		'#value' => t('Next Row'),   
+		'#name' => "check",
+	  );
+	
+	$form['#theme'] = 'test_form_theme';  
+  
+	return $form;
+
+}
+
+
+function v3_cce_test_rows_theme() {
+	return array(
+		'test_form_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_test_form_theme($form)
+{
+
+
+	$rows = array();
+	$i = 1;
+	foreach(element_children($form['access']['index']) as $key) {
+		$row = array(); 
+		   $row[] =  drupal_render($form['access']['class'][$key]);
+		   $row[] =  drupal_render($form['access']['text1'][$key]);
+		   $row[] =  drupal_render($form['access']['text2'][$key]);
+		   $row[] =  drupal_render($form['access']['index'][$i]);
+		$rows[] = $row; 
+		$i = $i +1 ;
+	}
+  if(count($rows)){
+				$header = array(
+					t('Class'), t('Text1'), t('Text2'), t('Index') );
+	  }
+  else{
+    $header = array(t('First Name'), t('Last Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+return $output . drupal_render($form); 
+}  
+
+
+
+
+
+

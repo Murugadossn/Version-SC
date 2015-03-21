@@ -1,0 +1,480 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+
+function v3_teacher_write_msg_to_parent_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', '  '),
+  );
+}
+
+
+function v3_teacher_write_msg_to_parent_menu() {
+	$items['teacherform1'] = array(
+			'title' => t('Write Messages'),
+			'page callback' => 'qtxt_teacher_submit_form1',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	$items['teacherform1/next'] = array(
+			'title' => t('Write Messages'),
+			'page callback' => 'qtxt_teacher_submit_next_form1',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+ $items['teacherform1/ind/ahahjs2'] = array(
+        'page callback' => 'qtext_teacher_ahah_field_js_for_ind3',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+return $items;
+}
+
+function qtxt_teacher_submit_form1() {
+			$output = drupal_get_form('qtxt_class_teacher_form1');
+			return $output ;
+}
+
+function qtxt_teacher_submit_next_form1() {
+			$output = drupal_get_form('qtxt_class_teacher_next_form1');
+			return $output ;
+}
+
+function qtxt_class_teacher_form1( $form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+
+
+	  $form['adminOuter'] = array(
+						'#type' => 'fieldset',
+						'#title' => t(' Information Delivered To Students'),
+						'#collapsible' => FALSE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+	  );
+				  
+
+	 
+	  
+	  db_set_active('qtxt_db');	
+$result = db_query("select type_id,msg_type from {qtxt_sms_teacher_message_type} where type_id < 4 ");
+$sectionoptions = array('' => t('Select..'));
+
+while ($row = db_fetch_object($result)) {
+  $sectionoptions[$row->type_id ] =  $row->msg_type; //This is the only line that changed from the code above.
+}
+db_set_active('default');
+
+
+ $form['adminOuter']['type'] = array(
+ '#type' => 'select',
+'#title' => t('Message Type'),
+      '#options' => $sectionoptions,
+    );
+
+
+  $form['filters']['section']['#default_value']	= $clVal;
+
+  
+  
+  
+  db_set_active('qtxt_db');	
+$result1 = db_query("select msg_sending_id,msg_sending_type from {qtxt_sms_msg_send_to} where msg_sending_id <= 2");
+$sendingidoptions = array('' => t('Select..'));
+
+while ($row = db_fetch_object($result1)) {
+  $sendingidoptions[$row->msg_sending_id] =  $row->msg_sending_type; //This is the only line that changed from the code above.
+}
+db_set_active('default');
+
+
+ $form['adminOuter']['sendid'] = array(
+      '#type' => 'select',
+'#title' => t('Target To'),
+      '#options' => $sendingidoptions,
+'#required' => True,
+
+    );
+
+
+		db_set_active('qtxt_db');	
+	  $resultg1 = db_query("SELECT account_grade_id,grade_name FROM {qtxt_sms_account_grades} a, {qtxt_sms_account} b where   a.account_id = b.account_id and section != 'ALL' order by class_weight ");
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->account_grade_id ] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('Department'),
+				  				  		'#description' => t('Please Select The Class'),
+				  				  		'#disabled' => FALSE,
+										'#required' => True,
+				  				  		'#ahah' => array(
+				  				  		 'path' => 'teacherform1/ind/ahahjs2',
+				  				  		 'wrapper' => 'ahah-wrapper-grade',
+				  				  		 'method' => 'replace',
+				  				  						)
+				  );
+				  
+				  $form['adminOuter']['student'] = array('#type' => 'select',
+				  				  		'#title' => t('Student Name'),
+										'#options' =>  array( '' => t('Select ..') ),
+				  				  		'#description' => t('Please Select The Student'),
+				  				  		'#disabled' => FALSE,
+				  				  	'#prefix' => '<div id = "ahah-wrapper-grade">',
+				  					'#suffix' => '</div>',
+				  				  		
+				  );
+
+					db_set_active('qtxt_db');	
+
+	  
+							$resultg1 = db_query("select distinct staff_id,staff_subject from {qtxt_sms_account_staff}");
+				                                   $igradeOptions1 = array('' => t('Select..'));
+				  while ($rowg2 = db_fetch_object($resultg1)) {
+				  	$igradeOptions1[$rowg2->staff_subject] =  $rowg2->staff_subject; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['subjects'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions1,
+				  				  		'#title' => t('Subject Name'),
+				  				  		'#description' => t('select subject name only to send Homework and Assignments '),
+				  				  		'#disabled' => FALSE,
+				  				  		
+				  );
+				  
+				  
+                    $currdate = date("Y-m-d");
+					$defdoa = $currdate;
+					$edefdoa = "";
+					if ( !empty($_SESSION['doa'])) {
+					$defdoa = &$_SESSION['doa'];
+					} else {
+					$defdoa = $currdate;
+					}	
+					
+				$form['adminOuter']['doa'] = array(
+				  '#type' => 'date_popup',
+				  '#title' => t('Due Date'),
+				  '#date_format' => 'D, M j, Y',
+				//  '#default_value' => $defdoa,
+				  '#date_year_range' => '-1:+1',
+				);					
+
+
+
+				  
+				   $form['adminOuter']['inMsg'] = array(
+				  		'#title' => t('Write Your Message'),
+                         			'#type' => 'textarea',
+						 '#size' => 300, 
+                   				'#maxlength' => 400, 
+               	  			'#disabled' => FALSE, 
+                                          '#resizable' => FALSE, 
+				  		'#description' => t('Please Enter Message'),
+						'#required' => True,
+
+                                        //        '#prefix' => '<br/><br/><br/><br/>',
+					);
+					
+						  
+				 
+
+				
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+'#prefix' => '<br/>',
+  );
+   $form['submit1'] = array(
+					'#type' => 'submit',
+					'#value' => t('Attachments'),
+				  );
+$form['adminOuter']['submit']['#attributes']['class']  = $form['adminOuter']['submit']['#attributes']['class'] . ' qbsubmit';
+
+return $form;
+ 
+}
+function qtxt_class_teacher_form1_validate($form, &$form_state) {
+$_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+	$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+	$_SESSION['t_sendid'] = $form_state['values']['adminOuter']['sendid'];				  
+    $_SESSION['t_msgtype'] = $form_state['values']['adminOuter']['type'];
+	$_SESSION['t_msg'] = $form_state['values']['adminOuter']['inMsg'];
+	$_SESSION['t_subject'] = $form_state['values']['adminOuter']['subjects'];				  
+    $_SESSION['t_date'] = $form_state['values']['adminOuter']['doa'];		
+    $form_state['redirect'] = 'teacherform1/next';
+  
+	$student = &$_SESSION['t_student'];
+	$grade = &$_SESSION['t_student_grade'];
+	$msgtype = &$_SESSION['t_msgtype'];
+	$sendid = &$_SESSION['t_sendid'];
+	$msg = &$_SESSION['t_msg'];
+	$subject = &$_SESSION['t_subject'];
+	$date = &$_SESSION['t_date'];
+		$currdate = date("Y-m-d");
+	$defdoa = $currdate;
+
+	$defdoa = &$_SESSION['doa'];
+
+if(($msgtype == 1) && ($student != ''))
+{
+form_set_error(' ', t('Invalid Selection - Dont Select the student name for class message'));
+}
+if(($subject != '') &&($msgtype <= 2))
+{
+form_set_error(' ', t('Invalid Selection- Dont Select subject name for class message')); 
+}
+if(($student == '') &&($msgtype == 2))
+{
+form_set_error(' ', t('Please select the student name')); 
+}
+if(($subject == '') &&($msgtype == 3))
+{
+form_set_error(' ', t(' Select the subject name')); 
+}
+if (($msgtype > 2))
+{
+if ( $date < $currdate ) {
+		form_set_error(' ', t('Due Date Must Be Greater Than Currentdate'));
+	  }
+}
+}
+
+
+function qtxt_class_teacher_next_form1( $form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+$defusermobile = $myMobileNumber;
+
+$form['#attributes']['enctype'] = "multipart/form-data";			 	
+ 								
+				$form['tcsv'] = array(
+					  '#type' => 'file',
+					  '#title' => 'Upload File',
+					  '#description' => t('Pick A File To Upload'),
+				  );
+
+
+				
+				  $form['submit'] = array(
+					'#type' => 'submit',
+					'#value' => t('Send'),
+					'#prefix' => '<br/><br/><br/><br/><br/><br/><br/><br/><br/>',
+				  );
+				 
+$form['submit']['#attributes']['class']  = $form['submit']['#attributes']['class'] . ' qbsubmit20';
+
+		return $form;
+}
+
+
+function qtxt_class_teacher_form1_submit($form, &$form_state) {
+	global $user;
+	$profile =  profile_load_profile($user);
+	$myMobileNumber =  $user->profile_mobile; 
+	$uid = $user->uid;
+	
+	$_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+	$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+	$_SESSION['t_sendid'] = $form_state['values']['adminOuter']['sendid'];				  
+    $_SESSION['t_msgtype'] = $form_state['values']['adminOuter']['type'];
+	$_SESSION['t_msg'] = $form_state['values']['adminOuter']['inMsg'];
+	$_SESSION['t_subject'] = $form_state['values']['adminOuter']['subjects'];				  
+    $_SESSION['t_date'] = $form_state['values']['adminOuter']['doa'];		
+   //  $form_state['redirect'] = 'teacherform1/next';
+  
+	$student = &$_SESSION['t_student'];
+	$grade = &$_SESSION['t_student_grade'];
+	$msgtype = &$_SESSION['t_msgtype'];
+	$sendid = &$_SESSION['t_sendid'];
+	$msg = &$_SESSION['t_msg'];
+	$subject = &$_SESSION['t_subject'];
+	$date = &$_SESSION['t_date'];
+	$currdate = date("Y-m-d");
+	$defdoa = $currdate;
+
+	$defdoa = &$_SESSION['doa'];
+
+	$msg = str_replace("'", "''", $msg);
+/*	
+drupal_set_message(t("Grade $grade"));
+drupal_set_message(t("Student $student"));
+drupal_set_message(t("Id $msgtype"));
+drupal_set_message(t("Msg $msg"));
+drupal_set_message(t("Subject $subject"));
+drupal_set_message(t("Date $date"));
+drupal_set_message(t("current1 date : $currdate"));
+*/	
+	$op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Submit'):
+	
+		db_set_active('qtxt_db');
+			$result = db_query( "INSERT INTO qtxt_sms_teacher_message(`teacher_message_id`,`account_student_map_id`,`account_grade_id`,
+                     `message`,`teacher_uid`,`teacher_mnumber`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`, file_name,process_flag,type_id,msg_sending_id,due_date,subject_name) 
+					 VALUES(null,'$student',$grade,'$msg',$uid, '$myMobileNumber', sysdate(), sysdate(), 'admin', 'admin','$name',1,$msgtype,$sendid,'$date','$subject')");
+			db_set_active('default');
+			drupal_set_message(t("Your Message has been Submitted."));	
+
+			$form_state['redirect'] = 'teacherform1';
+			return;
+
+	break;
+	case t('Attachments'):
+	$form_state['redirect'] = 'teacherform1/next';
+			return;
+	default:
+	$form_state['redirect'] = 'teacherform1';
+	}
+return;
+}
+
+function qtxt_class_teacher_next_form1_submit($form, &$form_state) {
+
+	global $user;
+	$profile =  profile_load_profile($user);
+	$myMobileNumber =  $user->profile_mobile; 
+	$uid = $user->uid;
+
+
+	if(!empty($_SESSION['t_student'])) {
+		$student = &$_SESSION['t_student'];
+	} else {
+		$student = 'null';
+	}
+
+	if(!empty($_SESSION['t_student_grade'])) {
+		$grade = &$_SESSION['t_student_grade'];
+	} else {
+		$grade = "";
+	}
+	if(!empty($_SESSION['t_sendid'])) {
+		$sendid = &$_SESSION['t_sendid'];
+	} else {
+		$sendid = 'null';
+	}
+
+	if(!empty($_SESSION['t_msgtype'])) {
+		$msgtype = &$_SESSION['t_msgtype'];
+	} else {
+		$msgtype = "";
+	}
+
+	if(!empty($_SESSION['t_msg'])) {
+		$msg = &$_SESSION['t_msg'];
+	} else {
+		$msg = "";
+	}
+	
+	if(!empty($_SESSION['t_subject'])) {
+		$subject = &$_SESSION['t_subject'];
+	} else {
+		$subject = "";
+	}
+	if(!empty($_SESSION['t_date'])) {
+		$date = &$_SESSION['t_date'];
+	} else {
+		$date = "";
+	}
+/*	drupal_set_message(t("Grade $grade"));
+drupal_set_message(t("Student $student"));
+drupal_set_message(t("Id $msgtype"));
+drupal_set_message(t("Msg $msg"));
+drupal_set_message(t("Subject $subject"));
+drupal_set_message(t("Date $date"));
+*/
+
+
+
+
+	$dir = file_directory_path();
+
+	if(isset($_FILES) && !empty($_FILES) && $_FILES['files']['size']['tcsv'] != 0){
+    
+		#this structure is kind of wacky
+		$name = $_FILES['files']['name']['tcsv'];
+		$size = $_FILES['files']['size']['tcsv'];
+		$type = $_FILES['files']['type']['tcsv'];
+
+		#this is the actual place where we store the file
+		$file = file_save_upload('tcsv', array() , $dir);
+
+	} 
+
+		
+	// $msg = $form_state['values']['inMsg'];
+		db_set_active('qtxt_db');
+
+			$msg = str_replace("'", "''", $msg);
+		
+			$result = db_query( "INSERT INTO qtxt_sms_teacher_message(`teacher_message_id`,`account_student_map_id`,`account_grade_id`,
+                     `message`,`teacher_uid`,`teacher_mnumber`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`, file_name,process_flag,type_id,msg_sending_id,due_date,subject_name) 
+					 VALUES(null,'$student',$grade,'$msg',$uid, '$myMobileNumber', sysdate(), sysdate(), 'admin', 'admin','$name',1,$msgtype,$sendid,'$date','$subject')");
+			db_set_active('default');
+			drupal_set_message(t("Your Message has been Submitted."));	
+
+			$form_state['redirect'] = 'teacherform1';
+			return;
+
+}
+
+
+function qtext_teacher_ahah_field_js_for_ind3 () {
+//  krumo($form_state);
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+
+
+		$gid = $form['#post']['adminOuter']['grade'];
+		db_set_active('qtxt_db');
+		$sqlg = " select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where account_grade_id = $gid order by substring(student_name , LOCATE('.', student_name)+1)";
+
+//order by SUBSTRING(student_name, LOCATE('.', student_name)+1)" ;
+
+		$resultg = db_query($sqlg);
+		$valueg[''] = 'Select a value';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->account_student_map_id] = $datag->student_name;
+		}
+		db_set_active('default');
+		$form['adminOuter']['student']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+				$form = form_builder('qtext1_smsform', $form, $form_state);		
+				$output = $form['adminOuter']['student'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+}

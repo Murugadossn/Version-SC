@@ -1,0 +1,18 @@
+; $Id: indic_script.info,v 1.6.4.3 2009/10/17 10:52:45 4vinoth Exp $
+name = Indic Script
+description = "This Module enables Indic Language Scripts typing in Drupal Text Fields and Text Area Fields."
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-04-06
+version = "6.x-2.1"
+core = "6.x"
+project = "indic_script"
+datestamp = "1239007231"
+
+ 
+; Information added by drupal.org packaging script on 2010-03-27
+version = "6.x-2.2"
+core = "6.x"
+project = "indic_script"
+datestamp = "1269702914"
+

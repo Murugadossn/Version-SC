@@ -1,0 +1,13 @@
+name = Link image formatter
+description = Defines a field formatter to display a link to an image as an HTML image element.
+core = 6.x
+dependencies[] = content
+dependencies[] = link
+package = CCK
+
+; Information added by drupal.org packaging script on 2011-11-15
+version = "6.x-1.0-alpha2"
+core = "6.x"
+project = "link_image"
+datestamp = "1321382441"
+

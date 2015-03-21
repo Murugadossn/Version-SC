@@ -1,0 +1,19 @@
+name = v3_staff_profile
+
+
+
+description = "To View staff info"
+
+
+
+package = School Connect Version 3.0
+
+
+core = 6.x
+
+
+
+
+
+
+

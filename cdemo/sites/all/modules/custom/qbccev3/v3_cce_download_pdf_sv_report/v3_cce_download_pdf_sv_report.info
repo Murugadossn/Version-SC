@@ -1,0 +1,17 @@
+; $Id$
+
+
+
+name = v3_cce_download_pdf_sv_report
+
+
+
+description =  v3_cce_download_pdf_report_sv
+
+
+
+core = 6.x
+
+
+
+package = CCE

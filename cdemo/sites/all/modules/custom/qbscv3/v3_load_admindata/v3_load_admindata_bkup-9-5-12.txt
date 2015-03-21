@@ -1,0 +1,306 @@
+<?php
+/**
+
+* Implementation of hook_views_api().
+	Re-Write: Deepak Mani - 02/28/2012 
+		- All Layout & Style Options
+		- Validation & form Submit
+*
+
+*/
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+function v3_load_admindata_views_api( ) {
+	return array(
+		 'api' => 2,
+		'path' => drupal_get_path( 'module', 'v3_load_admindata' ) 
+	);
+}
+function v3_load_admindata_menu( ) {
+	$items[ 'loadadmin' ]        = array(
+		 'title' => t( 'Load Admin Data' ),
+		'page callback' => 'v3_load_admindata_form',
+		'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array(
+			 'access content' 
+		) 
+	);
+	return $items;
+}
+function v3_load_admindata_form( ) {
+	$output = drupal_get_form( 'v3_load_admindata_main_form' );
+	return $output;
+}
+function v3_load_admindata_main_form( $form_state ) {
+//	global $user;
+//	$profile        = profile_load_profile( $user );
+//	$myMobileNumber = $user->profile_mobile;
+//	$uid            = $user->uid;
+		$form[ 'loadadmindata' ] = array(
+		 '#type' => 'fieldset',
+		'#title' => t( 'Load School Admin Data' ),
+		'#collapsible' => FALSE,
+		'#collapsed' => FALSE,
+		'#tree' => TRUE 
+	);
+	
+				$form[ 'loadadmindata' ]['UserName'] = array(
+				'#title' => t('Username'),
+				'#type' => 'textfield',
+				// '#default_value' => $defusermobile,
+				// '#value' => $defusermobile,
+				'#size' => 50,
+				'#description' => t('Please Enter Your Name.'),
+				);
+
+				$form[ 'loadadmindata' ]['EmailId'] = array(
+				'#title' => t('E-mail address'),
+				'#type' => 'textfield',
+				// '#default_value' => $defadminuserid,
+				'#size' => 50,
+				'#description' => t('Please Enter Your E-mail Address.'),
+				);
+				$form[ 'loadadmindata' ]['Password'] = array(
+				'#title' => t('Password'),
+				'#type' => 'password',
+				// '#default_value' => $defadminpwd,
+				'#size' => 50,
+				'#description' => t('Please Enter Your Password.'),
+				);
+				$form[ 'loadadmindata' ]['ConfirmPassword'] = array(
+				'#title' => t('Confirm password'),
+				'#type' => 'password',
+				// '#default_value' => $defadminpwd,
+				'#size' => 50,
+				'#description' => t('Please Confirm Your Password Again.'),
+				);
+				$form[ 'loadadmindata' ]['MobileNumber'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				// '#default_value' => $defadminpwd,
+				'#size' => 50,
+				'#description' => t('Please Enter Your Mobile Number.'),
+				);
+				
+				db_set_active('qtxt_db');	
+
+  
+
+	  $resultg1 = db_query("SELECT distinct staff_std FROM {qtxt_sms_account_staff}");
+
+				  $igradeOptions = array('' => t('Select..'));
+
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+
+				  	$igradeOptions[$rowg1->staff_std] =  $rowg1->staff_std; //This is the only line that changed from the code above.
+
+				  	}
+
+				db_set_active('default');
+
+				  $form['loadadmindata']['standard'] = array('#type' => 'select',
+
+				  				  		'#options' => $igradeOptions,
+
+				  				  		'#title' => t('Standard'),
+
+				  				  		'#description' => t('Please select the standard '),
+
+				  				  		'#disabled' => FALSE,
+
+				  );
+
+			
+db_set_active('qtxt_db');	
+
+  
+
+	  $resultg1 = db_query("SELECT distinct staff_section FROM {qtxt_sms_account_staff}");
+
+				  $igradeSecOptions = array('' => t('Select..'));
+
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+
+				  	$igradeSecOptions[$rowg1->staff_section] =  $rowg1->staff_section; //This is the only line that changed from the code above.
+
+				  	}
+
+				db_set_active('default');
+
+				  $form['loadadmindata']['section'] = array('#type' => 'select',
+
+				  				  		'#options' => $igradeSecOptions,
+
+				  				  		'#title' => t('Section'),
+
+				  				  		'#description' => t('Please select the section '),
+
+				  				  		'#disabled' => FALSE,
+
+				  );
+
+
+
+			
+	$form[ 'loadadmindata' ][ 'submit' ]   = array(
+		 '#type' => 'submit',
+		'#value' => t( 'Save' ),
+		'#prefix' => '<br/><br/>' 
+	);
+	
+	return $form;
+}
+
+function v3_load_admindata_main_form_submit( $form, &$form_state ) {
+	// global $user;
+	// $profile           = profile_load_profile( $user );
+	// $myMobileNumber    = $user->profile_mobile;
+	// $uid               = $user->uid;
+	$username         = $form_state[ 'values' ][ 'loadadmindata' ][ 'UserName' ];
+    $emailid         = $form_state[ 'values' ][ 'loadadmindata' ][ 'EmailId' ];
+	$pass         = $form_state[ 'values' ][ 'loadadmindata' ][ 'Password' ];
+	$encrypt_password=md5($pass);
+    $confirmpass         = $form_state[ 'values' ][ 'loadadmindata' ][ 'ConfirmPassword' ];
+	$mobilenumber         = $form_state[ 'values' ][ 'loadadmindata' ][ 'MobileNumber' ];
+
+    $standard = $form_state['values'][ 'loadadmindata' ][ 'standard' ];
+    $section = $form_state['values'][ 'loadadmindata' ][ 'section' ];
+/*
+db_set_active('qtxt_db');	
+
+                $rs5 = mysql_query("CALL SP_PROCESS_LOAD_SCHOOL_ADMIN($iLastID,'$schoolName')");
+db_set_active( 'default' );
+	
+	
+db_set_active('qtxt_db');	
+	 $ret = sp_query("CALL SP_PROCESS_LOAD_SCHOOL_ADMIN($iLastID,'$schoolName')");
+db_set_active( 'default' );
+
+
+db_set_active('scdb');
+		 mysql_query("CALL SP_PROCESS_LOAD_SCHOOL_ADMIN()");
+*/
+
+	db_set_active( 'drsc' );
+	
+	$result = db_query( "INSERT INTO `drsc`.`users`(`uid`,`name`,`pass`,`mail`,`mode`,`sort`,`threshold`,`theme`,`signature`,`signature_format`,`created`,`access`,`login`,`status`,`timezone`,`language`,`picture`,`init`,`data`,`timezone_name`)VALUES(null,'$username','$encrypt_password','$emailid',0,0,0,'','',0,0,0,0,1,-18000,'','','$emailid','','')" );
+
+	 $result = db_query( "INSERT INTO `drsc`.`users_roles` (`uid`,`rid`)VALUES(LAST_INSERT_ID(),7)");
+	
+	$resultDrpUid = db_query( " select uid from `drsc`.`users` where name = '$username' ");
+	$sDrpUid = array( );
+	while ( $row = db_fetch_object( $resultDrpUid ) ) {
+		$sDrpUid = $row->uid;
+	}
+	
+	
+	
+	db_set_active( 'scdb' );
+	
+	 $result = db_query( "INSERT INTO `scdb`.`qtxt_sms_mobile_numbers`(`mobile_number_id`,`mobile_number`,`preferred_language_id`,`active_flag`,`person_name`,`person_address`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`role_name`,`default_pwd`,`drupal_uid`,`person_email`,`person_home_phone`,`person_relationship_to_student`,`account_notified_flag`,`primary_flag`)VALUES( null,$mobilenumber,1,'Y','$username','NULL',sysdate(),sysdate(),'SchoolAdmin','SchoolAdmin','PARENT','$pass',$sDrpUid,'$emailid','NULL','NULL','N','Y')");
+
+	 $resultnMobileNumberId = db_query("select mobile_number_id from `scdb`.`qtxt_sms_mobile_numbers` where mobile_number = $mobilenumber ");
+$nMobileNumberId = array( );
+	while ( $row = db_fetch_object( $resultnMobileNumberId ) ) {
+		$nMobileNumberId = $row->mobile_number_id;
+	}
+	
+	
+	$result = db_query( "INSERT INTO `drsc`.`profile_values`(`fid`,`uid`,`value`)VALUES(1,$sDrpUid,'$username'),(2,$sDrpUid,'NULL'),(3,$sDrpUid,$mobilenumber),(4,$sDrpUid,'Teacher'),(5,$sDrpUid,'NULL'),(6,$sDrpUid,'NULL'),(7,$sDrpUid,$nMobileNumberId)");
+
+//	 $result = db_query( " SELECT LAST_INSERT_ID() INTO nMobileId ");
+	 
+	
+  $result = db_query( "INSERT INTO `scdb`.`qtxt_sms_account_staff`(`staff_id`,`account_id`,`mobile_number`,`staff_name`,`contact_details`,`staff_std`,`staff_section`,`staff_subject`,`admin_type`,`admin_role`,`created_date`,`last_updated_date`,`created_by`,`last_updated_by`,`staff_email`)VALUES(null,5,$mobilenumber,'$username','NULL','$standard','$section','NULL','NULL','NULL',sysdate(),sysdate(),'SchoolAdmin','SchoolAdmin','$emailid')");
+  
+  $resultnStaffId = db_query("SELECT staff_id from `scdb`.`qtxt_sms_account_staff` where account_id = 5 and mobile_number = $mobilenumber ");
+$nStaffId = array( );
+	while ( $row = db_fetch_object( $resultnStaffId ) ) {
+		$nStaffId = $row->staff_id;
+	} 
+  
+ //  $result = db_query( " SELECT LAST_INSERT_ID() INTO nStaffId ");
+  
+ /* 
+  $result = db_query( "INSERT INTO `scdb`.`qtxt_sms_account_grades`(`account_grade_id`,`account_id`,`grade_name`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`standard`,`section`) VALUES (null,5,'',sysdate(),sysdate(),'SchoolAdmin','SchoolAdmin','$standard','$section')");
+*/
+
+ $result = db_query ("INSERT INTO `scdb`.`qtxt_sms_admin_mobile` (`admin_mobile_id`,`mobile_number_id`,`staff_id`,`account_id`,`admin_user_id`,`admin_password`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`account_admin_flag`,`driver_admin_flag`) VALUES(null,$nMobileNumberId,$nStaffId,5,'','',sysdate(),sysdate(),'SchoolAdmin','SchoolAdmin','Y','Y')");
+ 
+  $resultnAdminMobileId = db_query( " SELECT admin_mobile_id from `scdb`.`qtxt_sms_admin_mobile` where mobile_number_id = $nMobileNumberId and staff_id = $nStaffId ");
+$nAdminMobileId = array( );
+	while ( $row = db_fetch_object( $resultnAdminMobileId ) ) {
+		$nAdminMobileId = $row->admin_mobile_id;
+	}
+	 
+//	 $result = db_query( " SELECT LAST_INSERT_ID() INTO nAdminMobileId ");
+ 
+$resultnGradeId = db_query(" SELECT account_grade_id from `scdb`.`qtxt_sms_account_grades` where account_id =  5 and standard = '$standard' and section = '$section' ");
+ $nGradeId = array( );
+	while ( $row = db_fetch_object( $resultnGradeId ) ) {
+		$nGradeId = $row->account_grade_id;
+	}
+
+  $result = db_query ("INSERT INTO `scdb`.`qtxt_sms_staff_grade` (`staff_grade_id`,`staff_id`,`account_grade_id`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`) VALUES (null,$nStaffId,$nGradeId,sysdate(),sysdate(),'SchoolAdmin','SchoolAdmin')");
+ 
+$resultnStaffGradeId = db_query("SELECT staff_grade_id from `scdb`.`qtxt_sms_staff_grade` where staff_id = $nStaffId  and account_grade_id = $nGradeId ");
+ $nStaffGradeId = array( );
+	while ( $row = db_fetch_object( $resultnStaffGradeId ) ) {
+		$nStaffGradeId = $row->staff_grade_id;
+	}
+ //  $result = db_query( " SELECT LAST_INSERT_ID() INTO nStaffGradeId ");
+
+ // $result = db_query ("INSERT INTO `scdb`.`qtxt_sms_admin_mobile` (`admin_mobile_id`,`mobile_number_id`,`staff_id`,`account_id`,`admin_user_id`,`admin_password`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`account_admin_flag`,`driver_admin_flag`) VALUES(null,LAST_INSERT_ID(),LAST_INSERT_ID(),5,'','',sysdate(),sysdate(),'SchoolAdmin','SchoolAdmin','Y','Y')");
+  
+//  $result = db_query ("update `scdb`.`qtxt_sms_mobile_numbers` a set drupal_uid = ( select y.uid from `scdb`.`drupal_mobile_id_view` x , `scdb`.`drupal_user_name_v` y where y.uid = x.drupal_user_id and x.mobile_number_id = a.mobile_number_id )where drupal_uid = null");
+
+
+ //-- $result = db_query("select account_id from `scdb`.`qtxt_sms_account` where account_id  = 5 ");
+ 
+// $result = db_query("select account_id from `scdb`.`qtxt_sms_account` where account_id  = nAccountId ");
+
+
+
+
+
+// $result = db_query(" select row_id, mobile_number,name,contact_details,standard,section,admin_type,admin_role,active_flag, staff_email from qtxt_sms_admin_int where batch_id = nloadId ");
+
+
+
+	// db_set_active( 'default' );
+	
+		drupal_set_message(  " User $username Has Been Added Succesfully ");
+	return;
+}
+
+/*
+function v3_main_form_validate( $form, &$form_state ) {
+
+//Re-Write: Deepak Mani - 02/28/2012
+
+	$values    = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ];
+	$teacherid     = $values[ teacher ];
+	$studentid = $values[ student ];
+	$defdoa    = $values[ doa ];
+	$edefdoa   = $values[ edoa ];
+	$msg       = $values[ inMsg ];
+	$reson     = $values[ reason ];
+	
+	$errortxt="";
+	
+	if ( $studentid == '' ) { $errortxt = $errortxt . "Select a Student Name"; }
+	if ( $teacherid == '' ) { $errortxt = $errortxt . "<br/>Select a Teacher Name"; }
+	if ( $defdoa == '' ) { $errortxt = $errortxt . "<br/>Choose a Leave Start Date"; }
+	if ( $edefdoa == '' ) { $errortxt = $errortxt . "<br/>Choose a Leave End Date"; }
+	if ( $msg == '' ) { $errortxt = $errortxt . "<br/>Enter the Leave Subject"; }
+	if ( $reson == '' ) { $errortxt = $errortxt . "<br/>Enter the Leave Reason"; }
+	
+	if ( strlen($errortxt) != 0 )
+	{
+		$errortxt = "<h4>Validation Error - Please review and correct the following.</h4>" . $errortxt; 
+		form_set_error( '', t( $errortxt ) );
+	}
+}
+*/

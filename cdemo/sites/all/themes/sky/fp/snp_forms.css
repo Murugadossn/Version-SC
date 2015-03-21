@@ -1,0 +1,1048 @@
+form{display: inline;}
+.message{
+	/*font-weight:normal; reskin */
+	font-weight: bold; /* reskin added */
+	font-size: 12px; /* reskin added */
+	/*color:#157b00; reskin */
+	color: #339933; /* reskin added */
+	font-family: Arial, Helvetica, San-serif; /* reskin added */
+}
+.infoMessage{font-weight: bold;color:#ed1c24;font-size:14px}
+/* BUTTONS */
+#content .buttonFont:hover {
+	background-color: transparent;
+	color:#333;
+	text-decoration: none;
+}
+/* reskin .buttonFont,.buttonFont:visited{text-decoration: none;color:#000;font-size: 14px;} */
+.buttonFont,.buttonFont:visited{text-decoration: none;color:#000;font-size: 12px;} /* reskin */
+
+/**
+Button Text               : Arial 12 pt, Bold #333333
+**/
+ html>body .buttonFont{
+	padding-bottom: 5px;
+	margin-top: 5px;
+	padding-top:6px;
+	text-decoration: none; 
+	color:#000;
+	font-family: Arial, Helvetica, San-serif; /* reskin added */
+	font-weight: bold; /* reskin added */
+	font-size: 12px; /* reskin added */
+	color: #333333; /* reskin added */
+}
+.button {
+	font-family: arial,helvetica,san-serif;
+	font-size:12px;
+	background-image: url(button_wtcorners.png);
+	background-repeat: no-repeat;
+	background-position: left top;
+	height: 22px;
+	text-align: center;
+	padding-left: 16px;
+	padding-bottom: 7px;
+	text-decoration: none;
+	margin-top: 1px;
+	margin-right:3px;/*reskin added*/
+	
+}
+
+/* This errorPageBtn  class is to rectify css error in IE in temporarily_unavailable.html page support button   Dont remove this below lines*/
+.errorPageBtn
+{
+	//background-position: left center !important;
+	//position:relative !important;
+}
+/*Added for the SAR SNP-00021457 */
+#buttonBlock .button {
+	padding-left: 28px;
+}
+
+* html .button,* html .button .desc
+{
+	padding-bottom:0;	
+}
+.button .desc {
+	background-image: url(button_wtcorners.png);
+	background-repeat: no-repeat;
+	background-position: right top;
+	height: 22px;
+	padding-right: 16px;
+	padding-top: 3px;
+	padding-bottom: 7px;
+	margin-bottom: 0px;
+	margin-top: 0px;
+	font-weight: bold;
+	color: #000000;
+	text-decoration: none;
+}
+/* This errorPageBtn  class is to rectify css error in IE in temporarily_unavailable.html page support button   Dont remove this below lines*/
+.errorPageBtn  .desc
+{
+	//background-position: right center !important;
+	//margin-top:2px !important;
+}
+
+/*Added for the SAR SNP-00021457 */
+#buttonBlock .button .desc {
+	padding-right: 24px;
+}
+
+/************************************************ 	
+*	THESE ARE FOR THE GO BUTTON BECAUSE THEY 	*
+*	ARE A LITTLE SMALLER THAN OTHER BUTTONS		*
+*************************************************/
+	.go{ padding-left:6px;}
+	.go .desc{ padding-right:6px;}
+/************************************************/
+html>body .button .desc {padding-top:4px;}
+html>body .button {
+	padding-top: 4px;
+	text-decoration: none;
+	padding-left: 20px; 
+/*	padding-right: 10px;*/
+}
+/*Added for the SAR SNP-00021457 */
+html>body #buttonBlock .button .desc {padding-top:4px;padding-right:24px;}
+html>body #buttonBlock .button {
+	padding-top: 4px;
+	text-decoration: none;
+	padding-left: 28px; 
+/*	padding-right: 10px;*/
+}
+
+.button a:hover {
+	color: #333;
+	text-decoration: none;
+}
+.disable
+{
+   opacity: 0.4;
+   -moz-opacity:  0.4;
+   -khtml-opacity: 0.4;
+   filter: alpha(opacity=40);
+   height: 23px;			/* Must include for IE to recognize opacity */
+}
+/****************************************************
+*	different background colors. To use these with	*
+*	the button tag define the type attribute as		* 
+*	one of these colors example: type="purple"	*
+*****************************************************/
+/* gray */
+.gry {
+	background-image: url(button_wtcorners_gry.png);
+}
+.gry .desc {
+	background-image: url(button_wtcorners_gry.png);
+}
+/* white */
+.wht {
+	background-image: url(button_wtcorners_wht.png);
+}
+.wht .desc {
+	background-image: url(button_wtcorners_wht.png);
+}
+#paging_textbox
+{
+	text-align:right;
+	font-weight:bold;
+	font-size:11px;
+}
+#hideCurrPage
+{
+	display: none;
+}
+/* end buttons */
+
+.formlabel
+  {
+  	text-align: right;
+  	padding-right:5px;
+  	font-size: 12px;
+	
+  }
+
+ /*PSN-Start fix for the SAR SNP-00024818 by Monali*/
+  .deleteAlertClass
+  {
+	color:#262626; 
+	font-family:arial,helvetica,san-serif;
+	font-weight:bold;
+	padding-top:3px;
+	font-size:14px;
+	padding-right:5px;
+	text-align:left;
+  }
+  /*PSN-End fix for the SAR SNP-00024818 by Monali*/
+  
+/**
+  Forms shall have white background
+**/
+  .formfield,.custformfield
+  {
+  	background:#F4F4F4; 
+  	padding:5px 10px 5px 10px;
+  	font-size: 12px;
+  }
+  .spacer
+  {
+  	background:#f4f4f4;
+  }
+  .spacer hr
+  {
+  	color:#fff;
+  	border: 1px solid #fff;
+  	width: 100%;
+  }
+  .highlightText
+  {
+  	font-weight: bold;
+  	font-size:14px;
+  	padding-bottom:4px;
+  }
+ .activityTable
+ {
+ 	margin:10px 0 10px 0;
+ }
+/* To change form background to white */
+.formfieldcurves
+{
+	background-color:#f4f4f4;
+}
+.formTopCustomC 
+{
+ 	clear:both;
+	padding:0 13px 0 0;
+	height:4px;
+	line-height:4px;
+	/* background: url("profile_top_right.gif") top right no-repeat; reskin */
+	background: #F4F4F4 url("profile_top_right.gif") top right no-repeat;	/* reskin added */
+}
+.formTopCustomC p 
+{
+ 	margin:0;
+	padding:0 0 0 9px;
+	height:4px;
+	line-height:4px;
+	background: url("profile_top_left.gif") top left no-repeat;	 
+}
+.formBottomCustomC 
+{
+ 	clear:both;
+	padding:0 13px 0 0;
+	height:4px;
+	line-height:4px;
+	/* background: url("profile_bot_right.gif") bottom right no-repeat;	 reskin */
+	background: #F4F4F4 url("profile_bot_right.gif") bottom right no-repeat;	/* reskin added */
+}
+.formBottomCustomC p 
+{
+ 	margin:0;
+	padding:0 0 0 9px;
+	height:4px;
+	line-height:4px;
+	background: url("profile_bot_left.gif") bottom left no-repeat;	 
+}
+#processBarId{margin-left:350px;}
+#my_testList_table1 th:FIRST-CHILD{width:7%;}
+
+
+table.sortable td.hdr.asc, table.sortable th.hdr.asc, table.tableBasic td.hdr.asc, table.tableBasic th.hdr.asc
+{
+   background: url(btnarrowasc.gif) transparent  no-repeat center right;
+}
+
+table.sortable td.hdr.desc, table.sortable th.hdr.desc, table.tableBasic td.hdr.desc, table.tableBasic th.hdr.desc
+{
+   background: url(btnarrowdesc.gif) transparent no-repeat center right;
+}
+
+table.tableBasic td.hdr.asc a, table.tableBasic th.hdr.asc a, table.tableBasic td.hdr.desc a, table.tableBasic th.hdr.desc a
+{
+#   display:block;
+#   line-height:32px;
+#   line-height:15px;
+    text-align:left;
+}
+.center{text-align: center !important;}
+
+.small_info {
+	font-size:10px;
+	display:none;
+}
+/* reskin begin */
+.formrow
+{
+	clear:both;
+	list-style-type:none;
+	margin:0;
+	padding:0.25em;
+}
+/* reskin end */
+/* reskin begin */
+.formrow .fieldhint 
+{
+	background:#FFFFD9 none repeat scroll 0 0;
+	border:1px solid #A7A753;
+	clear:both;
+	color:#7F7F3F;
+	font-style:italic;
+	margin:0 0 0 40%;
+	padding:0.25em; 
+}
+/* reskin end */
+/* reskin begin */
+.formfield .fieldsetTypeA
+{ 
+	background:#f4f4f4 url("profile_top_right.gif") top right no-repeat; 
+}
+/* reskin end */
+/* reskin begin */
+ li.fieldlabel
+  {
+	float: left;
+	text-align: right;
+	font-weight: bold;	
+	width: 32%;
+	margin-right: 10;
+  }
+/* reskin end */
+/* reskin begin */
+  li.field{
+	float: left;
+	text-align: left;
+	width: 48%;
+  }
+/* reskin end */
+/* reskin begin */
+.fieldsetTypeA shadedA floatLeft,.floatLeft{
+	border:0px;
+	float:left;
+	margin:0px;
+	width:97%;
+	#width:98.5%;
+	background:#F4F4F4;	
+	/*margin-top: -5px; *//*saurabh07sept08*/
+}
+/* reskin end */
+/* reskin begin */
+.floatright 
+{
+	border:0px;
+	border:0px;
+	float:left;
+    width:42%;
+}
+/* reskin end */
+/* reskin begin*/
+.backBbtm {
+	background:transparent url(bottom_left_line_curve.gif) no-repeat scroll 0 0;
+	height:20px;
+	margin:0;
+}
+/* reskin end*/
+/* reskin begin*/
+.backBbtm p {
+	margin-top: 0px;
+	background:transparent url(bottom_right_line_curve.gif) no-repeat scroll right top;
+	float:right;
+	height:20px;
+	width:30px;
+}
+/* reskin end*/
+/* reskin begin*/
+.backBbtm2 {
+	background:transparent url(bottom_left_line_curve_drk.gif) no-repeat scroll 0 0;
+	height:20px;
+	margin:0;
+}
+/* reskin end*/
+/* reskin begin*/
+.backBbtm2 p {
+	margin-top: 0px;
+	background:transparent url(bottom_right_line_curve_drk.gif) no-repeat scroll right top;
+	float:right;
+	height:20px;
+	width:30px;
+}
+/* reskin end*/
+/* reskin begin*/
+.formRoster td p{                           
+	padding-left:10px;
+	padding-right:50px;
+	width:80%;
+	/*margin-top:0px;*/ /*saurabh07sept08*/
+}
+/* reskin end*/
+/* reskin begin*/
+.thinTopC {
+	 background:#f4f4f4 url("profile_top_right.gif") top right no-repeat;
+	 height:10px;
+	 margin:0px;
+}
+/* reskin end*/
+/* reskin begin*/
+.thinTopC p{
+	 background: url("profile_top_left.gif") top left no-repeat;
+	 height:10px;
+	 margin:0px;
+}
+/* reskin end*/
+/* reskin begin*/
+.thinBottomC{
+	 background:#f4f4f4 url("profile_bot_right.gif") bottom right no-repeat;
+	 height:10px;
+	 margin-top:0px;
+}
+/* reskin end*/
+/* reskin begin*/
+.thinBottomC p{
+	 margin-top:0px;
+	 background: url("profile_bot_left.gif") bottom left no-repeat; 
+	 height:10px;
+}
+/* reskin end*/
+/* reskin begin */
+/*#reskinProfile h2{
+	background:transparent url(screen_head.png) no-repeat scroll 0 50%;
+	color:#05025F;
+	font-family:Arial,Helvetica,san-serif;
+	font-size:18px;
+	font-weight:bold;
+	padding:8px 0 8px 10px;
+	/*Margin-top:90px;*/
+}
+/* reskin end */
+
+#reskinProfile h2{
+ background:transparent url(screen_head.png) no-repeat scroll 0 50%;
+ color:#05025F;
+ font-family:Arial,Helvetica,san-serif;
+ font-size:18px;
+ font-weight:bold;
+ /*padding:8px 0 8px 10px;*/
+ /*Margin-top:90px;*/
+ /* added by dhaval k for 10503*/
+ margin-top:-6px;
+ padding:10px;
+ /* added by dhaval k for 10503*/ 
+}
+
+/* reskin begin */
+#reskinProfile .buttonBlockCustomD{
+	text-align:center;
+	background:transparent url(tbl_header.png) repeat-x scroll 0 0;
+	border-top:2px solid #C2C2C1;
+	clear:both;
+	height:33px;
+	text-align:center;
+	width:923px;
+	padding-top:3px;
+}
+/* reskin end */
+/*reskin komal begins 24 sep 08*/
+html>body #reskinProfile .buttonBlockCustomD{
+margin-left:10px;
+}
+/*reskin komal ends 24 sep 08*/
+/* reskin begin */
+html>body #reskinProfile .buttonBlockCustomD p{
+	margin-top:6px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinProfile .studentProfile{
+	margin-left:2% !important;
+}
+/* reskin end */
+/* reskin begin */
+#reskinDpUserAccessKey .formheader p
+{
+	background: url("backhdrpopr.gif") no-repeat top right;
+	height:36px;
+	margin-bottom:-10px;
+	padding:0 20;
+	margin-top:-1px;/*Reskin*/
+	padding-top:10px;/*Reskin*/
+}
+/* reskin end */
+/* reskin begin */
+#reskinDpUserAccessKey .formheader
+{
+	text-align:left;
+   	background: url("backhdrpop.gif") no-repeat top left;
+	background-color:#F4F4F4;
+   	font-weight: bold;
+   	height:36px;  	
+}
+/* reskin end */
+/* reskin begin */
+#reskinDpUserAccessKey .formContainer
+{
+	border:1px solid #CCCCCC;
+	padding-top:8px;
+	text-align:left;
+	margin-left:auto;
+	margin-right:auto;
+	padding:0 20;
+}
+/* reskin end */
+/* reskin begin */
+#reskinDpUserAccessKey #headerContainer
+{
+	text-align:center;
+	font-weight: normal;
+	font-size:1.2em;
+	padding:5px 185px 15px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinProfile #headerBlockReg h1{
+	height:80px; /*saurabh10503*/
+	padding:0;
+	background:transparent url(top_nav.png) no-repeat scroll 0 0 !important;
+	margin-top:-5px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification  #header h3{
+	color:#05025F;
+	font-family:Arial,Helvetica,san-serif;
+	font-size:18px;
+	font-weight:bold;
+	line-height:44px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification .formTypeA{
+	padding-bottom: 10px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification .formfield{ 
+	background:#F4F4F4; 
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification a:link {
+	color:#333333;  !important;
+	text-decoration: none;
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification textarea {
+	margin-top:-2px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification .formlabel {
+	font-family: arial,helvetica,san-serif;   
+	color: #000000;
+	font-weight: bold; 
+	padding-top:3px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinConfirmNotice table tbody tr #topArea #subHeader .formTypeA {
+	background:#FFFFFF none repeat scroll 0 0;
+	border:0 none;
+	font-size:0.97em;
+	margin:0 0 0 10%;
+	padding:1em 0;
+	width:80%;
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification .formfield #endDate{
+	width: 75px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinAddClassNotification .formfield #startDate{
+	width: 75px;
+}
+/* reskin end */
+/* rekin begin */
+html body .buttonFont{
+	padding-bottom: 5px;
+	margin-top: 5px;
+	padding-top:6px;
+	text-decoration: none; 
+	color:#000;
+	font-family: Arial, Helvetica, San-serif; /* reskin added */
+	font-weight: bold; /* reskin added */
+	font-size: 12px; /* reskin added */
+	color: #333333; /* reskin added */
+}
+/* reskin end */
+/* rekin begin */
+reskinConfirmNotice .popUpButtonBlock p .button #btnDesc .buttonFont{
+	color:#333333;
+	text-decoration:none;
+}
+/* reskin end */
+/* rekin begin */
+#reskinConfirmNotice table tbody tr #topArea #header h3 {
+	color:#05025F;
+	font-family:Arial,Helvetica,San-serif;
+	font-size:18px;
+	font-weight:bold;
+}
+/* reskin end */
+/* rekin begin */
+#reskinConfirmNotice table tbody tr #topArea #subHeader .formTypeA .dataTable tbody tr .formlabel {
+	font-weight:bold;
+	color: #000000;
+	white-space: nowrap;
+}
+/* rekin begin */
+#reskinConfirmNotice table tbody tr #topArea #subHeader .dataTable {
+	color: #000000;
+}
+/* reskin end */
+/* reskin begin */
+#reskinNotices #header h3{
+	font-family:Arial,Helvetica,San-serif;
+	font-size:18px;
+	font-weight:Bold;
+	color:#05025F;
+}
+/* reskin end */
+/* reskin begin */
+#reskinNotices .formfield{
+	font-family:Arial,Helvetica,San-serif;
+	font-size:11px;
+	font-weight:Bold;
+	color:#000000; 
+}
+/* reskin end */
+/* reskin begin */
+#reskinNotices .buttonFont{
+	font-family:Arial,Helvetica,San-serif;
+	font-size:12px;
+	font-weight:Bold;
+	color:#333333;
+	text-decoration:none;
+}
+/* reskin end */
+/* reskin begin */
+#reskinNotices .dataTable{
+	margin:20px 20px 0 20px;
+	width:640px;
+	
+}
+/* reskin end */
+/* reskin begin */
+html>body #reskinNotices .dataTable{
+	margin:20px 20px 0 20px;
+	width:660px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinNotices #subHeader {
+	background-color:#FFFFFF;
+	border:1px solid #DDDDDD;
+	padding-left:20px;
+}
+/* reskin end */
+/* reskin begin */
+#reskinNotices #header{
+	border-bottom:none;
+}
+/* reskin end */
+/* reskin begin */
+#formTypeQuestions .formTypePadding {
+            padding-left:20px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTablePadding{
+            padding-top:5px;            
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTablePadding .assignActivitiesTable td{
+            background-color:#ebf2fa ;
+}
+/* reskin end */
+/* reskin begin */
+.wrapcontrol{
+            width:750px;      
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable td{
+            padding:2px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .indent1{
+            float:left;
+            margin:2px 2px 2px 0;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .indent2{
+            float:left;
+            margin:2px 2px 2px 20px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .indent3
+{
+            float:left;
+            margin:10px 2px 2px 40px; /*pdc- modified for the SAR SNP-00010949 by AbdulS */
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .indent4{
+            float:left;
+            margin:2px 2px 2px 60px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable td b{
+            font-size: 11px;  
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .folder{
+            background-image: url("154folder.gif");
+            background-repeat: no-repeat;
+            background-position: 0px 4px;
+            padding-left:24px;
+            color:#000000;
+            font-size:12px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .folder2{
+            background-image: url("154folder_ranbow.gif");
+            background-repeat: no-repeat;
+            background-position: 0px 4px;
+            padding-left:24px;
+            /*color:#3682cf;*/
+            color:#000000;
+            /*font-size: 80%;*/
+            font-size:11px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .page1dot{
+            background-image: url("154page1.gif");
+            background-repeat: no-repeat;
+            background-position: 3px 4px;
+            padding-left:24px;
+            color:#3682cf;
+            font-size: 80%;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .page2dot{
+            background-image: url("154page2.gif");
+            background-repeat: no-repeat;
+            background-position: 3px 4px;
+            padding-left:24px;
+            /*color:#3682cf;*/
+            color:#000000;
+            /*font-size: 80%;*/
+            font-size:12px;
+            line-height: 20px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .page3dot{
+            background-image: url("154page3.gif");
+            background-repeat: no-repeat;
+            background-position: 3px 4px;
+            padding-left:24px;
+            color:#3682cf;
+            font-size: 80%;  
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .page4dot{
+            background-image: url("154page4.gif");
+            background-repeat: no-repeat;
+            background-position: 3px 4px;
+            padding-left:24px;
+            color:#3682cf;
+            font-size: 80%;
+            line-height: 20px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .page5dot{
+            background-image: url("154page5.gif");
+            background-repeat: no-repeat;
+            background-position: 3px 4px;
+            padding-left:24px;
+            color:#3682cf;
+            font-size: 80%;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable td .page1dot{
+            margin-left:20px;
+            height:18px;
+            color:#000000;
+            font-size:12px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable td .page2dot{
+            margin-left:40px;
+            height:18px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable td .page3dot{
+            margin-left:60px;
+            height:18px;                       
+            color:#000000;           
+            font-size:12px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable td .page4dot{
+            margin-left:60px;
+            height:18px;                       
+            color:#000000;         
+            font-size:12px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable td .page5dot{
+            margin-left:60px;
+            height:18px;
+            color:#000000;
+            font-size:11px;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .page1dot span,.assignActivitiesTable .page2dot span,.assignActivitiesTable .page3dot span,.assignActivitiesTable .page4dot span,.assignActivitiesTable .page5dot span
+{
+            font-size:11px;
+            line-height: 18px;
+            color:#000;
+}
+/* reskin end */
+/* reskin begin */
+.assignActivitiesTable .stripImage{
+	background-image: url(blank)
+	}
+/* reskin end */
+/* reskin begin */
+#activityAssignment .formTypeA{
+            margin-left:20px;            
+}
+/* reskin end */
+/* reskin begin */
+.activityTable{
+            width:600px;
+}
+/* reskin end */
+/* reskin begin */
+.activityTable .highlightText{
+            font-weight: bold;
+            color:#557aa0;   
+}
+/* reskin end */
+/* reskin begin */
+#formTypeQuestions{
+            font-size: 16px;
+            background:#F4F4F4;
+            width:923px;
+}
+ /* reskin end */
+/* reskin begin */
+.tableTierTop .page1dot {
+            background-image:url(154page1.gif);
+            background-position:3px 4px;
+            background-repeat:no-repeat;
+            color:#3682CF;
+            font-size:80%;
+            padding-left:24px;
+}
+/* reskin end */
+/* reskin begin */
+.marginL20 {
+            margin-left:20px !important;
+}
+/* reskin end */
+
+
+#wrapContent .spacer hr {
+	border:1px solid #F4F4F4;
+	color:#F4F4F4;
+  }
+
+
+/* reskin begin */
+#tabBar{
+	margin-top:10px;
+	width:600px;
+}
+/* reskin end */
+/* reskin begin */
+.data td.hdr, .data td.hdr2, .data th.hdr, .data th.hdr2{
+	font-family:Arial,Helvetica,San-serif;
+	background:transparent url(tbl_header_tall.png) repeat-x scroll 0px 50%; 
+	color:#11709F;
+	font-weight:bold;
+	font-size:11px;
+}
+/* reskin end */
+/* reskin begin */
+table.noPad td {
+	padding-right:0px;
+	text-align:center;
+}
+/* reskin end */
+/* reskin begin */
+table.data td.hdr.lastCol{
+   border-right: 1px solid #ffffff !important;
+   padding-left:10px !important;
+}
+/* reskin end */
+/* reskin begin */
+table.noPad td a, table.noPad td a:visited {
+	color:#11709F;
+}
+/* reskin end */
+/* reskin begin */
+.buttonStudent {
+	font-family: arial,helvetica,san-serif;
+	font-size:12px;
+	background-image: url(button_wtcorners.png);
+	background-repeat: no-repeat;
+	background-position: left top;
+	height: 22px;
+	margin-top: 1px;
+	margin-bottom:0;
+	padding-bottom: 5px;
+	padding-left: 16px;
+	padding-top:3px;
+	text-align: center;
+	text-decoration: none;
+	cursor: hand;
+}
+/* reskin end */
+/* reskin begin */
+.buttonStudent .desc {
+	background-image: url(button_wtcorners.png);
+	font-family: arial,helvetica,san-serif;
+	background-repeat: no-repeat;
+	background-position: right top;
+	height: 22px;
+	margin-top:-3px;
+	margin-bottom:0;
+	padding-bottom:5px;
+	padding-top:3px;
+	padding-right:16px;
+	font-weight: bold;
+	text-decoration: none;
+	font-size: 12px;
+	color: #000000;
+	cursor: hand;
+}
+
+/* reskin end */
+
+
+
+#testPopUpBG .button{
+	margin-left:6px;
+}
+
+/* added for WF 10504 on 18 Sep 2008 by Dhaval K */
+
+ #reskinTeacherMyAccount .message{
+	margin:10px 10px -20px;
+	padding:0.5em 0.5em 10px 45px;
+ }
+
+/* End of WF 10504*/ 
+
+/* added for WF 10507 on 18 Sep 2008 by Dhaval K */ 
+
+
+#editStudentProfile #formTable {
+	padding-left:175px;
+	width:390px;
+}
+
+#editStudentProfile .formlabel {
+	font-size:12px;
+	font-family: arial,helvetica,san-serif;
+	font-weight:bold;
+	margin:0pt;
+	padding:5px 0px 0px;
+	text-align:right;\
+	vertical-align:top;
+	white-space:nowrap;
+}
+
+/* End of WF 10507*/ 
+
+/*saurabh10503*/
+html>body #reskinProfile #headerBlockReg h1{
+	height:79px;
+}
+
+/*Meena 13706,13708 safari2*/
+html>body #addStudentDiv .fieldsetTypeA{
+ margin-bottom:15px;
+}
+  /*Reskin Start 10503b*/
+#reskinStudentRegistrationConfirm p.basicParagraph{
+	padding-left: 30px;
+}
+*html #reskinStudentRegistrationConfirm p.basicParagraph{
+	padding-left: 30px;
+	margin-top: 5px;
+}
+
+#reskinStudentRegistrationConfirm formfield{
+	padding:4px 5px 2px 10px;
+}
+/*Reskin End 10503b*/
+
+/*eTextChanges */
+.etextRadioButton{
+ padding:0px 0px 90px 0px;
+ font-size:12px;
+ font-family:Lucida Grande, Verdana, Arial, sans-serif;
+ font-weight:normal;
+ text-align:right;
+}
+.inputDesc{
+height:30px;
+text-align:left;
+}
+.eTextFont p{
+ font-size:12px;
+ font-family:Lucida Grande, Verdana, Arial, sans-serif;
+ font-weight:normal;
+ text-align:left;
+ padding:0px 0 5px 29px;
+ width:552px;
+}
+.eTextError p{
+ color:#cc0000;
+ font-size:14px;
+ font-family:Lucida Grande, Verdana, Arial, sans-serif;
+ font-weight:normal;
+ text-align:left;
+ padding:0 0 40px 29px;
+ width:552px;
+}
+.eTextFont {
+ font-size:12px;
+ font-family:Lucida Grande, Verdana, Arial, sans-serif;
+ font-weight:bold;
+ text-align:right;
+ padding:0px 0 10px 10px;
+ width:479px;
+}
+.eTextBotButtons{text-align: center;}

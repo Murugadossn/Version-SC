@@ -1,0 +1,6 @@
+; $Id$
+name = Add Bus Routes and Stops Details [qbscv3]
+description = "Bus Routes and Stops Details"
+core = 6.x
+package = School Connect Version 3.0
+version = 3.0

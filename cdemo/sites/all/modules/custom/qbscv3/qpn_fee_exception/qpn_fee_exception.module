@@ -1,0 +1,1596 @@
+<?php
+
+
+
+
+
+
+
+/**
+
+
+
+
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+
+
+
+
+ *
+
+
+
+
+
+
+
+ */
+
+
+
+
+
+
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function qpn_fee_exception_views_api() {
+
+
+
+
+
+
+
+  return array(
+
+
+
+
+
+
+
+    'api' => 2,
+
+
+
+
+
+
+
+    'path' => drupal_get_path('module', '  '),
+
+
+
+
+
+
+
+  );
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function qpn_fee_exception_menu() {
+
+
+
+
+
+
+
+	$items['feeexception'] = array(
+
+
+
+
+
+
+
+			'title' => t('Fee Exceptions'),
+
+
+
+
+
+
+
+			'page callback' => 'qpn_fee_exception_cb_form',
+
+
+
+
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+
+
+
+
+			'access callback' => 'user_access',
+
+
+
+
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+
+
+
+
+	);
+
+
+
+$items['feeexception/next'] = array(
+
+
+
+
+
+
+
+			'title' => t('Fee Exceptions'),
+
+
+
+
+
+
+
+			'page callback' => 'qpn_fee_exception_cb_next_form',
+
+
+
+
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+
+
+
+
+			'access callback' => 'user_access',
+
+
+
+
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+
+
+
+
+	);
+
+
+
+
+
+
+
+	
+
+
+
+return $items;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function qpn_fee_exception_cb_form() {
+
+
+
+
+
+
+
+			$output = drupal_get_form('qpn_fee_exception_form');
+
+
+
+			return $output ;
+
+
+
+
+
+
+
+}
+
+
+
+function qpn_fee_exception_cb_next_form() {
+
+
+
+
+
+
+
+			$output = drupal_get_form('qpn_fee_exception_form_next');
+
+
+
+
+
+
+
+			return $output ;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function qpn_fee_exception_form() {
+
+
+
+
+
+
+
+ $num_rows = &$_SESSION['num_rows'];
+
+
+
+ $gname = &$_SESSION['gname'];
+
+
+
+
+
+
+
+		 db_set_active('qtxt_db');	
+
+
+
+		$result1 = db_query("SELECT account_grade_id, grade_name FROM {qtxt_sms_account_grades} a where a.standard != 'ALL' and a.section != 'ALL' and account_id = 5 ");
+
+
+
+		$sgradeOptions1 = array( '' => t('Select The Grade') );
+
+
+
+		while ($row = db_fetch_object($result1)){
+
+
+
+		  $sgradeOptions1[$row->account_grade_id] = $row->grade_name; 
+
+
+
+		}
+
+
+
+		db_set_active('default');
+
+
+
+		
+
+
+
+		$form['gname'] = array(
+
+
+					'#type' => 'select',
+
+
+
+					'#description' => t('Please select the Grade'),
+
+
+
+					'#options'=> $sgradeOptions1,
+
+
+
+					'#title' => t('Grade Name'),
+
+
+
+					'#disabled' => FALSE,
+
+
+
+					'#required' => TRUE,
+
+
+
+				);
+
+
+
+
+
+
+
+		$form['numrows'] = array(
+
+
+
+			'#type' => 'textfield',
+
+
+
+			'#description' => t('Please Enter Number of Students'),
+
+
+
+			'#size' => 60,
+
+
+
+		    '#maxlength' => 100,
+
+
+
+			'#default_value' => 1,
+
+
+
+			'#title' => t('Number of Students'),
+
+
+
+			'#required' => TRUE,
+
+
+
+		//	'#prefix' => '<br/><br/><br/><br/>',
+
+
+
+		);			
+
+
+
+		
+
+
+
+		
+
+
+
+
+
+
+
+	 $form['buttons']['submit'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+
+
+		'#value' => t('Apply'), 
+
+
+
+'#prefix' => '<br/><br/><br/><br/>' 		
+
+
+
+	  );
+
+
+
+$form[ 'buttons' ]['submit']['#attributes']['class']  = $form[ 'buttons' ]['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+
+
+
+
+
+	return $form;
+
+
+
+
+
+
+
+		
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function qpn_fee_exception_form_validate($form, &$form_state) {
+
+
+
+
+
+
+
+   
+
+
+
+   if ( ($form_state['values']['numrows'] == '' ) || ($form_state['values']['numrows'] < 1  ) || ($form_state['values']['numrows'] > 10  )) {
+
+
+
+    form_set_error('', t('You must enter a number of students value between 1 to 10.'));
+
+
+
+  } 
+
+
+
+
+
+
+
+		
+
+
+
+}	
+
+
+
+
+
+
+
+function qpn_fee_exception_form_submit($form, &$form_state) {
+
+
+
+
+
+
+
+
+
+
+
+		  
+
+
+
+   $op = $form_state['values']['op'];
+
+
+
+  
+
+
+
+	$totalrows =  $form_state['values']['numrows'];
+
+
+
+    $gname =  $form_state['values']['gname'];
+
+
+
+
+
+
+
+		$_SESSION['num_rows'] = $totalrows;	
+
+
+
+        $_SESSION['gname'] = $gname;	
+
+
+
+		 
+
+
+
+			  $form_state['redirect'] = 'feeexception/next';
+
+
+
+
+
+
+
+		  return;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function qpn_fee_exception_form_next() {
+
+
+
+
+
+
+
+				$num_rows = &$_SESSION['num_rows'];
+
+
+
+                $gname = &$_SESSION['gname'];
+
+
+
+		
+
+
+
+		// drupal_set_message(t("Grade - $gname"));			
+
+
+
+					
+
+
+
+ db_set_active('qtxt_db');	
+
+
+
+$resultngrade = db_query("select account_grade_id,grade_name from `qtxt_sms_account_grades` where account_grade_id = $gname ");
+
+
+
+
+
+
+
+     $ngrade = array();
+
+
+
+	while ( $row = db_fetch_object( $resultngrade ) ) {
+
+
+
+		 $ngrade = $row->grade_name;
+
+
+
+		
+
+
+
+	}
+
+
+
+	
+
+
+
+	 db_set_active('default');
+
+
+
+	 
+
+
+
+	drupal_set_message(t("Selected Grade Name Is - $ngrade"));	
+
+
+
+//	drupal_set_message(t("No Of Students Selected - $num_rows"));
+
+
+
+
+
+
+
+		$form['access'] = array(
+
+
+
+		'#type' => 'fieldset',
+
+
+
+		'#title' => t('Access log settings'),
+
+
+
+		'#tree' => TRUE,
+
+
+
+		'#visible' => false,	   
+
+
+
+		 );			
+
+
+
+
+
+
+
+		$i = 1;
+
+
+
+		while( $i < ($num_rows +1 )) {
+
+
+
+		
+
+
+
+		
+
+
+
+		 db_set_active('qtxt_db');	
+
+
+
+		$result1 = db_query("select account_student_map_id,student_name from {qtxt_sms_account_student_map} where account_grade_id = '$gname' ");
+
+
+
+		$studentOptions = array( '' => t('Select The Student Name') );
+
+
+
+		while ($row = db_fetch_object($result1)){
+
+
+
+		  $studentOptions[$row->account_student_map_id] = $row->student_name; 
+
+
+
+		}
+
+
+
+		db_set_active('default');
+
+
+
+		
+
+
+
+		$form['access']['sname'][$i] = array(
+
+
+
+					'#type' => 'select',
+
+
+
+					'#description' => t('Please select the Student Name'),
+
+
+
+					'#options'=> $studentOptions,
+
+
+
+			//		'#title' => t('Student Name'),
+
+
+
+					'#disabled' => FALSE,
+
+
+
+					'#required' => TRUE,
+
+
+
+				);
+
+
+
+				
+
+
+
+				
+
+
+
+				db_set_active('qtxt_db');	
+
+
+
+		$result2 = db_query("select fee_detail_id,fee_type from {qpn_activities_details_v} where account_grade_id = '$gname' ");
+
+
+
+		$feedetailOptions = array( '' => t('Select The Fees Details') );
+
+
+
+		while ($row = db_fetch_object($result2)){
+
+
+
+		  $feedetailOptions[$row->fee_detail_id] = $row->fee_type; 
+
+
+
+		}
+
+
+
+		db_set_active('default');
+
+
+
+		
+
+
+
+		$form['access']['feedetail'][$i] = array(
+
+
+
+					'#type' => 'select',
+
+
+
+					'#description' => t('Please select the Fee Detail'),
+
+
+
+					'#options'=>$feedetailOptions,
+
+
+
+			//		'#title' => t('Fee Details'),
+
+
+
+					'#disabled' => FALSE,
+
+
+
+					'#required' => TRUE,
+
+
+
+				);
+
+
+
+
+
+
+
+				$form['access']['exemptionamount'][$i] = array (
+
+
+
+					  '#type' => 'textfield', 
+
+
+
+			//		  '#title' => 'Exemption Amount',
+
+
+
+                      '#default_value' => 0,
+
+
+
+                      '#size' => 10,					  
+
+
+
+					  '#required' => TRUE,
+
+
+
+																
+
+
+
+				);
+
+
+
+				
+
+
+
+				$form['access']['exemptionreason'][$i] = array (
+
+
+
+					  '#type' => 'textfield', 
+
+
+
+			//		  '#title' => 'Exemption Reason',
+
+
+
+		              '#size' => 40,
+
+
+
+					  '#maxlength' => 500,	
+
+
+
+            		  '#required' => False,
+
+
+
+																
+
+
+
+				);
+
+
+
+	
+
+
+
+                $form['access']['exemptionprovider'][$i] = array (
+
+
+
+					  '#type' => 'select', 
+
+
+
+			//		  '#title' => 'Exemption Provider',
+
+
+
+			          '#options' => array(
+
+
+
+					  ' ' => 'Select the Exemption Provider',
+
+
+
+					  'Management' => 'Management',
+
+
+
+					  'Counselling' => 'Counselling',
+
+
+
+					   ),
+
+
+
+            		  '#required' =>TRUE,
+
+
+
+																
+
+
+
+				);
+
+
+
+
+
+
+
+	
+
+
+
+				$form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+
+
+
+				
+
+
+
+				$i = $i + 1;
+
+
+
+		}
+
+
+
+	$form['#theme'] = 'fee_exemp_theme';  
+
+
+
+
+
+
+
+	$form['buttons']['submit'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+
+
+		'#value' => t('Submit'),                                                 
+
+
+
+	  );
+
+
+
+	return $form;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function qpn_fee_exception_form_next_submit($form, &$form_state) {
+
+
+
+$op = $form_state['values']['op'];
+
+
+
+
+
+
+
+		$num_rows = &$_SESSION['num_rows'];
+
+
+
+        $gname = &$_SESSION['gname'];
+
+
+
+
+
+
+
+		drupal_set_message(t("No Of Rows - $num_rows"));			
+
+
+
+	    drupal_set_message(t("Grade - $gname"));			
+
+
+
+	
+
+
+
+		
+
+
+
+		$snameArray = array();
+
+
+
+		$feedetailArray = array();
+
+
+
+        $exemptionamountArray = array();
+
+
+
+		$exemptionreasonArray = array();
+
+
+
+		$exemptionproviderArray = array();
+
+		
+	if ( isset( $form_state['clicked_button']['#post']['access']['sname']) ) {
+
+
+
+	$snameArray = $form_state['clicked_button']['#post']['access']['sname'];
+
+
+
+	}
+
+
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['feedetail']) ) {
+
+
+
+	$feedetailArray = $form_state['clicked_button']['#post']['access']['feedetail'];
+
+
+
+	}
+
+
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['exemptionamount']) ) {
+
+
+
+	$exemptionamountArray = $form_state['clicked_button']['#post']['access']['exemptionamount'];
+
+
+
+	}
+
+
+
+    if ( isset( $form_state['clicked_button']['#post']['access']['exemptionreason']) ) {
+
+
+
+	$exemptionreasonArray = $form_state['clicked_button']['#post']['access']['exemptionreason'];
+
+	}
+
+
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['exemptionprovider']) ) {
+
+
+
+	$exemptionproviderArray = $form_state['clicked_button']['#post']['access']['exemptionprovider'];
+
+
+
+	}
+
+
+
+
+
+
+
+	
+
+
+
+	$a = 1;
+
+
+
+	foreach ( $snameArray as $key => $value ) {
+
+
+
+		
+
+
+
+			$snamea = $snameArray[$key] ;
+
+
+
+			$feedetaila = $feedetailArray[$key] ;
+
+
+
+			$exemptionamounta = $exemptionamountArray[$key] ;
+
+
+
+			$exemptionreasona = $exemptionreasonArray[$key] ;
+
+
+
+			$exemptionprovidera = $exemptionproviderArray[$key] ;
+
+
+
+
+
+
+
+		
+
+
+
+//	 drupal_set_message( t( "CLicked button Set"));
+
+
+
+		
+
+
+
+db_set_active('qtxt_db');	
+
+
+
+	 
+
+
+
+	//		db_query( "INSERT INTO `qpn_fee_exceptions`(`fee_exception_id`,`fee_detail_id`,`account_student_map_id`,`account_grade_id`,`exemption_amount`,`exemption_reason`,`exempion_provider`,`exemption_user_id`,`creation_date`,`created_by`,`last_updated_date`,`last_updated_by`)VALUES(null,$feedetaila,$snamea,$gname,$exemptionamounta,'$exemptionreasona','$exemptionprovidera',0,sysdate(),'admin',sysdate(),'admin')"); 
+
+
+
+				
+
+
+
+	db_set_active('default');	
+
+
+
+	 drupal_set_message(t("Combo2 *** $a : $feedetaila  ----- $snamea --- $gname ---- $exemptionamounta --- $exemptionreasona --- $exemptionprovidera --- 0  --- "));
+
+
+
+
+
+
+
+				$a = $a + 1;
+
+
+
+	}
+
+
+
+	
+
+
+
+	drupal_set_message(t("Fee Exception have been inserted successfully."));	
+
+
+
+	
+
+
+
+    $form_state['redirect'] = 'feeexception';
+
+
+
+	return;
+
+
+
+}
+
+
+
+function qpn_fee_exception_form_next_validate($form, &$form_state) {
+
+
+
+// $values = $form_state['values'];
+
+//	$mobileId = $values[mobileId];
+
+// $feedetaila = $feedetailArray[$key] ;
+
+
+	$feedetailArray = $form_state['access']['feedetail'];
+
+		$feedetailArray = array();
+        $exemptionamountArray = array();
+
+		$snameArray = array();
+
+
+	
+	if ( isset( $form_state['clicked_button']['#post']['access']['sname']) ) {
+
+
+
+	$snameArray = $form_state['clicked_button']['#post']['access']['sname'];
+
+
+
+	}
+
+
+
+		if ( isset( $form_state['clicked_button']['#post']['access']['feedetail']) ) {
+
+	$feedetailArray = $form_state['clicked_button']['#post']['access']['feedetail'];
+
+	}
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['exemptionamount']) ) {
+
+
+
+	$exemptionamountArray = $form_state['clicked_button']['#post']['access']['exemptionamount'];
+
+	}
+
+
+	$a = 1;
+
+	foreach ( $snameArray as $key => $value ) {
+
+	$snamea = $snameArray[$key] ;
+	
+			$feedetaila = $feedetailArray[$key] ;
+
+			$exemptionamounta = $exemptionamountArray[$key] ;
+ 
+db_set_active('qtxt_db');
+
+
+$resultntotalamount = db_query("select fee_detail_id,total_amount from `qpn_fee_details` where fee_detail_id = $feedetaila ");
+
+
+
+     $ntotalamount = array();
+
+	while ( $row = db_fetch_object( $resultntotalamount ) ) {
+
+		 $ntotalamount[] = $row->total_amount;
+
+		
+
+	}
+
+	if (  count( $ntotalamount ) > 0 ) {
+
+			$ntotalamountArray = join( ",", $ntotalamount );
+
+		}
+
+		$totalamt = "$ntotalamountArray";
+
+
+
+db_set_active('default');
+
+   
+
+// drupal_set_message(t("Fee Exemption : $exemptionamounta"));	
+
+//	drupal_set_message(t("Total Amount : $totalamt"));	
+// drupal_set_message(t("Given Exemption Amount is  : $exemptionamounta - Total Fee Amount Is :$totalamt"));	
+
+if ( $exemptionamounta > $totalamt) {
+  //  form_set_error('', t('Total Fees Amount Is Less Than Or Equal To Exemption Amount'));
+	form_set_error('', t("Given Exemption Amount is  : $exemptionamounta - Total Fee Amount Is :$totalamt"));
+// drupal_set_message(t("Given Exemption Amount is  : $exemptionamounta - Total Fee Amount Is :$totalamt"));	
+
+}	
+  
+
+$a = $a + 1;
+
+
+	}
+/*
+if ( $exemptionamounta > $totalamt) {
+    form_set_error('', t('Total Fees Amount Is Less Than Or Equal To Exemption Amount'));
+	form_set_error('', t('Given Exemption Amount is  : $exemptionamounta - Total Fee Amount Is :$totalamt'));
+	
+  }
+*/
+
+/*
+   if ( ($form_state['values']['access']['exemptionamount'] >= $totalamt ) ) {
+
+
+    form_set_error('', t('Your Total Fees Amount Is Less Than Or Equal To Exemption Amount'));
+
+  } 
+*/
+
+}	
+
+
+
+
+
+function qpn_fee_exception_theme() {
+
+
+
+	return array(
+
+
+
+		'fee_exemp_theme' => array('arguments'=> array('form' => NULL),),
+
+
+
+		
+
+
+
+	);
+
+
+
+}
+
+
+
+
+
+
+
+function theme_fee_exemp_theme($form)
+
+
+
+{
+
+
+
+	$rows = array();
+
+
+
+	$i = 1;
+
+
+
+	foreach(element_children($form['access']['index']) as $key) {
+
+
+
+		$row = array(); 
+
+
+
+		   $row[] =  drupal_render($form['access']['sname'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['feedetail'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['exemptionamount'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['exemptionreason'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['exemptionprovider'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['index'][$key]);
+
+
+
+		   $rows[] = $row; 
+
+
+
+		$i = $i +1 ;
+
+
+
+	}
+
+
+
+  if(count($rows)){
+
+
+
+				$header = array(
+
+
+
+					t('Student Name'), t('Fees Details'), t('Exemption Amount'),t('Exemption Reason'), t('Exemption Provider'), t(' '));
+
+
+
+	  }
+
+
+
+  else{
+
+
+
+    $header = array(t(' '), t(' ')); 
+
+
+
+    $row = array();
+
+
+
+    $row[] = array
+
+
+
+    (
+
+
+
+      'data' => t('Please Select The No Of Student'),
+
+
+
+      'colspan' => 2,
+
+
+
+      'style' => 'text-align:center'
+
+
+
+    );
+
+
+
+    $rows[] = $row;
+
+
+
+  }
+
+
+
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+
+
+
+ $form['access']['#access'] = false;
+
+
+
+return $output . drupal_render($form); 
+
+
+
+}  
+
+
+
+
+
+
+

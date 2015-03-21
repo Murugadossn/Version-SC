@@ -1,0 +1,5 @@
+; $Id$
+name = v3_college_leave_letter
+description = Leave Letter Module
+core = 6.x
+package = v3_college_leave_letter

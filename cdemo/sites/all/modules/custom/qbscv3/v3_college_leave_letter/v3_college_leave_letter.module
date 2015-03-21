@@ -1,0 +1,736 @@
+<?php
+
+
+
+/**
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+ *
+
+
+
+ */
+
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+
+
+
+
+
+
+function v3_college_leave_letter_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', 'v3_college_leave_letter'),
+
+
+
+  );
+
+
+
+}
+
+
+
+
+
+function v3_college_leave_letter_menu() {
+
+
+
+	$items['cleave'] = array(
+
+
+
+			'title' => t('Submit Leave Letter Online'),
+
+
+
+			'page callback' => 'v3_college_leave_letter_form',
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+			'access callback' => 'user_access',
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+	);
+
+
+
+     
+
+	return $items;
+
+
+
+	
+
+
+
+	}
+
+
+
+	function v3_college_leave_letter_form() {
+
+
+
+			$output = drupal_get_form('v3_coll_main_form');
+
+
+
+			 
+
+
+
+			return $output ;
+
+
+
+}
+
+
+
+function v3_college_leave_letter_mail($key, &$message, $params) {
+
+      $message['subject'] = t('Leave Letter');
+
+    //  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+
+	  $message['body'][] =  $params['myVar'] ;
+
+	 
+
+}
+
+
+
+
+
+function v3_coll_main_form( $form_state) {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+
+
+$defusermobile = $myMobileNumber;
+
+
+
+$defadminuserid = "";
+
+
+
+$defadminpwd = "";
+
+
+
+
+
+
+
+
+
+
+
+	  $form = array(
+
+
+
+						'#type' => 'fieldset',
+
+
+
+						'#title' => t('Submit Your Leave Letter Online'),
+
+
+
+						'#collapsible' => TRUE, 
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+						'#tree' => TRUE
+
+
+
+	  );
+
+
+
+	  db_set_active('qtxt_db');	
+
+	   $field3 = db_fetch_object(db_query("select account_student_map_id  FROM  {qtxt_sms_mobile_students_v}  where  drupal_uid = $uid"));     
+
+
+
+		db_set_active('default');	
+
+		$sid = $field3->account_student_map_id;	
+
+	//	drupal_set_message(t("uid = $uid"));
+
+	//	drupal_set_message(t("sid = $sid"));
+
+
+
+db_set_active('qtxt_db');		
+
+ $field4 = db_fetch_object(db_query("select staff_id  FROM  {v3_tutor_student_map}  where  account_student_map_id = $sid")); 
+
+ 
+
+db_set_active('default');	
+
+$staff_id = $field4->staff_id;	
+
+// drupal_set_message(t("staffid = $staff_id"));
+
+
+
+
+
+db_set_active('qtxt_db');		
+
+$resultg2 = db_query("select staff_id,staff_name FROM  {qtxt_staff_map_with_grade}  where  staff_id = $staff_id  ");
+
+
+
+				  $studentOptions = array('' => t('Select..'));
+
+
+
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+
+
+
+				  	$studentOptions[$rowg2->staff_id ] =  $rowg2->staff_name; 
+
+
+
+				  	}
+
+
+
+	db_set_active('default');		  
+
+ $form['teacher'] = array('#type' => 'select',
+
+
+
+				  				  		'#options' => $studentOptions,
+
+
+
+				  				  		'#title' => t('To'),
+
+										
+
+				  				  		'#description' => t('Please Select The Teacher'),
+
+
+
+				  				  		'#disabled' => FALSE,
+
+										'#required' => True,					
+
+
+
+				  );
+
+
+
+
+
+
+
+				  
+
+
+
+				  $form['inMsg'] = array(
+
+
+
+				  		'#title' => t('Subject'),
+
+
+
+				  		'#type' => 'textfield',
+
+
+
+						  '#size' => 60, 
+
+  						 //  '#maxlength' => 100,
+
+                         	'#disabled' => FALSE, 
+
+                              '#resizable' => FALSE, 
+
+								'#required' => True,
+
+
+
+
+
+
+
+				  		'#description' => t('Please Enter Message'),
+
+
+
+					);
+
+
+
+					$form['reason'] = array(
+
+
+
+				  		'#title' => t('Reason For Leave'),
+
+
+
+				  		'#type' => 'textarea',
+
+
+
+						  '#size' => 300, 
+
+
+
+						  '#maxlength' => 400,
+
+                                               '#resizable' => FALSE,  
+
+
+
+				  		'#disabled' => FALSE,
+
+
+
+				  		'#description' => t('Please Enter Message'),
+
+						'#required' => True,
+
+
+
+
+
+					);
+
+					$currdate = date("Y-m-d");
+
+$defdoa = $currdate;
+
+if ( !empty($_SESSION['doa'])) {
+
+$defdoa = &$_SESSION['doa'];
+
+// drupal_set_message(t("doa  - $defdoa"));
+
+} else {
+
+$defdoa = $currdate;
+
+}
+
+
+
+  
+
+	$form['doa'] = array(
+
+	  '#type' => 'date_popup',
+
+	  '#title' => t('From Date'),
+
+	  '#date_format' => 'd-m-Y',
+
+	  '#default_value' => $defdoa,
+
+      	  '#date_year_range' => '-1:+1',
+
+	);					
+
+
+
+
+
+
+
+$currdate = date("Y-m-d");
+
+$edefdoa = $currdate;
+
+if ( !empty($_SESSION['edoa'])) {
+
+$defdoa = &$_SESSION['edoa'];
+
+// drupal_set_message(t("edoa  - edefdoa"));
+
+} else {
+
+$edefdoaa = $currdate;
+
+}
+
+
+
+
+
+	$form['edoa'] = array(
+
+	  '#type' => 'date_popup',
+
+	  '#title' => t('To Date'),
+
+	  '#date_format' => 'd-m-Y',
+
+	  '#default_value' => $edefdoa,
+
+       	  '#date_year_range' => '-1:+1',
+
+	);	
+
+
+
+
+
+  $form['submit'] = array(
+
+
+
+    '#type' => 'submit',
+
+
+
+    '#value' => t('Send Leave Letter'),
+
+
+
+  );
+
+
+
+
+
+return $form;
+
+
+
+}
+
+
+
+
+
+
+
+function v3_coll_main_form_submit($form, &$form_state) {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile; 
+
+
+
+$uid = $user->uid;
+
+
+
+$grade = $form_state['values']['teacher'];
+
+$_SESSION['doa'] = $form_state['values']['doa'];
+
+$defdoa = &$_SESSION['doa'];
+
+
+
+$_SESSION['edoa'] = $form_state['values']['edoa'];
+
+$edefdoa = &$_SESSION['edoa'];
+
+
+
+$msg = $form_state['values']['inMsg'];
+
+
+
+$msg = str_replace("'", "''", $msg);
+
+
+
+$reson = $form_state['values']['reason'];
+
+
+
+$reson = str_replace("'", "''", $reson);
+
+$accountArray = "";
+
+
+
+ db_set_active('qtxt_db');	
+
+	   $field3 = db_fetch_object(db_query("select account_student_map_id  FROM  {qtxt_sms_mobile_students_v}  where  drupal_uid = $uid"));     
+
+
+
+		db_set_active('default');	
+
+		$sid = $field3->account_student_map_id;	
+
+		
+
+		db_set_active('qtxt_db');	
+
+	   $field3 = db_fetch_object(db_query("select student_name  FROM  {qtxt_sms_mobile_students_v}  where  account_student_map_id = $sid"));     
+
+
+
+		db_set_active('default');	
+
+		$sname = $field3->student_name;	
+
+		
+
+		
+
+		db_set_active('qtxt_db');		
+
+		$field4 = db_fetch_object(db_query("select staff_name  FROM  {qtxt_sms_account_staff}  where  staff_id = $grade")); 
+
+ 
+
+		db_set_active('default');	
+
+		$staff_name = $field4->staff_name;		
+
+		$teachername = "Teacher: " . $staff_name . " " ;
+
+		$studentname = "Student: " . $sname . " . ";
+
+// drupal_set_message(t("Student  $studentname"));
+
+
+
+db_set_active('qtxt_db');
+
+
+
+$result = db_query( "INSERT INTO`qtxt_sms_parent_message`(`parent_message_id`,`staff_id`, account_student_map_id, `message`,`parent_uid`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`msg_type`,
+
+process_flag,type_id,subject,from_date,to_date,delivery_report)
+
+VALUES(null,$grade,$sid,'$reson',$uid,  sysdate(), sysdate(), 'admin', 'admin', 'PARENT',1,4,'$msg','$defdoa','$defdoa','Request is Pending')");
+
+
+
+$result = db_query( "INSERT INTO`qtxt_sms_parent_message_bkp`(`parent_message_id`,`staff_id`, account_student_map_id, `message`,`parent_uid`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`msg_type`,process_flag,type_id,subject,from_date,to_date,delivery_report) VALUES(null,$grade,$sid,'$reson',$uid,  sysdate(), sysdate(), 'admin', 'admin', 'PARENT',1,4,'$msg','$defdoa','$defdoa','Request is Pending')");
+
+
+
+db_set_active('default');
+
+  drupal_set_message(t("Leave Letter has sent to the $teachername."));
+
+
+
+				db_set_active('qtxt_db');	
+
+				$result = db_query("SELECT staff_email FROM {qtxt_sms_account_staff} a where a.staff_id =  '%d' ", $grade);
+
+				while ($row = db_fetch_object($result)) {
+
+				  $emailTo = $row->staff_email ;
+
+				}
+
+				db_set_active('default');	
+
+  
+
+$params = array(
+
+  'myVar' => $reson,
+
+);
+
+// $emailTo = 'yuvaranim@quadrobay.com';
+
+drupal_mail('ver3_parent_msg', 'invitation', $emailTo, language_default(), $params, "demoadmin@demo.com");
+
+
+
+$accountArray = "";
+
+		// drupal_set_message(t("log 2 c1Val Not Set "));	
+
+		db_set_active('qtxt_db');	
+
+
+
+		$result = db_query("select distinct(mobile_number) from {qtxt_sms_staff_mobile_v1}  where staff_id = $grade  ");
+
+
+
+		$accountGradeId = array();
+
+
+
+		while ($row = db_fetch_object($result)) {
+
+
+
+		  $accountGradeId[] =  $row->mobile_number; 
+
+		  // This is the only line that changed from the code above.
+
+		}
+
+		db_set_active('default');
+
+		
+
+		if (  count( $accountGradeId ) > 0 ) {
+
+			$accountArray = join( ",", $accountGradeId );
+
+			// drupal_set_message(t("Id $accountArray"));
+
+		}
+
+		$userMobile = "" .$accountArray . "  ";
+
+$message = "Leave Letter has been Submitted by the Student";
+
+	
+
+
+
+
+
+$sms= new Qtxt_Sms_Common;
+
+		$outputString = $sms->leavesmstoteachers($message,
+
+										$userMobile,									
+
+										$GLOBALS['base_path']);
+
+
+
+		// drupal_set_message(  " SMS Status :  $outputString ");
+
+
+
+ return;
+
+
+
+}
+
+
+
+
+
+function v3_coll_main_form_validate($form, &$form_state) {
+
+	$values = $form_state['values'];
+
+	
+
+    $grade = $values[teacher];
+
+	$defdoa = $values[doa];
+
+	$edefdoa = $values[edoa];
+
+	$msg = 		$values[inMsg];
+
+	$reson = $values[reason];
+
+
+
+	 
+
+
+
+	  if ( $defdoa == '') {
+
+		form_set_error('', t('Please Select From Date'));
+
+	  }
+
+	   
+
+	   if ( $edefdoa < $defdoa) {
+
+		form_set_error('', t('To Date Greater Then From Date'));
+
+	  }
+
+	  
+
+	  
+
+  
+
+}
+
+
+

@@ -1,0 +1,12 @@
+name = v3_tmsg_log
+
+
+description = "Teacher Message log"
+
+
+
+package = ver3 school connect
+
+
+
+core = 6.x

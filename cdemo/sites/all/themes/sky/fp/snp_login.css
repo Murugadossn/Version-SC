@@ -1,0 +1,351 @@
+.formHeaderTableA{
+	padding-left:6px;	
+} 
+.headingMainBlock{
+	background: url(welcome_banner.png) no-repeat 0 0;
+	color:#fff;
+	padding:15px 10px 15px 20px;
+	width:972px;
+	display: block;
+	font-size:18px;
+}
+#resourcesBlock{
+}
+#resourcesBlock h2{
+	width:972px;
+	padding:0;
+}
+.formheaderA{
+	background: url(login_hdr_lng.png) no-repeat 0 0;
+	width:548px;
+}
+.formheaderB{
+	background: url(login_hdr_short.png) no-repeat 0 0;
+	width:390px;
+}
+.formheaderA p,.formheaderB p{
+	padding:10px 10px 10px 10px;
+	margin:0;
+	font-weight: bold;
+}
+* html .formheaderAleft{width:548px}
+.formheaderAleft{
+	padding:10px;
+	font-size:12px;
+	background:#ebebeb;
+	width:528px;
+}
+.formheaderAright{
+	padding:0 10px;
+	font-size:12px;
+}
+.loginBold{
+	font-weight: bold;
+	font-size:12px;
+	text-align: right;
+}
+#headerBlock 
+{
+	background: url(top_nav.gif) no-repeat 0 0;
+	height:90px;
+	padding:0;
+	margin:0;
+}
+.formfooterB{
+	background: url(sub_tab_bg.png) repeat-x 0 0;
+	padding:1px;
+	border-top:1px solid #ccc;
+}
+.support_contact{
+	font-size: 12px;
+	margin-bottom:10px;
+	padding-left:10px;
+}
+		
+.regButtonBlock{
+	margin-left:160px;
+	margin-bottom:20px;
+}
+.footerSubBlock{		
+	background:url(pearson_logo.png) no-repeat scroll 0px 0px;
+	font-size: 11px;
+	color:#535353;
+	padding: 5px 0 5px 0px;
+	text-align: center;
+	width:auto;
+	margin-top:25px;
+}
+* html .footerSubBlock{
+	background-position: 5px 6px
+}
+.footerSubBlock p{
+	display: inline;
+}
+
+
+.loginInfoMessage {
+	padding: 0px 0px 10px 45px;
+	background: url("login_info.gif") no-repeat top left;
+}
+
+.loginFontNormal {
+	color: #BA892F;
+}
+.loginSelectBox {
+	width: 230px;
+}
+.content_right{
+	padding-left:20px;
+	width:390px;
+}
+.error {
+	width: 80%;
+	font-weight: normal;
+	color: #c00;
+	background: url("icon_error_x.gif") top left no-repeat;
+	margin:0 0 0 10px;
+	padding:5px 0 10px 35px;
+}
+.links a{
+	display:block;
+}
+.loginpopupAlt{
+	background:url(top_nav_rpt.png) repeat-x 0 0;
+	margin:0;
+	padding:0;
+	font-family: arial,helvetica,san-serif;
+}
+.passwordhintBlockLogo{
+	background: url(top_nav.gif) no-repeat 0 0;
+	padding:20px;
+	margin:0 0 0 20px;
+}
+.passwordhintBlockLogo span{
+	float:right;
+	font-size:12px;
+	color:#fff;
+}
+.bodytext{
+	font-size: 12px;
+	margin-top:20px;
+	padding:30px 20px;
+}
+.bodytext hr{
+	border:1px solid #ccc;
+}
+.sysMessage {
+	color: #a86e01;
+	background-color: #faebb1;
+	border-left: 1px solid #c1c1c1;
+	border-right: 1px solid #c1c1c1;
+	padding: 5px 10px 5px 10px;
+}
+
+
+
+/* New Login Screen Changes after this*/
+
+body{
+	font-family:arial,helvetica,san-serif;
+	font-size:12px;
+	margin:0;
+	padding:0;
+	#text-align: center;
+}
+
+#centerLoginPage, .centerLoginPage{
+	width: 600px;
+	margin: auto;
+	#text-align: left;
+}
+
+#loginPageMain{
+	background: transparent url(login_back.png) no-repeat scroll 0 0;
+	height: 615px;
+	width: 572px;
+}
+
+.formheaderAleft {
+	background: transparent none no-repeat scroll 0 0;
+	width: auto;
+}
+
+.loginHeading1{
+	color:#06418F;
+	font-family:georgia;
+	font-size: 28px;
+	margin-top: 110px;
+	#margin-top: 110px;
+	#padding-left: 15px;
+	/*text-align:center;	*/	
+	letter-spacing:-1px;
+	margin-left: 10px;
+}
+
+.loginHeading2{
+	font-size:13px;
+	margin:5px 0 25px;
+	padding-left:145px;	
+	#padding-left:142px;
+}
+.loginBoxes{
+	margin-left: 45px;
+	margin-bottom:5px;
+}
+
+.loginHeading3{	
+	color:#06418F;
+	font-family:georgia;
+	font-size:20px;
+	margin:20px auto;	
+	text-align:center;
+}
+.regButtonBlock{
+	margin-left:235px;
+}
+#loginSupport{
+	width:350px;
+}
+.supportDiv{
+	color:#686A6C;
+	font-family:georgia;
+	font-size:42px;
+	margin-top:55px;	
+	letter-spacing:-1px;
+}
+.supportText{
+	font-size:10pt;	
+	margin-top:12px;	
+	letter-spacing:-0.5px;
+}
+.genericSupport{
+	background:transparent url(logo.jpg) no-repeat scroll 0 0;
+	color:#06418F;
+	font-family:georgia;
+	font-size:25px;
+	letter-spacing:-1px;
+	line-height:32px;
+	margin:12px auto;
+	padding-left:42px;
+}
+.genericSupport span{
+	font-family:arial;
+	font-size: 14px;
+	color: black;
+	margin-left:10px;
+	letter-spacing:0;
+	vertical-align:2px;
+}
+.genericSupport a{
+	color: black;
+	text-decoration: underline;	
+}
+.spacerCol{
+	width: 50px;
+}
+#accessLink{
+	color: #06418F;
+	text-decoration: underline;
+}
+#noticesDiv{
+	color:#06418F;
+	font-size:22px;
+	font-weight:bold;
+	margin-top:30px;
+}
+.formheaderAright{
+	padding:0 0 0 2px;
+}
+.settingsLink{
+	font-size:10pt;
+}
+
+.districtHeading2{
+	margin-bottom:10px;
+}
+
+.districtHeading1{
+	margin-top:90px;
+	#margin-top: 98px;
+}
+.districtHeading3{
+	margin-top: 8px;
+	margin-bottom:15px;
+	#margin-top: 0px;
+	#margin-bottom:5px;
+}
+#headerError{
+	margin:0 0 0 10px;
+	padding:5px 0 10px 35px;
+}
+#headerError p{
+	margin-top: 0px;
+}
+.zipDiv{
+	margin: 5px auto;
+}
+.enterZip{
+	font-style:normal;
+}
+.message{
+	padding-left: 15px;
+}
+
+/*Added by Ashutosh Gangwar on 03/30/2010 for SAR # 29576 */
+.successTrackerLogo
+{
+	margin-top:59px;
+	margin-bottom:-3px;
+	background:transparent url(SuccessTracker_logo_sm.png) no-repeat scroll 297px 1px ;
+	height:40px;
+	clear: both;
+	color: #686A6C;
+	font-size: 15px;
+	font-weight: bold;
+	font-family:arial,helvetica,san-serif;
+	padding-left:107px;
+	padding-top:12px;
+	text-align:bottom;
+}
+
+
+#fologindiv .form-item-textfield, #fologindiv .form-submit, #fologindiv .form-item-password, #fologindiv .item-list
+{
+	margin-left:150px;
+	
+}
+
+#fologindiv .form-item-textfield input,  #fologindiv .form-item-password input
+{
+	width:200px;
+	background-color:white;
+	
+	
+}
+#fologindiv .form-submit
+{
+	margin-left:232px;
+}
+
+#fologindiv .form-item-textfield label
+{
+
+text-align:right;
+padding-right:10px;
+	
+}
+
+#fologindiv .form-item-password label
+{
+
+text-align:right;
+padding-right:13px;
+
+}
+
+.form-required{color:red;}
+
+#fologindiv .item-list li
+{
+	margin-left:50px;
+}

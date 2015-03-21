@@ -1,0 +1,633 @@
+<?php
+
+
+
+/**
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+ *
+
+
+
+ */
+
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+
+
+
+
+
+
+function v3_route_info_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', 'v3_route_info'),
+
+
+
+  );
+
+
+
+}
+
+
+
+
+
+function v3_route_info_menu() {
+
+
+
+	$items['editroute'] = array(
+
+
+
+			'title' => t('Edit route Details'),
+
+
+
+			'page callback' => 'v3_route_info_form',
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+			'access callback' => 'user_access',
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+	);
+
+
+
+     $items['editroute/ahahjs'] = array(
+
+        'page callback' => 'ver3_route_info_ahah_field_js',
+
+    //    'access arguments' => array('administer ahahtestmodule'),
+
+        'type' => MENU_CALLBACK,
+
+    			'access callback' => 'user_access',
+
+    			'access arguments' => array('access content'),	
+
+  );
+
+
+
+	return $items;
+
+
+
+	
+
+
+
+	}
+
+
+
+	function v3_route_info_form() {
+
+
+
+			$output = drupal_get_form('v3_route_form');
+
+
+
+			 
+
+
+
+			return $output ;
+
+
+
+}
+
+
+
+function v3_route_form( $form_state) {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+
+
+$defusermobile = $myMobileNumber;
+
+
+
+$defadminuserid = "";
+
+
+
+$defadminpwd = "";
+
+
+
+
+
+
+
+
+
+
+
+	  $form = array(
+
+
+
+						'#type' => 'fieldset',
+
+
+
+						'#title' => t('Screen to Edit the Route Details '),
+
+
+
+						'#collapsible' => TRUE, 
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+						'#tree' => TRUE
+
+
+
+	  );
+
+
+
+	  db_set_active('qtxt_db');	
+
+
+
+	  $resultg2 = db_query("select distinct(account_route_id),route_number FROM  {qtxt_sms_route_details_v}  ");
+
+
+
+				  $studentOptions = array('' => t('Select..'));
+
+
+
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+
+
+
+				  	$studentOptions[$rowg2->account_route_id ] =  $rowg2->route_number; 
+
+
+
+				  	}
+
+
+
+	db_set_active('default');
+
+
+
+
+
+
+
+
+
+				  $form['student'] = array('#type' => 'select',
+
+
+
+				  				  		'#options' => $studentOptions,
+
+
+
+				  				  		'#title' => t('Route Number'),
+
+																	
+
+				  				  		'#description' => t('Please select the Route Number'),
+
+
+
+				  				  		'#disabled' => FALSE,
+
+										
+
+										'#ahah' => array(
+
+				  				  		 'path' => 'editroute/ahahjs',
+
+				  				  		 'wrapper' => 'ahah-wrapper-student',
+
+				  				  		 'method' => 'replace',
+
+				  				  						)
+
+
+
+  				  				
+
+
+
+				  );
+
+
+
+				  
+
+
+
+				  $form['teacher'] = array('#type' => 'select',
+
+
+				  				  		'#title' => t('Stop Name'),
+
+										
+
+										'#options' =>  array( '' => t('Select ..') ),
+
+
+
+
+
+				  				  		'#description' => t('Please select the Stop Name'),
+
+
+
+				  				  		'#disabled' => FALSE,
+
+
+
+										'#prefix' => '<div id = "ahah-wrapper-student">',
+
+										 
+
+                                        '#suffix' => '</div>',
+
+  				  				
+
+
+
+				  );
+
+
+
+				  $form['inMsg'] = array(
+
+
+
+				  		'#title' => t('Enter the Stop Name'),
+
+
+
+				  		'#type' => 'textfield',
+
+
+
+						  '#size' => 40, 
+
+
+
+						  '#maxlength' => 500, 
+
+
+
+				  		'#disabled' => FALSE,
+
+
+
+				  		'#description' => t('Please Enter the Stop Name'),
+
+
+
+					);
+
+
+
+					$form['reason'] = array(
+
+
+
+				  		'#title' => t('Enter the Stop Description'),
+
+
+
+				  		'#type' => 'textarea',
+
+
+
+						  '#size' => 300, 
+
+
+
+						  '#maxlength' => 400, 
+
+
+
+				  		'#disabled' => FALSE,
+'#prefix' => '<br/><br/><br/><br/><br/>',
+
+
+
+				  		'#description' => t('Please enter Message'),
+
+
+
+					);
+
+
+
+  $form['submit'] = array(
+
+
+
+    '#type' => 'submit',
+
+
+
+    '#value' => t('Update'),
+
+'#prefix' => '<br/><br/><br/>',
+
+  );
+
+
+$form['submit']['#attributes']['class']  = $form['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+
+return $form;
+
+
+
+}
+
+
+
+
+
+
+
+function v3_route_form_submit($form, &$form_state) {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile; 
+
+
+
+$uid = $user->uid;
+
+
+
+$grade = $form_state['values']['teacher'];
+
+
+
+$studentid = $form_state['values']['student'];
+
+
+
+
+
+
+
+$msg = $form_state['values']['inMsg'];
+
+
+
+$msg = str_replace("'", "''", $msg);
+
+
+
+$reson = $form_state['values']['reason'];
+
+
+
+$reson = str_replace("'", "''", $reson);
+
+
+
+db_set_active('qtxt_db');
+
+
+
+
+
+
+
+$result = db_query( "Update qtxt_sms_route_stops set stop_name = '$msg',stop_description = '$reson' where route_stop_id = $grade ");
+
+
+
+
+
+
+
+
+
+db_set_active('default');
+
+
+
+
+
+drupal_set_message(t("Stop Name has been Updated"));	
+
+
+
+ return;
+
+
+
+}
+
+
+
+function v3_route_form_validate($form, &$form_state) {
+
+	$values = $form_state['values'];
+
+	
+
+    $grade = $values[teacher];
+
+	$studentid = $values[student];
+
+	$defdoa = $values[doa];
+
+	$edefdoa = $values[edoa];
+
+	$msg = $values[inMsg];
+
+	$reson = $values[reason];
+
+
+
+	  if ( $grade == '') {
+
+		form_set_error('', t('Please Select Route Name'));
+
+	  }
+
+	 if ( $studentid == '') {
+
+          
+
+		form_set_error('', t('Please Select Stop Name'));
+
+               
+
+	  }
+
+
+
+	  
+
+	   if ( $msg == '') {
+
+		form_set_error('', t('Please Enter Stop Name'));
+
+	  }
+
+	  
+
+	  if  ( $reson == '') {
+
+		form_set_error('', t('Please Enter Stop Desctiption'));
+
+	  }
+
+  
+
+}
+
+
+
+
+
+
+
+function ver3_route_info_ahah_field_js () {
+
+
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+
+		$form_build_id = $_POST['form_build_id'];
+
+
+
+		// Get for the form from the cache
+
+		$form = form_get_cache($form_build_id, $form_state);
+
+  
+
+		// Get the form set up to process
+
+		$args = $form['#parameters'];
+
+		$form_id = array_shift($args);
+
+		$form_state['post'] = $form['#post'] = $_POST;
+
+		$gid = $form['#post']['student'];
+
+		db_set_active('qtxt_db');
+
+		$sqlg = " select distinct(route_stop_id),stop_name FROM {qtxt_sms_route_details_v} where account_route_id = $gid ";
+
+
+
+  $resultg = db_query($sqlg);
+
+		$valueg[''] = 'Select a value';
+
+		while($datag = db_fetch_object($resultg))
+
+		{
+
+		$valueg[$datag->route_stop_id] = $datag->stop_name;
+
+		}
+
+		db_set_active('default');
+
+
+		$form['teacher']['#options'] = $valueg;
+
+		form_set_cache($form_build_id, $form, $form_state);
+
+				$form += array(
+
+					'#post' => $_POST,
+
+					'#programmed' => FALSE,
+
+				  );
+
+				$form = form_builder('qtext1_smsform', $form, $form_state);		
+
+				$output = $form['teacher'];
+
+				unset($output['#prefix'],$output['#suffix']);
+
+				$out1 =  drupal_render($output);
+
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+
+
+
+}

@@ -1,0 +1,5 @@
+name = Leaveletter Approval Report[qbscv3]
+description = "To view the Leave letter Reports"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

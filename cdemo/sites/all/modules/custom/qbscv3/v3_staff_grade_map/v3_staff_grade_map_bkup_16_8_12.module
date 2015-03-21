@@ -1,0 +1,186 @@
+<?php
+
+/**
+
+ * Implementation of hook_views_api().
+
+ *
+
+ */
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+function v3_staff_grade_map_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', '  '),
+
+  );
+
+}
+
+
+
+
+
+function v3_staff_grade_map_menu() {
+
+	$items['sgm'] = array(
+
+			'title' => t('Mapping the Staff  Grades'),
+
+			'page callback' => 'v3_staff_grade_map_cb_form',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);
+
+return $items;
+
+}
+
+function v3_staff_grade_map_cb_form() {
+
+			$output = drupal_get_form('v3_staff_grade_map_form');
+
+			return $output ;
+
+}
+
+function v3_staff_grade_map_form($form_state) {
+db_set_active('default');
+		 
+		$form['access'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Access log settings'),
+		'#tree' => TRUE,
+		'#visible' => false,	   
+		 );			
+
+		 
+		db_set_active('qtxt_db');
+
+	  $resultg2 = db_query("select staff_id,staff_name from {qtxt_sms_account_staff} ");
+	 
+		
+	  while ($rowg2 = db_fetch_object($resultg2)) {
+	  $studentOptions1[$rowg2->staff_id] =  $rowg2->staff_name; 
+				  	}
+					
+
+	  $resultg3 = db_query("select account_grade_id,grade_name from {qtxt_sms_account_grades} where standard != 'ALL' ");
+	 
+		
+	  while ($rowg3 = db_fetch_object($resultg3)) {
+	  $studentOptions2[$rowg2->account_grade_id] =  $rowg2->grade_name; 
+				  	}
+					
+
+		db_set_active('default');	
+$num_rows  = 10;
+		$i = 1;
+		while( $i < ($num_rows +1 )) {
+		
+				$form['access']['sname'][$i] = array(
+					'#type' => 'select',
+					'#description' => t('Please select the Subject Name'),
+					'#options'=> $subjectOptions1,
+			//		'#title' => t('Staff Name'),
+					'#disabled' => FALSE,
+				);		
+						 
+				 
+				 $form['access']['grade'][$i] = array(
+					'#type' => 'select',
+					'#description' => t('Please select the Category'),
+					'#options'=>$subjectOptions2,
+			//		'#title' => t('Dept/Year'),
+					'#disabled' => FALSE,
+				);
+
+				$form['access']['adminrole'][$i] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Role', 
+					  '#options' => array('Tutor' => 'Tutor',
+					 'Lecturer' => 'Lecturer',
+					 'HOD' => 'HOD',
+					   ),
+																
+				);
+
+
+	
+			
+				$form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+				
+				$i = $i + 1;
+		}
+	$form['#theme'] = 'staff_form_grade_theme';  
+
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('submit'),                                                 
+	  );
+
+$form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+	return $form;
+
+
+
+}
+
+function v3_staff_grade_map_theme() {
+	return array(
+		'staff_form_grade_theme' => array('arguments'=> array('form' => NULL),),
+		
+	);
+}
+
+function theme_staff_form_grade_theme($form)
+{
+	$rows = array();
+	$i = 1;
+	foreach(element_children($form['access']['index']) as $key) {
+		$row = array(); 
+		   $row[] =  drupal_render($form['access']['sname'][$key]);
+		   $row[] =  drupal_render($form['access']['grade'][$key]);
+		   $row[] =  drupal_render($form['access']['adminrole'][$key]);
+		   $row[] =  drupal_render($form['access']['index'][$key]);
+		   $rows[] = $row; 
+		$i = $i +1 ;
+	}
+  if(count($rows)){
+				$header = array(
+					t('Staff Name'), t('Dept/Year'), t('Role'));
+	  }
+  else{
+    $header = array(t('Staff Name'), t('Role Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+ $form['access']['#access'] = false;
+return $output . drupal_render($form); 
+}  
+
+
+

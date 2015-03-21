@@ -1,0 +1,5 @@
+name = Hourly Attendance For College[qbscv3]
+description = "Allow v3 hourly attendance views to be displayed"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

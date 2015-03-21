@@ -1,0 +1,190 @@
+/* CSSTidy 1.3: Tue, 13 Mar 2012 20:55:44 -0600 */
+/*
+this will expand the default garland bar, make it bigger so our form and message can fit in.
+*/
+#dynamicheader {
+padding:20px 25px 15px;
+/*background: whiteSmoke;*/
+border:1px solid #E5E5E5;
+width:250px;
+margin-top:75px;
+margin-right:auto;
+margin-left:auto;
+background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,white),color-stop(100%,#DDD));
+background: -webkit-linear-gradient(top,white 0,#DDD 100%);
+background: -moz-linear-gradient(top,white 0,#DDD 100%);
+background: -ms-linear-gradient(top,white 0,#DDD 100%);
+background: -o-linear-gradient(top,white 0,#DDD 100%);
+background: linear-gradient(top,white 0,#DDD 100%);
+/*filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',endColorstr='#dddddd',GradientType=0);*/
+border-left:solid 1px #EEE;
+border-right:solid 1px #EEE;
+border-bottom:solid 1px #CCC;
+}
+
+/*
+by default, the default form adds some surrounding space, this cancels it
+*/
+#dynamicheader div.form-item,#dynamicheader div.content {
+margin:0;
+padding:5px 0;
+font-weight:700;
+margin:0 0 .5em;
+display:block;
+float:none;
+}
+
+/*
+this adds some space in top and bottom, so anything inside can look vertically
+centered
+*/
+#user-bar {
+padding:.65em 0;
+}
+
+/*
+by default, fields labels tries to reserve a whole line for itself, this
+cancels that and and sends it to the left.
+it also adds some space on the right and left of the label to look easy on
+the eye.
+*/
+#user-login-form label {
+/*float: left;margin-left: 10px;
+  margin-right: 2px;*/
+padding-left:1em;
+padding-bottom:.5em;
+}
+
+/*
+inputs too, they try to reserve a whole line for itself, this
+cancels that and sends it to the left
+*/
+#user-bar input {
+float:left;
+}
+
+#user-login-form .form-text {
+width:100%;
+height:25px;
+}
+
+/*
+I don't like the required * (asterisks), so I hide them.
+*/
+#user-bar span.form-required {
+display:none;
+}
+
+/*
+the form submit button, it's so tight so we expand it a bit, and give it some
+free space around.
+*/
+#user-login-form .form-submit {
+border:1px solid #2F5BB7;
+color:#FFF;
+background-color:#357AE8;
+background-image: -webkit-gradient(linear,left top,left bottom,from(#4D90FE),to(#357AE8)); 
+background-image: -webkit-linear-gradient(top,#4D90FE,#357AE8);  
+background-image: -moz-linear-gradient(top,#4D90FE,#357AE8);  
+background-image: -ms-linear-gradient(top,#4D90FE,#357AE8); 
+background-image: -o-linear-gradient(top,#4D90FE,#357AE8);  
+background-image: linear-gradient(top,#4D90FE,#357AE8);
+background-image:linear-gradient(top,#4D90FE,#357AE8);
+height:25px;
+font-size:13px;
+}
+
+/*
+now this is for the links list, lists by default tries to reserve a whole line
+also they add space surrounding them. we cancel all that and send the list
+to the right
+*/
+#dynamicheader div.item-list {
+padding:0;
+margin:0;
+}
+
+/*
+
+#user-bar div.item-list ul {
+  float: right;
+  margin: 0; padding: 0;
+  margin-right: 10px;
+}
+
+remember, stylign above was for the whole list, now for each item,
+we all know each item in the list by default exists on a separate line, also
+has that bullet on the left. we cancel all that. and makes all items sit beside
+each other
+#user-bar div.item-list ul li {
+  float: left;
+  background: none;
+  margin: 0 5px;
+  padding: 0 10px;
+  border: 1px solid #b8d3e5;
+}*/
+/*
+this is the "Hi user, welcome back message".
+by default <p> tries to exist on a separate line, we cancel that.
+also by default <p> has some surrounding space, we cancel that too, and give it
+only space on the left.
+*/
+#user-bar p.user-info {
+float:left;
+padding:0;
+margin:0 0 0 10px;
+}
+
+#user-bar .form-item-required label {
+padding-left:0;
+}
+
+#dynamicheader a {
+color:#15C;
+text-decoration:none;
+}
+
+#dynamicheader h2 {
+color:#15C;
+text-decoration:none;
+clear:both;
+display:block;
+font-style:normal;
+font-variant:normal;
+font-weight:400;
+letter-spacing:-1px;
+font-size:16px;
+}
+
+#user-login-form {
+text-align:left;
+padding:0;
+margin:0;
+}
+
+#qbcustom-page-ted-talks td, #qbcustom-page-khan td ,#qbcustom-page-science td{
+text-align:center;
+background: gainsboro;
+border-bottom: 3px solid #000;  
+border-right: 3px solid #000;
+border-top: 3px solid #000;  
+border-left: 3px solid #000;
+vertical-align:top;
+padding:0.25em 0.5em;
+width:100px;
+}
+
+#imageData #bottomNav {
+	height: 45px;
+	overflow:hidden;
+}
+/* Image location mod */
+#bottomNavClose {
+  display: block;
+  background: url(../images/close_hover.gif) left no-repeat;
+  margin-top: 0px;
+  float: right;
+  padding-top: 0.7em;
+  height: 26px;
+  width: 26px;
+}

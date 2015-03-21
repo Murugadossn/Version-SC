@@ -1,0 +1,5 @@
+name 		= Send Attendance Details[qbscv3]
+description 	= "Sending attendance attendance today and attendance per term details"
+package 	= School Connect Version 3.0
+core 		= 6.x
+version 	= 3.0

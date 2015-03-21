@@ -1,0 +1,565 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+//require ( "cceClass.php");
+
+function v3_cce_fileupload_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_fileupload'),
+  );
+}
+
+
+
+function v3_cce_fileupload_menu() {
+	$items['ccefileupload'] = array(
+			'title' => t('CCE File Upload  - Welcome Screen'),
+			'page callback' => 'v3_cce_fileupload_submit_form_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	$items['ccefileupload/next'] = array(
+			'title' => t('Online Messages to Parents  - Next Screen'),
+			'page callback' => 'v3_cce_fileupload_submit_next_form_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+ $items['fileupload/group/ahahjs0'] = array(
+        'page callback' => 'fileupload_ahah_terms_for_group',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	  
+ $items['fileupload/term/ahahjs0'] = array(
+        'page callback' => 'fileupload_ahah_access_for_terms',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	 
+ $items['fileupload/assessname/ahahjs1'] = array(
+        'page callback' => 'fileupload_ahah_accesscat_for_access',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	 	
+		
+ $items['fileupload/assesscat/ahahjs2'] = array(
+        'page callback' => 'fileupload_ahah_accesscatdet_for_accesscat',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	 	
+		
+		
+return $items;
+}
+
+function v3_cce_fileupload_submit_form_wrap() {
+			$output = drupal_get_form('v3_cce_fileupload_submit_form');
+			return $output ;
+}
+
+function v3_cce_fileupload_submit_next_form_wrap() {
+			$output = drupal_get_form('v3_cce_fileupload_submit_next_form');
+			return $output ;
+}
+
+
+
+ 
+function v3_cce_fileupload_submit_form( $form_state) {
+
+global $user;
+//$profile =  profile_load_profile($user);
+//$myMobileNumber =  $user->profile_mobile;  
+
+//$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+
+	  db_set_active('qtxt_db');	
+
+	  
+	  $resultg1 = db_query("select account_id, account_name from {qtxt_sms_account} WHERE party_id = 5 ");
+				  $igradeOptions = array();
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->account_id ] =  $rowg1->account_name; //This is the only line that changed from the code above.
+				  	}
+	db_set_active('default');
+				  $form['institution'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('Institution'),
+				  				  		'#description' => t('Please select the Institution '),
+				  				  		'#disabled' => FALSE,
+				  );
+				  
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT subject_id, subject_name  FROM {qtxt_sms_subjects} a ");
+		$accessOptions1 = array( '' => t('Select the Subject') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions1[$row->subject_id ] = $row->subject_name; 
+		}
+		db_set_active('default');	
+		
+		$form['subject'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Subject'),
+			'#options'=> $accessOptions1,
+			'#title' => t('Subject'),
+			'#disabled' => FALSE,
+		);		
+		
+
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT group_id, concat( group_name , ' - ' , group_description ) 'groupdesc' FROM {cce_groups} a ");
+		$accessOptions = array( '' => t('Select the Group Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->group_id ] = $row->groupdesc; 
+		}
+		db_set_active('default');	
+
+		
+		$form['group'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Group Name'),
+			'#options'=> $accessOptions,
+			'#title' => t('Group'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'fileupload/group/ahahjs0',
+				  	'wrapper' => 'ahah-wrapper-group',
+				  	'method' => 'replace',
+				  			)			
+		);
+
+
+		
+		$form['class'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Class'),
+			'#disabled' => FALSE,
+			 '#prefix' => '<div id = "ahah-wrapper-group">',
+				'#suffix' => '</div>',		
+		);
+		
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT term_id, term_name FROM {cce_term_v} a ");
+		$accessOptions = array( '' => t('Select the Term Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->term_id ] = $row->term_name; 
+		}
+		db_set_active('default');			
+		$form['term'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Term'),
+			'#options'=> $accessOptions,
+			'#title' => t('Term Name'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'fileupload/term/ahahjs0',
+				  	'wrapper' => 'ahah-wrapper-term',
+				  	'method' => 'replace',
+				  			),			
+			);
+		
+		
+		$form['assessname'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Assessment Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Assessment Name'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'fileupload/assessname/ahahjs1',
+				  	'wrapper' => 'ahah-wrapper-catdetlist',
+				  	'method' => 'replace',
+				  			),
+			 '#prefix' => '<div id = "ahah-wrapper-term">',
+				'#suffix' => '</div>',								
+		);
+		
+
+		$form['assesscatdetlist'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Category'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Category Detail'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'fileupload/assesscat/ahahjs2',
+				  	'wrapper' => 'ahah-wrapper-defaultlist',
+				  	'method' => 'replace',
+				  			),
+			 '#prefix' => '<div id = "ahah-wrapper-catdetlist">',
+				'#suffix' => '</div>',	
+		);
+
+
+		$form['assesscatdescriptors'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Descriptor'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Category Detail'),
+			'#disabled' => FALSE,
+			 '#prefix' => '<div id = "ahah-wrapper-defaultlist">',
+				'#suffix' => '</div>',	
+		);
+
+
+
+	  
+
+	  $form['#attributes']['enctype'] = "multipart/form-data";
+		db_set_active('qtxt_db');		  
+	  $resultg1 = db_query("select template_id, template_name from {qtxt_sms_template_master} where tag = 'cce'");
+				  $igradeOptions2 = array();
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions2[$rowg1->template_id ] =  $rowg1->template_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');				  
+				  
+				  $form['interfaceType'] = array('#type' => 'select',
+				  				  		'#title' => t('Interface Type'),
+										'#options' =>  $igradeOptions2,
+				  				  		'#description' => t('Please select the Template'),
+				  				  		'#disabled' => FALSE,
+				  );
+				  
+				  $form['tcsv'] = array('#type' => 'file',
+				  				  		'#title' => t('Upload File'),
+				  				  		'#description' => t('Pick a file to upload'),
+				  );
+				  
+
+			  $form['submit'] = array(
+				'#type' => 'submit',
+				'#value' => t('Confirm'),
+			  );
+			return $form;
+ 
+}
+
+
+
+function v3_cce_fileupload_submit_form_submit($form, &$form_state) {
+	global $user;
+//	$profile =  profile_load_profile($user);
+//	$myMobileNumber =  $user->profile_mobile; 
+//	$uid = $user->uid;
+//	$_SESSION['t_student'] = $form_state['values']['institution'];
+//	$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+
+	$dir = file_directory_path();
+
+		if(isset($_FILES) && !empty($_FILES) && $_FILES['files']['size']['tcsv'] != 0){
+		
+			#this structure is kind of wacky
+			$name = $_FILES['files']['name']['tcsv'];
+			$size = $_FILES['files']['size']['tcsv'];
+			$type = $_FILES['files']['type']['tcsv'];
+
+			#this is the actual place where we store the file
+			$file = file_save_upload('tcsv', array() , $dir);
+
+		} 	
+		
+	$_SESSION['ccefilename'] = $name;
+	$_SESSION['ccedir'] = $dir;
+	$_SESSION['cceaccount'] = $form_state['values']['institution'];
+	$_SESSION['t_interface_type'] = $form_state['values']['interfaceType'];	
+	$_SESSION['cceassessment'] = $form_state['values']['assessment'];
+	
+	$form_state['redirect'] = 'ccefileupload/next';
+  return;
+
+}
+
+function v3_cce_fileupload_submit_next_form ($form_state) {
+
+	return $form;
+	
+}
+
+/*
+
+function fileupload_ahah_terms_for_group() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['group'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.term_id, b.term_name  from cce_term_v b  where group_id = $gid  ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->term_id] = $datag->term_name;
+		}
+		db_set_active('default');
+		
+		db_set_active('qtxt_db');
+
+		$sqlg2 = "select  b.account_grade_id, b.grade_name  from cce_qtxt_sms_account_grades_v b  where group_id = $gid  ";
+
+        $resultg2 = db_query($sqlg2);
+		$valueg2[''] = 'Select a Value.. ';
+		while($datag2 = db_fetch_object($resultg2))
+		{
+		$valueg2[$datag2->account_grade_id] = $datag2->grade_name;
+		}
+		db_set_active('default');		
+		
+		$form['term']['#options'] = $valueg;
+		
+		$form['term']['#ahah'] = array(
+				  	'path' => 'fileupload/term/ahahjs0',
+				  	'wrapper' => 'ahah-wrapper-term',
+				  	'method' => 'replace',
+				  			)	;
+		$form['term']['#prefix'] = '<div id = "ahah-wrapper-group">';
+		$form['term']['#suffix'] =  '</div>';		
+							
+		$form['class']['#options'] = $valueg2;	
+		$form['class']['#prefix'] = '<div id = "ahah-wrapper-group">';
+		$form['class']['#suffix'] =  '</div>';	
+		
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['class'];
+				$output .= $form['term'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+*/
+
+function fileupload_ahah_terms_for_group() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['group'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.account_grade_id, b.grade_name  from cce_qtxt_sms_account_grades_v b  where group_id = $gid ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value--.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->account_grade_id] = $datag->grade_name;
+		}
+		db_set_active('default');
+		
+		
+		$form['class']['#options'] = $valueg;
+		
+
+		$form['class']['#prefix'] = '<div id = "ahah-wrapper-group">';
+		$form['class']['#suffix'] =  '</div>';		
+							
+		
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['class'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+
+function fileupload_ahah_access_for_terms() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['group'];
+		$tid = $form['#post']['term'];		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_id, b.assessment_name  from cce_assesment_types b  where group_id = $gid  and  term_id = $tid  ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_id] = $datag->assessment_name;
+		}
+		db_set_active('default');
+		
+		$form['assessname']['#options'] = $valueg;
+		
+		$form['assessname']['#ahah'] = array(
+				  	'path' => 'fileupload/assessname/ahahjs1',
+				  	'wrapper' => 'ahah-wrapper-catdetlist',
+				  	'method' => 'replace',
+				  			)	;
+		$form['assessname']['#prefix'] = '<div id = "ahah-wrapper-term">';
+		$form['assessname']['#suffix'] =  '</div>';		
+							
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assessname'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+function fileupload_ahah_accesscat_for_access() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['assessname'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_category_type,   assessment_category_detail_id from cce_assesment_category_details_v b  where assessment_id  = $gid ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_category_detail_id] = $datag->assessment_category_type;
+		}
+		db_set_active('default');
+		
+		$form['assesscatdetlist']['#options'] = $valueg;
+		
+		$form['assesscatdetlist']['#ahah'] = array(
+				  	'path' => 'fileupload/assesscat/ahahjs2',
+				  	'wrapper' => 'ahah-wrapper-defaultlist',
+				  	'method' => 'replace',
+				  			)	;
+		$form['assesscatdetlist']['#prefix'] = '<div id = "ahah-wrapper-catdetlist">';
+		$form['assesscatdetlist']['#suffix'] =  '</div>';		
+							
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assesscatdetlist'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+
+function fileupload_ahah_accesscatdet_for_accesscat() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['assessname'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_category_type,   assessment_category_detail_id from cce_assesment_category_details_v b  where assessment_id  = $gid ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value.. ';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_category_detail_id] = $datag->assessment_category_type;
+		}
+		db_set_active('default');
+		
+		$form['assesscatdescriptors']['#options'] = $valueg;
+		
+		$form['assesscatdescriptors']['#ahah'] = array(
+				  	'path' => 'fileupload/assesscat/ahahjs2',
+				  	'wrapper' => 'ahah-wrapper-defaultlist',
+				  	'method' => 'replace',
+				  			)	;
+		$form['assesscatdescriptors']['#prefix'] = '<div id = "ahah-wrapper-catdetlist">';
+		$form['assesscatdescriptors']['#suffix'] =  '</div>';		
+							
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assesscatdescriptors'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}

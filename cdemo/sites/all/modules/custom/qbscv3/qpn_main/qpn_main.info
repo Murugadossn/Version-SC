@@ -1,0 +1,5 @@
+; $Id$
+name = Pay For It Main Module 
+description = Pay For It Main Module
+core = 6.x
+package = payforit

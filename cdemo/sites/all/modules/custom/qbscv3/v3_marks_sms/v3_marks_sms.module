@@ -1,0 +1,566 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+
+function v3_marks_sms_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', '  '),
+  );
+}
+
+
+function v3_marks_sms_menu() {
+	$items['marksms'] = array(
+			'title' => t('SMS Marks To Parents'),
+			'page callback' => 'qtxt_marksms_submit_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+ $items['marksms/final'] = array(
+        'page callback' => 'qtxt_marksms_final_form_wrapper',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+ $items['marksms/exit'] = array(
+        'page callback' => 'qtxt_marksms_submit_form_wrap',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );  
+ $items['marksms/next'] = array(
+        'page callback' => 'qtxt_marksms_next_form_wrap',
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+
+  
+  return $items;
+}
+
+/*
+function qtxt_marks_sms_mail($key, &$message, $params) {
+      $message['subject'] = t('Mail from Demo Website');
+    //  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+	  $message['body'][] =  $params['myVar'] ;
+	 
+}
+*/
+
+function qtxt_marksms_submit_form() {
+			$output = drupal_get_form('qtxt_marksms_teacher_form');
+			return $output ;
+}
+
+function qtxt_marksms_final_form_wrapper() {
+			$output = drupal_get_form('qtxt_marksms_final_form');
+			return $output ;
+}
+
+function qtxt_marksms_submit_form_wrap() {
+			$output = drupal_get_form('qtxt_marksms_exit_form');
+			return $output ;
+}
+
+function qtxt_marksms_next_form_wrap(){
+			$output = drupal_get_form('qtxt_marksms_next_form');
+			return $output ;
+}
+
+function qtxt_marksms_teacher_form( $form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+unset ($_SESSION['user_mobile_number'] );
+unset ($_SESSION['admin_user_id'] );
+unset ($_SESSION['admin_pwd'] );
+unset ($_SESSION['standard'] );
+unset ($_SESSION['section'] );
+unset ($_SESSION['testCode'] );
+
+
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+
+
+				$form['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $defusermobile,
+				'#value' => $defusermobile,
+				'#disabled' => TRUE,
+				'#description' => t('Your Mobile Number.'),
+				);
+
+				$form['userId'] = array(
+				'#title' => t('SMS User Id'),
+				'#type' => 'textfield',
+				'#default_value' => $defadminuserid,
+				'#description' => t('Please enter your SMS User Id.'),
+				'#required' => TRUE,
+				);
+				$form['pwdId'] = array(
+				'#title' => t('SMS Password'),
+				'#type' => 'password',
+				'#default_value' => $defadminpwd,
+				'#description' => t('Please enter your SMS Password.'),
+				'#required' => TRUE,
+				);
+				
+			db_set_active('qtxt_db');	
+		//	$resultg2 = db_query("select distinct standard from  {qtxt_sms_account_grades} where standard != 'ALL' order by class_weight");
+
+// Department Admin Filter
+
+// $resultg2 = db_query("select distinct a.standard,a.account_grade_id from  {qtxt_sms_account_grades} a,{qtxt_staff_map_with_grade} c where a.standard != 'ALL' and c.mobile_number = $myMobileNumber and a.account_grade_id = c.account_grade_id ");
+
+ $resultg2 = db_query("select distinct a.standard,a.account_grade_id from  {qtxt_sms_student_marks_concat_v1} a,{qtxt_staff_map_with_grade} c where a.standard != 'ALL' and c.mobile_number = $myMobileNumber and a.account_grade_id = c.account_grade_id ");
+
+ 
+
+			$studentOptions = array('' => t('Select..'));
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$studentOptions[$rowg2->standard ] =  $rowg2->standard; 
+			}
+			db_set_active('default');
+
+			  $form['standard'] = array('#type' => 'select',
+									'#options' => $studentOptions,
+									'#title' => t('Department'),
+									'#description' => t('Please select the Department'),
+									'#disabled' => FALSE,
+									'#required' => TRUE,
+			  );
+				
+			db_set_active('qtxt_db');	
+	//		$resultg2 = db_query("select distinct section from  {qtxt_sms_account_grades} where section != 'ALL' order by class_weight");
+
+// Department Admin Filter
+
+// $resultg2 = db_query("select distinct a.section,a.account_grade_id from  {qtxt_sms_account_grades} a,{qtxt_staff_map_with_grade} c where a.section != 'ALL' and c.mobile_number = $myMobileNumber and a.account_grade_id = c.account_grade_id ");
+
+ $resultg2 = db_query("select distinct a.section,a.account_grade_id from  {qtxt_sms_student_marks_concat_v1} a,{qtxt_staff_map_with_grade} c where a.section != 'ALL' and c.mobile_number = $myMobileNumber and a.account_grade_id = c.account_grade_id ");
+
+
+			$sectionOptions = array('' => t('Select..'));
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$sectionOptions[$rowg2->section ] =  $rowg2->section; 
+			}
+			db_set_active('default');
+
+			  $form['section'] = array('#type' => 'select',
+									'#options' => $sectionOptions,
+									'#title' => t('Year'),
+									'#description' => t('Please select the Year'),
+									'#disabled' => FALSE,
+									'#required' => TRUE,
+			  );
+
+			db_set_active('qtxt_db');	
+			$resultg2 = db_query("select distinct test_code from  {qtxt_sms_account_test_map}  ");
+			$testOptions = array('' => t('Select..'));
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$testOptions[$rowg2->test_code ] =  $rowg2->test_code; 
+			}
+			db_set_active('default');
+
+			  $form['testcode'] = array('#type' => 'select',
+									'#options' => $testOptions,
+									'#title' => t('Test/Exam Name'),
+									'#description' => t('Please select the Test / Exam results to be sent through SMS'),
+									'#disabled' => FALSE,
+									'#required' => TRUE,
+			  );
+			  
+
+ $form['next_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+  );
+
+return $form;
+  
+}
+
+
+
+function qtxt_marksms_teacher_form_submit($form, &$form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+$mobile = $form_state['values']['mobileId'];
+$userId = $form_state['values']['userId'];
+$pwdId = $form_state['values']['pwdId'];
+$standard = $form_state['values']['standard'];
+$section  = $form_state['values']['section'];
+$testCode = $form_state['values']['testcode'];
+/*
+drupal_set_message(t("Standard : $standard "));	
+drupal_set_message(t("Standard : $section "));	
+drupal_set_message(t("Standard : $testCode "));	
+*/
+$_SESSION['user_mobile_number'] = $mobile;
+$_SESSION['admin_user_id'] = $userId;
+$_SESSION['admin_pwd'] = $pwdId;
+$_SESSION['standard'] = $standard;
+$_SESSION['section'] = $section;
+$_SESSION['testCode'] = $testCode;
+
+	
+	$form_state['redirect'] =   'marksms/final';
+  return;	
+
+}
+
+function qtxt_marksms_teacher_form_validate($form, &$form_state) {
+// if (!isset($form_state['values'])) {
+// http://anicham.com/quadrotxt/attendanceformBytudent}
+}
+
+function qtxt_marksms_final_form ($form_state) {
+
+
+  $header = array(
+
+    array(),
+
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+
+	
+  );
+
+
+$mobile =  &$_SESSION['user_mobile_number'];
+$userId =  &$_SESSION['admin_user_id'];
+$pwdId =  &$_SESSION['admin_pwd'];
+$standard =  &$_SESSION['standard'];
+$section =  &$_SESSION['section'];
+$testCode =  &$_SESSION['testCode'];
+
+// select * from qtxt_sms_student_marks_concat_v;
+
+
+			db_set_active('qtxt_db');	
+	
+				
+	$resultngradeId = db_query("select account_grade_id,grade_name from  {qtxt_sms_account_grades} where standard = '$standard' and section = '$section' ");
+
+     $nGradeId = array();
+	while ( $row = db_fetch_object( $resultngradeId ) ) {
+		 $nGradeId = $row->account_grade_id;
+		
+	}
+db_set_active('default');
+
+
+drupal_set_message(t("Department : $standard "));	
+drupal_set_message(t("Year : $section "));	
+drupal_set_message(t("TestCode : $testCode "));	
+// drupal_set_message(t("Grade Id  : $nGradeId "));	
+
+db_set_active('qtxt_db');	
+
+// $sql = "select * from qtxt_sms_student_marks_concat_v"  ; 
+ 
+$sql = "select test_code,account_grade_id,student_name,student_identifier,account_student_map_id,concat_marks,standard,section from {qtxt_sms_student_marks_concat_v1}  where test_code = '$testCode' and standard = '$standard' and section = '$section' " ; 
+
+  $query_count = "select COUNT(test_code) from  {qtxt_sms_student_marks_concat_v1} where test_code = '$testCode' and standard = '$standard' and section = '$section'  ";
+
+
+   $sql .= tablesort_sql($header);
+
+
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+
+
+  
+  
+
+  
+      $form['access'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Access log settings'),
+
+    '#tree' => TRUE,
+
+	'#visible' => false,
+
+  );
+
+
+
+
+
+  $accounts = array();
+
+
+
+$i = 1;  
+
+  while ($account = db_fetch_object($result)) {
+
+
+
+  $form['access']['account'][$i] = array(
+
+		'#type' => 'checkbox',
+
+		'#return_value' => $account->account_student_map_id,
+
+		'#default_value' => 0,
+
+		'#tree' => TRUE,
+
+
+
+	  );
+
+
+
+ 
+
+ 
+
+  //  $form['access']['testcode'][$account->account_student_map_id] = array('#value' => $account->test_code);
+
+    $form['access']['gradeid'][$account->account_student_map_id] =  array('#value' => $account->account_grade_id);
+
+    $form['access']['studentname'][$account->account_student_map_id] = array('#value' => $account->student_name);
+	
+	$form['access']['studentid'][$account->account_student_map_id] = array('#value' => $account->student_identifier);
+
+    $form['access']['studentmapid'][$account->account_student_map_id] =  array('#value' => $account->account_student_map_id);
+
+    $form['access']['concatmarks'][$account->account_student_map_id] =  array('#value' => $account->concat_marks);
+
+    $form['access']['testcode'][$account->account_student_map_id] =  array('#type' => 'hidden','#value' => $account->account_student_map_id);
+
+	
+	$i = $i + 1;
+
+  }
+
+// db_set_active('default');
+
+
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+
+  $form['#theme'] = 'marksms_theme';   
+
+  $form['totalcount'] = array(
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+  );  
+
+  
+  db_set_active('default');
+
+  $form['verifyset']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm'),
+  );
+
+  
+  return $form;
+
+
+//	$sms= new Qtxt_Sms_RVS;
+//	$outputString = $sms->sendMarksSMS( $mobile, $userId,  $pwdId, $standard, $section, $testCode);
+
+// return $form;
+}
+
+
+
+function v3_marks_sms_theme() {
+
+	return array(
+
+		'marksms_theme' => array('arguments'=> array('form' => NULL),),
+
+	);
+
+}
+
+
+
+function theme_marksms_theme($form)
+
+{
+
+$rows = array();
+
+$i = 1;
+
+
+
+foreach(element_children($form['access']['studentmapid']) as $key) {
+
+	$row = array(); 
+
+    //   $row[] =  drupal_render($form['access']['account'][$i]);
+
+       	   
+	 //    $row[] =  drupal_render($form['access']['gradeid'][$key]);
+
+   $row[] =  drupal_render($form['access']['studentid'][$key]);
+
+       $row[] =  drupal_render($form['access']['studentname'][$key]);
+   
+  
+  //     $row[] =  drupal_render($form['access']['studentmapid'][$key]);
+
+   $row[] =  drupal_render($form['access']['concatmarks'][$key]);
+   
+   $row[] =  drupal_render($form['access']['testcode'][$key]);
+
+  
+   
+	$rows[] = $row; 
+
+	$i = $i +1 ;
+
+}
+
+
+
+if(count($rows)){
+
+//	$header = array( t('Account Grade Id'),t('Student Name'),t('Student Identifier'), t('Account Student Map Id'), t('Marks') );
+
+	$header = array(  t('Student Identifier') ,t('Student Name'), t('Marks') );
+
+  }
+
+  else{
+
+    $header = array(t(' '), t(' ')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('Marks Not Available'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+// $output = theme('table', $header, $rows); 
+ $output = theme('table', $header, $rows , array(id=>"myid")); 
+
+
+  $form['access']['#access'] = false;
+
+ return $output . drupal_render($form); 
+
+ // return $output ; 
+
+}  
+
+
+
+
+
+
+function qtxt_marksms_final_form_submit($form, &$form_state) {
+$mobile =  &$_SESSION['user_mobile_number'];
+$userId =  &$_SESSION['admin_user_id'];
+$pwdId =  &$_SESSION['admin_pwd'];
+$standard =  &$_SESSION['standard'];
+$section =  &$_SESSION['section'];
+$testCode =  &$_SESSION['testCode'];
+
+	$sms= new Qtxt_Sms_Common;
+	
+$handle = background_process_start(array($sms, 'sendMarksToUsers'),  $mobile, $userId,  $pwdId, $standard, $section, $testCode , $GLOBALS['base_path']);
+		
+drupal_set_message(  " SMS is reaching the customers. Delivary notifation will reach you ASAP");
+	$form_state['redirect'] = 'marksms/next';
+  return;	
+}
+
+/*
+function qtxt_marksms_exit_form($form_state) {
+
+$str = "<big>Your Request has been Submitted. </big> <BR> <BR>";
+$form['message'] = array(
+  '#type' => 'markup',
+  '#value' => $str,
+);
+ $form['submit1'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send More SMS'),
+  );
+ $form['submit2'] = array(
+    '#type' => 'submit',
+    '#value' => t('Return'),
+  );
+  
+return $form;
+}
+
+*/
+
+
+function qtxt_marksms_next_form($form_state) {
+$str = "<big>Your Request has been Submitted. </big> <BR> <BR>";
+$form['message'] = array(
+  '#type' => 'markup',
+  '#value' => $str,
+);
+ $form['submit1'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send More SMS'),
+  );
+ $form['submit2'] = array(
+    '#type' => 'submit',
+    '#value' => t('Return'),
+  );
+  
+return $form;
+}
+
+function qtxt_marksms_next_form_submit($form, &$form_state) {
+ $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Send More SMS'): 
+		$form_state['redirect'] =   'marksms';
+		break;
+    case t('Return'): 
+		$form_state['redirect'] =   '/';
+		break;
+	}
+  return;
+}
+
+
+

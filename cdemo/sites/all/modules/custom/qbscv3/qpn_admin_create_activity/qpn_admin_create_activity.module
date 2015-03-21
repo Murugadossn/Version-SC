@@ -1,0 +1,596 @@
+<?php
+
+
+function qpn_admin_create_activity_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'qpn_admin_create_activity'),
+  );
+}
+ require ( "../quadroquest/common/QpnCommonCreateActivity.php");
+function qpn_admin_create_activity_menu() {
+
+	$items['qpncreateactivity'] = array(
+    'title' => 'Define Fees Structure',
+    //'description' => 'Pay For It - Create Activity',
+    'page callback' => 'qpn_create_activity_main',
+    'page arguments' => array('main'),
+	'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+	'access arguments' => array('access content'),		
+	);
+
+  $items['qpncreateactivity/main'] = array(
+    'title' => 'Define Fees Structure',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+	'access callback' => 'user_access',
+	'access arguments' => array('access content'),	
+    'weight' => -10,
+  );
+
+  
+	$items['qpncreateactivity/fees'] = array(
+    'title' => 'Define Fees Types',
+    'description' => 'Define Fee Types',
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('qpncreateactivity_next_create'),	
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+	);    
+  
+ $items['qpncreateactivity/year/ahahForAccount'] = array(
+        'page callback' => 'qpncreateactivity_ahah_for_account',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );  
+
+  $items['qpncreateactivity/year/ahahForActivity'] = array(
+        'page callback' => 'qpncreateactivity_ahah_for_activity',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );  
+  
+return $items;
+}
+
+
+
+function qpn_create_activity_main($callback_arg = '') {
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+  
+  switch ($op) {
+    case 'Define Fees Structure' :
+	case 'Define Fees Structure':
+      $output = drupal_get_form('qpn_create_activity');
+      break;
+	  
+	
+
+	default:
+/*
+        $output = drupal_get_form('cmrcpt_filter_form');
+        $output .= drupal_get_form('cmrcpt_details');
+*/
+ $output = drupal_get_form('qpn_create_activity');
+
+  }
+  return $output;
+  
+}
+
+
+function qpn_create_activity() {
+global $user;
+$myId =  $user->uid;
+// drupal_set_message(t(" My Id : $myId"));  
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT b.account_id, b.account_name  FROM {qpn_users} a,{qtxt_sms_account} b where a.user_drupal_id = $myId and a.user_name = 'ADMIN' order by account_id ");
+		$accessOptions = array( '' => t('Select the Account Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->account_id ] = $row->account_name; 
+		}
+		db_set_active('default');	
+
+		
+		$form['account'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Account Name'),
+			'#options'=> $accessOptions,
+			'#title' => t('Account Name'),
+			'#disabled' => FALSE,
+                   			'#ahah' => array(
+				  	'path' => 'qpncreateactivity/year/ahahForAccount',
+				  	'wrapper' => 'ahah-wrapper-account',
+				  	'method' => 'replace',
+				  			)			
+		);
+		
+		$form['class'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Details'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Class'),
+			'#disabled' => FALSE,
+			'#multiple' => true,
+			'#attributes'=>array('size'=>5),			
+		 '#prefix' => '<div id = "ahah-wrapper-account">',
+		 '#suffix' => '</div>',
+		 					
+		);
+// qpayforit		
+
+db_set_active('qtxt_db');	
+		$result4 = db_query("SELECT lookup_id,lookup_value  FROM {qpn_fee_quote_lookup_v} ");
+	  	$feequotaOptions = array( '' => t('Select the Fee Quota') );
+		while ($row = db_fetch_object($result4)){
+		  $feequotaOptions[$row->lookup_value ] = $row->lookup_value; 
+		}
+		db_set_active('default');	
+		
+		$form['feequota'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Fee Quota'),
+			/*'#options'=> array( 'Counselling' => t('Counselling'), 'Management' => t('Management'),'Management1' => t('Management1'), 'Management2' => t('Management2'),'Management3' => t('Management3'), 'Management4' => t('Management4') ),*/
+		     '#options'=> $feequotaOptions,
+			'#title' => t('Fees Quota'),
+			'#disabled' => FALSE,
+			
+	
+// '#prefix' =>'<br><br><br><br><br><br><br><br><br>',
+		);
+		
+		
+		$form['activity'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter the Activity Name'),
+			'#title' => t('Fee Name'),
+			 '#required' => true,
+  		    '#size' => 60,
+			'#maxlength' => 500,	
+// '#prefix' =>'<br><br><br><br><br><br><br><br><br>',
+		);
+
+		$form['activitydesc'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter the Activity Description'),
+			'#title' => t('Fee Description'),
+			 '#required' => true,
+  		    '#size' => 60,
+			'#maxlength' => 500,	
+// '#prefix' =>'<br><br><br><br>',
+		);
+
+		$form['coordinator'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter the Coordinator'),
+			'#title' => t('Name of the Co-Ordinator Who is Collecting the Fee'),
+			 '#required' => true,
+  		    '#size' => 60,
+			'#maxlength' => 500,	
+// '#prefix' =>'<br><br><br><br>',
+		);
+
+		$form['specialinstructions'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter Special Instructions if any'),
+			'#title' => t('Special Instructions'),
+  		    '#size' => 60,
+			'#maxlength' => 500,	
+// '#prefix' =>'<br><br><br><br>',
+		);
+$form['numrows'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please enter Number of Fees rows you want to create'),
+			'#default_value' => 5,
+			'#title' => t('Number of Fees Type Defined To This Fee '),
+			  '#size' => 10,
+			  '#maxlength' => 10,
+			'#required' => true,	
+// '#prefix' =>'<br><br><br><br>',
+	
+		);			 
+
+		$form['mandatory'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select if the Activity is Mandatory / Optional'),
+			'#options'=> array( 'Y' => t('Mandatory'), 'N' => t('Optional') ),
+			'#title' => t('Mandatory / Optional'),
+			'#disabled' => FALSE,
+			'#required' => true,
+	
+// '#prefix' =>'<br><br><br><br>',
+		);
+
+		
+		$form['regstartdate'] = array(
+			'#type' => 'date_popup',
+			'#description' => t('Please enter Registration Start Date'),
+			'#date_format' => 'd-m-Y',
+//			'#default_value' =>
+			 '#required' => true,
+			'#date_year_range' => '-3:+3',
+			'#title' => t('Registration Start Date'),
+//  		    '#size' => 60,
+//			'#maxlength' => 500,	
+// '#prefix' =>'<br><br>',
+		);
+
+		$form['regenddate'] = array(
+			'#type' => 'date_popup',
+			'#description' => t('Please enter Registration End Date'),
+			'#date_format' => 'd-m-Y',
+//			'#default_value' =>
+			 '#required' => true,
+			'#date_year_range' => '-3:+3',
+			'#title' => t('Registration End Date'),
+//  		    '#size' => 60,
+//			'#maxlength' => 500,
+// '#prefix' =>'<br><br>',	
+	
+		);
+
+		
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Define Fees Structure'), 
+'#prefix' =>'<br><br>',
+                                                
+	  );
+
+	return $form;
+}
+function qpn_create_activity_validate($form, &$form_state) {
+$regstartdate = $form_state['values']['regstartdate'];
+	$regenddate = $form_state['values']['regenddate'];
+$activity = $form_state['values']['activity'];
+$class_value = $form_state['values']['class'];
+$feequota = $form_state['values']['feequota'];
+
+
+if ($regstartdate > $regenddate )
+{
+form_set_error('', t('Registration Start Date is Greater than the Registration End Date'));
+
+
+}
+
+db_set_active('qtxt_db');
+// $field = db_fetch_object(db_query("SELECT * FROM {qpn_activity} a,{qpn_activity_eligibility} b where a.activity_name = '$activity' and b.activity_id = a.activity_id and b.account_grade_id = $class_value' "));
+ $field = db_fetch_object(db_query("SELECT * FROM {qpn_activity} a,{qpn_activity_eligibility} b where a.activity_name = '$activity'  "));
+// $field = db_fetch_object(db_query("SELECT * FROM {qpn_activity} a,{qpn_activity_eligibility} b where a.activity_name = '$activity' and a.fee_quota = '$feequota' "));
+
+db_set_active('default');
+// drupal_set_message( " To Date : $field " );	
+	
+/*
+if($field != "")
+{
+form_set_error('', t('Fee Name is Already Defined. Please Enter a Unique Name'));
+}
+*/
+
+	
+}
+
+
+function qpn_create_activity_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+  
+    $account =  $form_state['values']['account'];
+// qpayforit		
+	
+	$feequota =  $form_state['values']['feequota'];
+	$activity = $form_state['values']['activity'];
+	$activitydesc = $form_state['values']['activitydesc'];
+	$coordinator = $form_state['values']['coordinator'];
+	$specialinstructions = $form_state['values']['specialinstructions'];
+	$mandatory = $form_state['values']['mandatory'];
+	$regstartdate = $form_state['values']['regstartdate'];
+	$regenddate = $form_state['values']['regenddate'];
+	$totalrows = $form_state['values']['numrows'];
+	
+	$class_value = $form_state['values']['class'];
+			//   drupal_set_message( " From Date : $regstartdate " );
+			//   drupal_set_message( " To Date : $regenddate " );
+			
+   drupal_set_message( " Fee Quota : $feequota " );
+	
+	$fromDateExp = $regstartdate ;  // "$regstartdate[year]-$regstartdate[month]-$regstartdate[day]";
+	$toDateExp = $regenddate ; // "$regenddate[year]-$regenddate[month]-$regenddate[day]";
+
+
+	$_SESSION['num_rows'] = $totalrows;	
+	$_SESSION['account'] = $account;
+	// qpayforit		
+    $_SESSION['feequota'] = $feequota;		
+	$_SESSION['activity'] = $activity;	
+	$_SESSION['activitydesc'] = $activitydesc;		
+	$_SESSION['coordinator'] = $coordinator;	
+	$_SESSION['specialinstructions'] = $specialinstructions;	
+	$_SESSION['mandatory'] = $mandatory;	
+	$_SESSION['regstartdate'] = $fromDateExp;		
+	$_SESSION['regenddate'] = $toDateExp;	
+	$_SESSION['class_value'] = $class_value;
+		
+	$form_state['redirect'] = 'qpncreateactivity/fees';
+    return;
+}
+
+//function scholdesc_next_create_test(&$form_state, $fid) {
+function qpncreateactivity_next_create() {
+// define fees
+	$account =  &$_SESSION['account'];
+	// qpayforit		
+ $feequota =  &$_SESSION['feequota'];	
+	$activity = &$_SESSION['activity'];
+	$activitydesc = &$_SESSION['activitydesc'];
+	$coordinator = &$_SESSION['coordinator'];
+	$specialinstructions = &$_SESSION['specialinstructions'];
+	$mandatory = &$_SESSION['mandatory'];
+	$regstartdate = &$_SESSION['regstartdate'];
+	$regenddate = &$_SESSION['regenddate'];
+	$num_rows = &$_SESSION['num_rows'];
+
+	$class_value = &$_SESSION['class_value'] ;
+	
+	$form['access'] = array(
+	'#type' => 'fieldset',
+	'#title' => t('Access log settings'),
+	'#tree' => TRUE,
+	'#visible' => false,	   
+	 );			
+	$i = 1;
+	while( $i < ($num_rows +1 )) {
+				$form['access']['feetype'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please enter Fee Type'),
+				//	'#title' => t('Other Descriptor'),
+					  '#size' => 20,
+					  '#maxlength' => 500,	
+				);	
+				
+				$form['access']['feedesc'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please enter Fee Description'),
+				//	'#title' => t('Other Descriptor'),
+					  '#size' => 40,
+					  '#maxlength' => 500,	
+				);	
+						 
+				$form['access']['totalamount'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please enter Total Amount'),
+				//	'#title' => t('Other Descriptor'),
+					  '#size' => 40,
+					  '#maxlength' => 500,	
+				);	
+				$form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+				
+				$i = $i + 1;
+	}
+		 
+		
+      $form['#theme'] = 'qpn_admin_activity_create_theme';   
+	  $form['totalcount'] = array(
+		'#type' => 'hidden', '#default_value' => ($i  -1 )
+	  );  
+
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Submit'),                                                 
+	  );
+
+	$form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+	return $form;
+
+}
+function qpn_admin_create_activity_theme() {
+	return array(
+		'qpn_admin_activity_create_theme' => array('arguments'=> array('form' => NULL),),
+//		'schol_access_cat_det_descriptor_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+function theme_qpn_admin_activity_create_theme ($form)
+{
+	$rows = array();
+	$i = 1;
+	foreach(element_children($form['access']['index']) as $key) {
+		$row = array(); 
+		   $row[] =  drupal_render($form['access']['feetype'][$key]);
+		   $row[] =  drupal_render($form['access']['feedesc'][$key]);
+		   $row[] =  drupal_render($form['access']['totalamount'][$key]);
+		   $row[] =  drupal_render($form['access']['index'][$key]);
+		   $rows[] = $row; 
+		$i = $i +1 ;
+	}  
+
+  if(count($rows)){
+				$header = array(
+					t('Fee Type'), t('Fee Desc'), t('Total Amount') );
+	  }	
+  else{
+    $header = array(t('First Name'), t('Last Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+  
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+ $form['access']['#access'] = false;
+return $output . drupal_render($form); 
+}  
+
+
+function qpncreateactivity_next_create_submit($form, &$form_state) {
+// dpm($form_state);
+$op = $form_state['values']['op'];
+if ($op == "Cancel")
+{
+  $form_state['redirect'] = 'qpncreateactivity/main';
+  return;
+}
+
+
+	$account =  &$_SESSION['account'];
+	$activity = &$_SESSION['activity'];
+	// qpayforit		
+ $feequota =  &$_SESSION['feequota'];	
+	$activitydesc = &$_SESSION['activitydesc'];
+	$coordinator = &$_SESSION['coordinator'];
+	$specialinstructions = &$_SESSION['specialinstructions'];
+	$mandatory = &$_SESSION['mandatory'];
+	$regstartdate = &$_SESSION['regstartdate'];
+	$regenddate = &$_SESSION['regenddate'];
+	$num_rows = &$_SESSION['num_rows'];
+	
+	$class_value = &$_SESSION['class_value'] ;
+	$class_new_array = array_values($class_value); 		
+	foreach($class_new_array as $key => $value) {
+	  if($value == "") {
+		unset($class_new_array[$key]);
+	  }
+	}
+	$class_final_array = array_values($class_new_array); 	
+	$classfinalcount= count(	$class_final_array );
+	$class_comma_separated = implode(",", $class_final_array);
+
+   drupal_set_message( " Fee Quota : $feequota " );
+			//   drupal_set_message( " From Date : $regstartdate " );
+			//   drupal_set_message( " To Date : $regenddate " );
+// return;			   
+	
+		$feeTypeArray = array();
+		$feeDescArray = array();		
+		$totalAmountArray = array();
+	if ( isset( $form_state['clicked_button']['#post']['access']['feetype']) ) {
+	$feeTypeArray = $form_state['clicked_button']['#post']['access']['feetype'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['feedesc']) ) {
+	$feeDescArray = $form_state['clicked_button']['#post']['access']['feedesc'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['totalamount']) ) {
+	$totalAmountArray = $form_state['clicked_button']['#post']['access']['totalamount'];
+	}
+		
+		
+	$a = 1;
+	
+	//db_set_active('qtxt_db');	
+	foreach ( $feeTypeArray as $key => $value ) {
+			$feeType = $feeTypeArray[$key] ;
+			$feeDesc = $feeDescArray[$key] ;
+			$totalAmount = $totalAmountArray[$key] ;
+
+		if ( ($feeType != "") && ($feeDesc != "") && ($totalAmount > 0)) {
+			
+			//db_set_active('qtxt_db');	
+			if ( $a == 1 ){
+			
+//			   $fromDateExp = "$regstartdate[year]-$regstartdate[month]-$regstartdate[day]";
+//			   $toDateExp = "$regenddate[year]-$regenddate[month]-$regenddate[day]";
+			   // create the Contract header
+			  
+	
+	$feeact= new Qpn_create_activity;
+         $outputString = $feeact->createactivity_next_submit($account, $activity, $activitydesc, $coordinator, $specialinstructions, $mandatory, $regstartdate, $regenddate, $feequota,$GLOBALS['base_path']);
+     
+       $activityID=$outputString;
+			   
+				/*$ret = sp_query("call  QPN_SP_CREATE_ACTIVITY(%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );", $account, $activity, $activitydesc, $coordinator, $specialinstructions, $mandatory, $regstartdate, $regenddate, $feequota );
+			
+				$rowval = $ret->fetch_row();
+				$activityID = $rowval[0];
+				db_set_active('default');
+				drupal_set_message( $rowval[0] );*/
+			}
+			$feeact= new Qpn_create_activity;
+			 $outputString = $feeact->qpncreate_fees_test($activityID, $feeType, $feeDesc, $feequota, $totalAmount,$GLOBALS['base_path']);
+     
+       $feeId=$outputString;	
+			/*db_set_active('qtxt_db');
+				$ret = sp_query("call  QPN_SP_CREATE_FEES_TEST(%d, '%s', '%s', '%s', %f );", $activityID, $feeType, $feeDesc, $feequota, $totalAmount );
+				$rowval = $ret->fetch_row();
+				$feeId = $rowval[0];
+				db_set_active('default');
+				*/
+		}
+		$a = $a + 1;	
+	}
+	db_set_active('qtxt_db');
+	foreach($class_final_array as $classArray) {
+				$feeact= new Qpn_create_activity;
+				 $outputString = $feeact->qpnactivity_grade_map($activityID, $classArray, $feequota,$GLOBALS['base_path']);
+				/*$ret = sp_query("call  QPN_SP_CREATE_ACTIVITY_GRADE_MAP_TEST(%d, %d, '%s');", $activityID, $classArray, $feequota );
+				$rowval = $ret->fetch_row();
+				$eligibilityId = $rowval[0];*/
+				$mapId=$outputString;
+	}
+	
+		drupal_set_message( "Fee Info Saved Successfully" );
+		
+	    $form_state['redirect'] = 'qpncreateactivity';
+	return;			
+}
+
+
+function qpncreateactivity_ahah_for_account() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['account'];
+		db_set_active('qtxt_db');
+
+	//	$sqlg = "select  b.group_id, b.group_description  from cce_groups b  where account_id = $gid order by group_id ";
+
+	//	db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_grade_id, grade_name FROM {qtxt_sms_account_grades} a where  a.section != 'ALL'  and a.account_id = $gid   ");
+
+		$gradeOptions = array( '' => t('Select the Class Name') );
+		while ($row = db_fetch_object($result1)){
+		  $gradeOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');	
+		
+		$form['class']['#options'] = $gradeOptions;
+		
+
+		$form['class']['#prefix'] = '<div id = "ahah-wrapper-account">';
+		$form['class']['#suffix'] =  '</div>';	
+		
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+           $form = form_builder('form_details', $form, $form_state);			
+			$output = $form['class'];
+			unset($output['#prefix'],$output['#suffix']);
+			$out1 =  drupal_render($output);
+		drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}

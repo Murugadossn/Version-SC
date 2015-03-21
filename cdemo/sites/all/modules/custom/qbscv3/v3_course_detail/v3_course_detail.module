@@ -1,0 +1,363 @@
+<?php
+
+
+
+/**
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+ *
+
+
+
+ */
+
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+
+
+
+
+
+
+function v3_course_detail_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', 'v3_course_detail'),
+
+
+
+  );
+
+
+
+}
+
+
+
+
+
+
+
+function v3_course_detail_menu() {
+
+
+
+	$items['cdetails'] = array(
+
+
+
+			'title' => t('Course Details'),
+
+
+
+			'page callback' => 'v3_course_detail_cb_form',
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+			'access callback' => 'user_access',
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+	);
+
+
+
+	
+
+
+
+	
+
+
+
+	return $items;
+
+
+
+	
+
+
+
+	}
+
+
+
+	
+
+ function v3_course_detail_cb_form() {
+
+
+
+			
+
+
+			 $output = drupal_get_form('v3_course_detail_my_form');
+
+
+
+			return $output ;
+
+
+
+} 
+
+
+function v3_course_detail_my_form($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid;
+
+  $header = array(
+
+    array(),
+
+    array('data' => t('Student Name'), 'field' => 'b.subject_id,'),
+
+    array('data' => t('Subject nsme'), 'field' => 'b.subject_name'),
+
+    array('data' => t('Grade'), 'field' => 'b.grade_name'),
+
+    array('data' => t('descriptionn'), 'field' => 'b.description'),
+
+	
+  );
+
+
+
+
+
+
+
+
+
+// drupal_set_message(t("Class Filter, $filterClass"));	
+
+
+
+  db_set_active('qtxt_db');	
+
+   
+
+ 	$sql = "select b.grade_name,b.subject_name, b.description,b.subject_id from {qtxt_sms_subjects_V3} b ";
+
+
+
+     $query_count = "select count(b.subject_id) from {qtxt_sms_subjects_V3} b ";
+
+	 
+
+	 	 
+
+   
+
+	 $sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 20, 0, $query_count);
+
+
+
+   
+/*
+
+
+    $form['access'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Access log settings'),
+
+    '#tree' => TRUE,
+
+	'#visible' => false,
+
+  );  
+
+*/
+
+  $account = array();
+
+
+
+$i = 1;  
+
+  while ($account = db_fetch_object($result)) {
+
+	$form['access']['account'][$i] = array(
+
+	//	'#type' => 'checkbox',
+
+		'#return_value' => $account->subject_id,
+
+		'#default_value' => 0,
+
+		'#tree' => TRUE,
+
+		'#disabled'=>True,
+
+		
+
+
+
+	  );
+
+	$form['access']['subname'][$account->subject_id] = array('#value' => $account->subject_name);
+
+    $form['access']['grade'][$account->subject_id] =  array('#value' => $account->grade_name);
+
+    $form['access']['desc'][$account->subject_id] =  array('#value' => $account->description);
+
+	$form['access']['subjectid'][$account->subject_id] =  array('#type' => 'hidden','#value' => $account->subject_id);
+
+   
+
+
+	
+
+	$i = $i + 1;
+
+  }
+
+db_set_active('default');
+
+
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 10, 0));
+
+  $form['#theme'] = 'v3_course_detail_my_form_theme';   
+
+  $form['totalcount'] = array(
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+  );  
+
+  return $form;
+
+
+
+}  
+
+
+
+  function v3_course_detail_theme() {
+
+	return array(
+
+		'v3_course_detail_my_form_theme' => array('arguments'=> array('form' => NULL),),
+
+		// 'v3_academic_my_form_theme' => array('arguments'=> array('form' => NULL),),
+
+	);
+
+}
+
+
+
+function theme_v3_course_detail_my_form_theme($form)
+
+{
+
+$rows = array();
+
+$i = 1;
+
+foreach(element_children($form['access']['subjectid']) as $key) {
+
+	$row = array(); 
+
+       $row[] =  drupal_render($form['access']['subname'][$i]);
+
+	   $row[] =  drupal_render($form['access']['grade'][$key]);
+
+       $row[] =  drupal_render($form['access']['desc'][$key]);
+
+       
+	  
+
+	   $rows[] = $row; 
+
+	$i = $i +1 ;
+
+}
+
+
+
+if(count($rows)){
+
+			 $header = array(
+
+				t('Subject Name'), t('Grade'),  t('Description Of The Subject'));
+
+  }
+
+  else{
+
+    $header = array(t(''), t('')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('No Teacher Info Provided'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+$output = theme('table', $header, $rows); 
+
+return $output . drupal_render($form); 
+
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+

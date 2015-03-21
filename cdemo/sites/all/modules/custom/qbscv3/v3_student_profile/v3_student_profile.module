@@ -1,0 +1,2900 @@
+<?php
+
+
+
+function v3_student_profile_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', 'v3_student_profile'),
+
+  );
+
+}
+
+
+
+
+
+function v3_student_profile_help($path, $arg) {
+
+  global $user;
+
+
+
+  switch ($path) {
+
+    case 'sprofile':
+
+      return '<p>'. t('Load Student Details.') .'</p>';
+
+	
+
+	}
+
+  
+
+}  
+
+function v3_student_profile_menu() {
+
+	$items['sprofile'] = array(
+
+    'title' => 'Student Profile',
+
+    'description' => 'List, add, and edit Student Data.',
+
+    'page callback' => 'v3_sprofile_cb',
+
+    'page arguments' => array('list'),
+
+    // 'access arguments' => array('administer users'),
+
+	'type' => MENU_CALLBACK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+	
+
+	);
+
+
+
+  $items['sprofile/list'] = array(
+
+    'title' => 'List',
+
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+    'weight' => -10,
+
+  );
+
+  $items['sprofile/create'] = array(
+
+    'title' => 'Add Student Data',
+
+    'page arguments' => array('create'),
+
+    // 'access arguments' => array('administer users'),
+
+    'type' => MENU_LOCAL_TASK,
+
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+  );	
+
+  
+
+  $items['sprofile/edit'] = array(
+
+    'title' => 'Edit Student Details',
+
+	// 'page callback' => 'v3_sprofile_edit_cb',
+
+     'page callback' => 'drupal_get_form',
+
+    'page arguments' => array('sprofile_edit'),
+
+ //   'access arguments' => array('administer users'),
+
+     'type' => MENU_CALLBACK,
+ // 'type' => MENU_LOCAL_TASK,
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+  );
+
+ 
+ $items['sprofile/delete'] = array(
+
+    'title' => 'Delete Student Details',
+
+	// 'page callback' => 'v3_sprofile_delete_cb',
+
+     'page callback' => 'drupal_get_form',
+
+    'page arguments' => array('sprofile_delete'),
+
+ //   'access arguments' => array('administer users'),
+
+     'type' => MENU_CALLBACK,
+ // 'type' => MENU_LOCAL_TASK,
+'access callback' => 'user_access',
+
+'access arguments' => array('access content'),
+
+
+
+  );
+
+ 
+
+	
+
+ $items['sprofile/ind/ahahjs2'] = array(
+
+        'page callback' => 'v3_for_grade_to_derive_term',
+
+        'type' => MENU_CALLBACK,
+
+		'access callback' => 'user_access',
+
+		 'access arguments' => array('access content'),	
+
+  );
+
+ 
+
+	  
+
+  
+
+return $items;
+
+}
+
+
+
+function sprofile_edit(&$form_state, $fid) {
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+ $myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+		
+
+		
+
+
+
+		db_set_active('qtxt_db');	
+
+		$field = db_fetch_object(db_query("select first_name,last_name,initial,account_student_map_id,student_identifier,dob,father_name,father_mobile,mother_name,mother_mobile,student_email,gender,blood_group,student_come_through from qtxt_sms_account_student_map where account_student_map_id = $fid and active_flag = 'Y' "));
+		
+
+            
+
+db_set_active('default');
+
+
+
+		if (!$field) {
+
+			drupal_not_found();
+
+			return;
+
+		  }
+
+		  $form['account_student_map_id'] = array('#type' => 'value',
+
+			'#value' => $fid,
+
+		  );		  
+
+
+
+
+
+		
+		$form['fname'] = array(
+
+		  '#title' => 'First Name ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		 '#required' => true,
+
+		  '#default_value' => $field->first_name,
+
+		);
+
+
+
+		$form['lname'] = array(
+
+		  '#title' => 'Last Name',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+     
+		  '#default_value' => $field->last_name,
+
+		);
+
+		
+
+		$form['initial'] = array(
+
+		  '#title' => 'Initial',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+          '#required' => true,
+		  '#default_value' => $field->initial,
+
+		);
+
+
+		
+
+	   db_set_active('qtxt_db');
+
+		$field1 = db_fetch_object(db_query("SELECT mobile_number,mobile_number_id,person_name FROM {qtxt_sms_mobile_numbers} 
+
+		WHERE account_student_map_id = %d and person_relationship_to_student = 'FATHER' ", $fid));
+
+		db_set_active('default');
+
+
+
+$form['father'] = array(
+
+		  '#title' => 'Father/Guardian Name ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+'#required' => true,
+		  '#default_value' => $field->father_name,
+
+		); 
+
+		db_set_active('default');
+
+
+
+$form['fmobile'] = array(
+
+		  '#title' => 'Father/Guardian Mobile Number ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+'#required' => true,
+		  '#default_value' => $field1->mobile_number,
+
+		); 
+
+		
+
+		db_set_active('qtxt_db');
+
+		$field2 = db_fetch_object(db_query("SELECT mobile_number,mobile_number_id,person_name FROM {qtxt_sms_mobile_numbers} 
+
+		WHERE account_student_map_id = %d and person_relationship_to_student = 'MOTHER' ", $fid));
+
+		db_set_active('default');
+
+
+
+$form['mother'] = array(
+
+
+
+		  '#title' => 'Mother Name ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#default_value' => $field->mother_name,
+
+		); 
+
+		
+
+		$form['mmobile'] = array(
+
+		  '#title' => 'Mother Mobile Number ',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#default_value' => $field2->mobile_number,
+
+		); 
+
+		db_set_active('qtxt_db');
+
+		$field3 = db_fetch_object(db_query("SELECT mobile_number,mobile_number_id FROM {qtxt_sms_mobile_numbers} 
+
+		WHERE account_student_map_id = %d and person_relationship_to_student = 'STUDENT' ", $fid));
+
+		db_set_active('default');
+
+
+
+$form['smobile'] = array(
+
+		  '#title' => 'Student Mobile Number',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#default_value' => $field3->mobile_number,
+
+		); 
+
+$form['email'] = array(
+
+		  '#title' => 'Student Email Id',
+
+		  '#type' => 'textfield',
+
+		  '#size' => 60,
+
+		  '#maxlength' => 100,
+
+		  '#default_value' => $field->student_email,
+
+
+
+		); 
+		
+		$form['gender'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Gender', 
+					  '#options' => array(			  
+                   'Select' => 'Select',
+				  'Female' => 'Female',
+				  'Male' => 'Male',
+	  				),
+					 '#default_value' => $field->gender,
+					 '#required' => true,
+// '#prefix' => '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>',
+
+					);
+				
+				$form['bgroup'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Blood Group', 
+					  '#options' => array(
+				'Select' => 'Select',	
+				  'A+' => 'A+',
+				  'B+' => 'B+',
+				  'AB+' => 'AB+',
+				  'B-' => 'B-',
+				  'A-' => 'A-',
+				  'AB-' => 'AB-',
+				  'O+' =>'O+',
+				  'O-' =>'O-',  
+	
+				),
+				'#default_value' => $field->blood_group,
+				);
+				$form['scfrom'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Student Travels to School', 
+					  '#options' => array(			  
+                   'Select' => 'Select',
+				  'Own Vehicle' => 'Own Vehicle',
+				  'By School Bus' => 'By School Bus',
+	  				),
+					'#default_value' => $field->student_come_through,
+					);
+				
+		
+
+
+
+		$form['dob'] = array(
+
+	  '#type' => 'date_popup',
+
+	  '#title' => t('Student-Date Of Birth'),
+
+	  '#date_format' => 'd-m-Y',
+
+	  '#default_value' => $field->dob,
+	  '#required' => true,
+
+      	  '#date_year_range' => '-20:-3',
+
+	);
+
+
+
+/*			
+$form['buttons']['submit'] = array(                                                          
+
+		'#type' => 'submit',
+    
+ 
+
+		'#value' => t('Save'),
+'#prefix' => '<br/>',
+                                                 
+
+	  );
+
+$form['buttons']['cancel'] = array(                                                          
+
+		'#type' => 'submit',
+
+		'#value' => t('Cancel'),                                                 
+
+	  );
+*/
+
+ return confirm_form($form, t('<a href="@edit-field"></a> ', array('@edit-field' => url('sprofile'))),t('sprofile'));
+
+  $form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+
+	return $form;
+
+		
+
+
+
+
+
+}
+
+
+
+function sprofile_edit_submit ($form, &$form_state) {
+
+ $op = $form_state['values']['op'];
+ 
+ if($op == 'Cancel') {
+
+		  $form_state['redirect'] = 'sprofile/list';
+
+		  return;	
+
+	} 
+	
+	
+
+
+db_set_active('default');
+
+
+
+	$asmid = $form_state['values']['account_student_map_id'];	
+
+	$sid = $form_state['values']['sid'];
+
+	$fname = $form_state['values']['fname'];
+
+	$lname = $form_state['values']['lname'];
+
+	$initial = $form_state['values']['initial'];
+
+	$fmobile = $form_state['values']['fmobile'];
+
+	$mmobile = $form_state['values']['mmobile'];
+
+	$smobile = $form_state['values']['smobile'];
+
+	$father = $form_state['values']['father'];
+
+	$mother = $form_state['values']['mother'];
+
+//	$grade = $form_state['values']['grade'];
+
+	$dob = $form_state['values']['dob'];
+       $email = $form_state['values']['email'];
+	$gender = $form_state['values']['gender'];
+	$bgroup = $form_state['values']['bgroup'];
+	$scfrom = $form_state['values']['scfrom'];
+
+
+	
+
+	/* drupal_set_message(t("first name $fname"));
+
+drupal_set_message(t("last name$lname"));	
+
+drupal_set_message(t(" Id $sid"));	
+
+drupal_set_message(t("Intial $initial"));	
+
+drupal_set_message(t("Father mobile $fmobile"));	
+
+drupal_set_message(t("Mother mobile $mmobile"));	
+
+drupal_set_message(t("Student Mobile $smobile"));	
+
+drupal_set_message(t("Father $father"));	
+
+drupal_set_message(t("Mother $mother"));
+
+drupal_set_message(t("Grade $grade"));
+
+drupal_set_message(t("DoB $dob"));	
+
+
+
+*/
+
+	if(($fname != "") &&  ($father != "") && ($fmobile != "") && ($dob != ""))
+	{
+
+	db_set_active('qtxt_db');
+
+		
+
+		db_query("update {qtxt_sms_account_student_map} set first_name = '$fname',last_name='$lname',initial = '$initial',father_mobile ='$fmobile',mother_mobile ='$mmobile',student_mobile_number ='$smobile',father_name ='$father',mother_name ='$mother', dob ='$dob',student_name ='$fname $lname $initial.',student_email ='$email',gender ='$gender',blood_group ='$bgroup',student_come_through = '$scfrom' where account_student_map_id = '$asmid' ");
+
+		 
+
+		 $resultnMId = db_query("SELECT mobile_number_id from `qtxt_sms_mobile_numbers` where account_id = 5 and account_student_map_id = '$asmid' and person_relationship_to_student ='FATHER'");
+
+  $nMId = array( );
+
+	while ( $row = db_fetch_object($resultnMId ) ) {
+
+		$nMId = $row->mobile_number_id;
+
+		$result4 = db_query("update {qtxt_sms_mobile_numbers} set mobile_number ='$fmobile', person_name ='$father' where mobile_number_id = $nMId");
+
+		
+
+	} 
+
+	$resultnMId1 = db_query("SELECT mobile_number_id from `qtxt_sms_mobile_numbers` where account_id = 5 and account_student_map_id = '$asmid' 
+
+  and person_relationship_to_student ='MOTHER'");
+
+$nMId1 = array( );
+
+	while ( $row = db_fetch_object($resultnMId1 ) ) {
+
+		$nMId1 = $row->mobile_number_id;
+
+		$result6 = db_query("update {qtxt_sms_mobile_numbers} set mobile_number ='$mmobile', person_name ='$mother' where mobile_number_id = $nMId1 ");
+
+		
+
+	} 
+
+	$resultnMId2 = db_query("SELECT mobile_number_id from `qtxt_sms_mobile_numbers` where account_id = 5 and account_student_map_id = '$asmid' and person_relationship_to_student ='STUDENT'");
+
+	$nMId2 = array( );
+
+	while ( $row = db_fetch_object($resultnMId2 ) ) {
+
+		$nMId2 = $row->mobile_number_id;
+
+		$result7 = db_query("update {qtxt_sms_mobile_numbers} set mobile_number = '$smobile', person_name ='$fname',person_email = '$email' where mobile_number_id = $nMId2");
+
+		} 
+
+		db_set_active('default');
+
+		drupal_set_message(t("Student Data has been Updated Sucessfully")); 
+
+		$form_state['redirect'] = 'sprofile/list';
+
+		return;
+	
+}
+
+}
+
+
+
+function sprofile_delete(&$form_state, $fid) {
+
+
+  
+		db_set_active('qtxt_db');
+		
+		$field = db_fetch_object(db_query("select first_name,last_name,initial,account_student_map_id,student_identifier,dob,father_name,father_mobile,mother_name,mother_mobile,student_email,gender,blood_group,student_come_through,student_name from qtxt_sms_account_student_map where account_student_map_id = %d and active_flag = 'Y' ", $fid));
+		
+		
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+          $form['delaccount_student_map_id'] = array('#type' => 'value', '#value' => $fid);
+		  $form['delfirst_name'] = array('#type' => 'value', '#value' => $field->student_name);
+		  $form['delastudentid'] = array('#type' => 'value', '#value' => $field->account_student_map_id);
+	//	   $form['delstopid'] = array('#type' => 'value', '#value' => $field->route_stop_id);
+
+		//  $form['scholassessname'] = array('#type' => 'value', '#value' => $field->assessment_name);
+		
+		  return confirm_form($form,
+		  t('Are you sure you want to delete the Student - %field ?', array('%field' => $field->student_name)),'sprofile',
+		  t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('sprofile/edit/'. $fid))),t('Delete'), t('Cancel'));
+		}
+
+
+function sprofile_delete_submit($form, &$form_state) {
+
+$form['delaccount_student_map_id'] = array('#type' => 'value', '#value' => $fid);
+$userdelastudentid = $form_state['values']['delastudentid'];
+		db_set_active('qtxt_db');
+	//	db_query('DELETE FROM {qtxt_sms_route_stops} WHERE route_stop_id = %d', $form_state['values']['delstopid']);
+// db_query('UPDATE {qtxt_sms_account_student_map} SET `active_flag` = 'N' WHERE account_student_map_id = %d', $form_state['values']['delastudentid']);
+db_query("UPDATE {qtxt_sms_account_student_map} SET `active_flag` = 'N' WHERE account_student_map_id = %d", $userdelastudentid);
+db_query("insert into qtxt_sms_account_student_map_archeive  select * from qtxt_sms_account_student_map where account_student_map_id = %d", $userdelastudentid);
+
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The Student %field has been deleted.', array('%field' => $form_state['values']['delfirst_name'])));
+  		unset ( $_SESSION['t_student'] );
+ 
+		
+		$form_state['redirect'] = 'sprofile/list';
+		return;
+}
+
+
+
+
+
+function sprofile_edit_validate( $form, &$form_state ) {
+
+$asmid = $form_state['values']['account_student_map_id'];
+$sid = $form_state['values']['sid'];
+
+	$fname = $form_state['values']['fname'];
+
+	$lname = $form_state['values']['lname'];
+
+	$initial = $form_state['values']['initial'];
+
+	$fmobile = $form_state['values']['fmobile'];
+
+	$mmobile = $form_state['values']['mmobile'];
+
+	$smobile = $form_state['values']['smobile'];
+
+	$father = $form_state['values']['father'];
+
+	$mother = $form_state['values']['mother'];
+
+	$grade = $form_state['values']['grade'];
+
+	$dob = $form_state['values']['dob'];
+$email_address = $form_state['values']['email'];
+
+
+if($email_address != "")
+{
+if (!valid_email_address($email_address)) {
+  form_set_error(' ', t('The Email Id  %email is Invalid.', array('%email' => $values['email'])));
+}
+}
+$element = $form_state['values'];
+
+    if(!is_numeric($element['fmobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Numbers in Father Mobile Number Field'));
+    }
+if($mmobile != "")
+{
+if(!is_numeric($element['mmobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Numbers in Mother Mobile Number Field'));
+    }
+}
+if($smobile != "")
+{
+if(!is_numeric($element['smobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Numbers in Student Mobile Number Field'));
+    }
+}
+
+if(is_numeric($element['initial'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Initial Field'));
+    }
+if(is_numeric($element['fname'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in First Name Field'));
+    }
+if(is_numeric($element['lname'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Last Name Field'));
+    }
+if(is_numeric($element['father'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Father Name Field'));
+    }
+if(is_numeric($element['mother'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Mother Name Field'));
+    }
+
+
+if (!checkdate($element['dob']['month'], $element['dob']['day'], $element['dob']['year'])) {
+    form_error($element, t('The specified date is invalid.'));
+  }
+
+
+
+  
+
+ 	
+
+}
+function v3_sprofile_edit_cb($callback_arg = '') {
+
+
+
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+
+
+//  drupal_set_message("Operamd - $op ");	
+
+  
+
+  switch ($op) {
+
+    
+	case t('Submit'):
+
+    case 'edit':
+
+
+case 'Cancel':
+
+      $output = drupal_get_form('sprofile_edit');
+
+      break;
+
+
+
+	  default:
+
+      if (!empty($_POST['assess']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+
+        $output = drupal_get_form('group_multiple_delete_confirm');
+
+      }
+
+      else {
+
+        $output = drupal_get_form('sprofile_filter_form');
+
+        $output .= drupal_get_form('sprofile_details');
+
+      }
+
+  }
+
+  return $output;
+
+  
+
+}
+
+
+
+
+
+
+
+function v3_sprofile_cb($callback_arg = '') {
+
+
+
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+
+
+//  drupal_set_message("Operamd - $op ");	
+
+  
+
+  switch ($op) {
+
+    case t('Save'):
+
+    case 'create':
+	case t('Submit'):
+
+    case 'edit':
+
+
+case 'Cancel':
+
+      $output = drupal_get_form('sprofile_create');
+
+      break;
+
+
+
+	  default:
+
+      if (!empty($_POST['assess']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+
+        $output = drupal_get_form('group_multiple_delete_confirm');
+
+      }
+
+      else {
+
+        $output = drupal_get_form('sprofile_filter_form');
+
+        $output .= drupal_get_form('sprofile_details');
+
+      }
+
+  }
+
+  return $output;
+
+  
+
+}
+
+
+
+function sprofile_create() {
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+ $myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+db_set_active('default');
+
+
+
+$form['sid'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the registration number'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+			  '#required' => true,
+
+		  '#title' => 'Student Registration Id',
+
+		 
+
+				);
+
+		$form['fname'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the First Name'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+'#required' => true,
+		  '#title' => 'First Name',			  
+
+			
+
+		);
+
+		$form['lname'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the Last Name'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+
+		  '#title' => 'Last Name',			  
+
+			
+
+		);
+
+$form['initial'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the Initial'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+'#required' => true,
+		  '#title' => 'Initial',			  
+
+			
+
+		);
+
+
+		
+		$form['father'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the father name'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+'#required' => true,
+		  '#title' => 'Father Name',			  
+
+			
+
+		);
+
+		$form['fmobile'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the father mobile number'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+'#required' => true,
+		  '#title' => 'Father Mobile Number',			  
+
+			
+
+		);
+
+		$form['mother'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the mother name'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+
+		  '#title' => 'Mother Name',			  
+
+			
+
+		);
+
+		$form['mmobile'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the mother mobile number'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+
+		  '#title' => 'Mother Mobile Number',			  
+
+			
+
+		);
+
+		$form['smobile'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please enter the Student mobile number'),
+
+			  '#size' => 60,
+
+			  '#maxlength' => 100,
+
+		  '#title' => 'Student Mobile Number',			  
+
+			
+
+		);
+
+                  
+
+db_set_active('qtxt_db');	
+		$result1 = db_query("select account_grade_id,grade_name from qtxt_sms_account_grades where account_id =5");
+		$accessOptions = array( '' => t('Select') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');	
+
+		
+		$form['grade'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+			'#options'=> $accessOptions,
+			'#title' => t('Class Name'),
+			'#required' => true,
+			'#disabled' => FALSE,
+// '#prefix' => '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>',
+					
+		);
+		$form['gender'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Gender', 
+					  '#options' => array(			  
+                   'Select' => 'Select',
+				  'Female' => 'Female',
+				  'Male' => 'Male',
+	  				),
+'#required' => true,
+
+					);
+				
+				$form['bgroup'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Blood Group', 
+					  '#options' => array(
+				'Select' => 'Select',	
+				  'A+' => 'A+',
+				  'B+' => 'B+',
+				  'AB+' => 'AB+',
+				  'B-' => 'B-',
+				  'A-' => 'A-',
+				  'AB-' => 'AB-',
+				  'O+' =>'O+',
+				  'O-' =>'O-'  
+	
+				),
+				);
+
+				$form['scfrom'] = array (
+					  '#type' => 'select', 
+					  '#title' => 'Student Travels to School', 
+					  '#options' => array(			  
+                                      'Select' => 'Select',
+				          'Own Vehicle' => 'Own Vehicle',
+				          'By School Bus' => 'By School Bus',
+	  				),
+					);
+                                			
+	
+				
+		
+		
+	 $date = '2009-01-01 00:00:00';
+
+$form['dob'] = array(
+
+	  '#type' => 'date_popup',
+
+	  '#title' => t('Student-Date Of Birth'),
+
+	  '#date_format' => 'd-m-Y',
+
+	  '#default_value' => $date,
+     '#required' => true,
+      '#date_year_range' => '-50:-3',
+
+	);	
+
+ $form['v3AdminOuter'] = array(
+						'#type' => 'fieldset',
+						// '#title' => t('Testing Message'),
+						'#collapsible' => FALSE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+	  );
+
+$form['v3AdminOuter']['check'] = array(
+  '#type' => 'checkbox',
+  '#title' => t('Send User Credentials Through Email'),
+  '#attributes' => array('checked' => 'checked','onclick' => "showSubject(this.checked)"),
+);
+
+$dvalue = "Enter Your Email Id";
+
+
+$form['v3AdminOuter']['subject'] = array(
+				  	// 	'#title' => t('Enter Your Email Id'),
+				  		'#type' => 'textfield',
+						 '#size' => 30, 
+						  '#maxlength' => 100, 
+                                               //   '#maxbreadth'=>100,
+				  		'#disabled' => false,
+						'#default_value' => $dvalue,
+					); 
+
+		
+
+				
+
+	 $form['buttons']['submit'] = array(                                                          
+
+		'#type' => 'submit',
+
+		'#value' => t('Save'),  
+
+
+ '#prefix' => '<br/>',
+                                               
+
+	  );
+
+
+
+$form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+  
+
+	return $form;
+
+
+
+}
+
+
+
+function sprofile_create_submit($form,&$form_state) {
+
+
+ 
+
+
+    $sid = $form_state['values']['sid'];
+$encrypt_password = md5($sid);
+
+	$fname = $form_state['values']['fname'];
+
+	$lname = $form_state['values']['lname'];
+
+	$initial = $form_state['values']['initial'];
+
+	$fmobile = $form_state['values']['fmobile'];
+
+	$mmobile = $form_state['values']['mmobile'];
+
+	$smobile = $form_state['values']['smobile'];
+
+	$father = $form_state['values']['father'];
+
+	$mother = $form_state['values']['mother'];
+
+	$grade = $form_state['values']['grade'];
+
+	$dob = $form_state['values']['dob'];
+	$email = $form_state['values']['v3AdminOuter']['subject'] ;
+	$gender = $form_state['values']['gender'];
+	$bgroup = $form_state['values']['bgroup'];
+	$scfrom = $form_state['values']['scfrom'];
+	$semail = $form_state['values']['email_address'];
+
+db_set_active('default');
+	
+$result01 = db_query( "INSERT INTO `users`(`uid`,`name`,`pass`,`mail`,`mode`,`sort`,`threshold`,`theme`,`signature`,`signature_format`,`created`,`access`,`login`,`status`,`timezone`,`language`,`picture`,`init`,`data`,`timezone_name`)
+VALUES(null,'$sid','$encrypt_password','$email',0,0,0,'','',0,0,0,0,1,-18000,'','','$emailid','','')");
+
+ $resultnUId = db_query("SELECT uid from users where  name = '$sid' ");
+
+  $uid = array( );
+
+	while ( $row = db_fetch_object($resultnUId) ) {
+		$uid = $row->uid;
+
+	} 
+
+
+$result02 = db_query( "insert into {profile_values} (fid,uid,value) values   (1,'$uid','$fname')");
+$result03 = db_query( "insert into {profile_values} (fid,uid,value) values  (3,'$uid','$fmobile')");
+$result04 = db_query( "insert into {profile_values} (fid,uid,value) values (4,'$uid','Parent')");
+$result = db_query( "INSERT INTO `users_roles` (`uid`,`rid`)VALUES($uid,4)");
+
+
+drupal_set_message(t("Parent User Credentials"));
+
+drupal_set_message(t("User Name: $sid"));
+drupal_set_message(t("Password $sid"));
+
+
+
+	
+	
+
+/*	drupal_set_message(t("first name $fname"));
+
+drupal_set_message(t("last name$lname"));	
+
+drupal_set_message(t(" Id $sid"));	
+
+drupal_set_message(t("Intial $initial"));	
+
+drupal_set_message(t("Father mobile $fmobile"));	
+
+drupal_set_message(t("Mother mobile $mmobile"));	
+
+drupal_set_message(t("Student Mobile $smobile"));	
+
+drupal_set_message(t("Father $father"));	
+
+drupal_set_message(t("Mother $mother"));
+
+
+
+*/	
+
+
+
+db_set_active('qtxt_db');
+
+
+
+  $result = db_query( "insert into qtxt_sms_account_student_map (account_student_map_id,account_id,student_identifier,student_name,account_grade_id,creation_date,last_update_date,created_by,last_updated_by,
+
+  dob,mother_tongue_language,first_name,last_name,initial,father_mobile,mother_mobile,student_mobile_number,father_name,mother_name,student_email,
+  gender,blood_group,student_come_through,route_active_flag)values
+
+  (null,5,'$sid','$fname $lname $initial','$grade',sysdate(),sysdate(),'admin','admin','$dob',1,'$fname','$lname',
+  '$initial','$fmobile','$mmobile','$smobile','$father','$mother','$email','$gender','$bgroup','$scfrom','N')");
+
+  
+
+  
+
+  $resultnSId = db_query("SELECT account_student_map_id from qtxt_sms_account_student_map where account_id = 5 and student_identifier = '$sid' ");
+
+  $nSId = array( );
+
+	while ( $row = db_fetch_object($resultnSId) ) {
+
+		$nSId = $row->account_student_map_id;
+
+	} 
+
+  
+
+  
+
+  
+
+  $result1 = db_query( "insert into qtxt_sms_mobile_numbers(mobile_number_id,mobile_number,preferred_language_id,active_flag,person_name,creation_date,last_update_date,created_by,last_updated_by,
+
+  role_name,person_relationship_to_student,account_notified_flag,primary_flag,account_id,account_student_map_id,default_pwd,drupal_uid)values
+
+  (null,'$fmobile',1,'Y','$father',sysdate(),sysdate(),'admin','admin','PARENT','FATHER','N','Y',5,$nSId,'$sid','$uid')");
+
+  
+
+  
+
+
+
+  $result2 = db_query( "insert into qtxt_sms_mobile_numbers(mobile_number_id,mobile_number,preferred_language_id,active_flag,person_name,creation_date,last_update_date,created_by,last_updated_by,
+
+  role_name,person_relationship_to_student,account_notified_flag,primary_flag,account_id,account_student_map_id)values
+
+  (null,'$mmobile',1,'Y','$mother',sysdate(),sysdate(),'admin','admin','PARENT','MOTHER','N','Y',5,$nSId)");
+
+  
+
+  
+
+  $result3 = db_query( "insert into qtxt_sms_mobile_numbers(mobile_number_id,mobile_number,preferred_language_id,active_flag,person_name,creation_date,last_update_date,created_by,last_updated_by,
+
+  role_name,person_relationship_to_student,account_notified_flag,primary_flag,account_id,account_student_map_id,person_email)values
+
+  (null,'$smobile',1,'Y','$fname',sysdate(),sysdate(),'admin','admin','PARENT','STUDENT','N','Y',5,$nSId,'$email')");
+
+  
+
+  
+
+  $resultnMId = db_query("SELECT mobile_number_id from `qtxt_sms_mobile_numbers` where account_id = 5 and account_student_map_id = '$nSId' 
+
+  and person_relationship_to_student ='FATHER'");
+
+  $nMId = array( );
+
+	while ( $row = db_fetch_object($resultnMId ) ) {
+
+		$nMId = $row->mobile_number_id;
+
+		$result4 = db_query("insert into qtxt_sms_mobile_account_map (mobile_account_map_id,account_id,mobile_number_id,creation_date,last_update_date,created_by,last_updated_by)
+
+		VALUES(null,5,$nMId,sysdate(),sysdate(),'admin','admin')");
+
+		
+
+	} 
+
+	$resultnMId1 = db_query("SELECT mobile_number_id from `qtxt_sms_mobile_numbers` where account_id = 5 and account_student_map_id = '$nSId' 
+
+  and person_relationship_to_student ='MOTHER'");
+
+$nMId1 = array( );
+
+	while ( $row = db_fetch_object($resultnMId1 ) ) {
+
+		$nMId1 = $row->mobile_number_id;
+
+		$result6 = db_query("insert into qtxt_sms_mobile_account_map (mobile_account_map_id,account_id,mobile_number_id,creation_date,last_update_date,created_by,last_updated_by)
+
+		VALUES(null,5,$nMId1,sysdate(),sysdate(),'admin','admin')");
+
+		
+
+	} 
+
+	$resultnMId2 = db_query("SELECT mobile_number_id from `qtxt_sms_mobile_numbers` where account_id = 5 and account_student_map_id = '$nSId' 
+
+  and person_relationship_to_student ='STUDENT'");
+
+$nMId2 = array( );
+
+	while ( $row = db_fetch_object($resultnMId2 ) ) {
+
+		$nMId2 = $row->mobile_number_id;
+
+		$result7 = db_query("insert into qtxt_sms_mobile_account_map (mobile_account_map_id,account_id,mobile_number_id,creation_date,last_update_date,created_by,last_updated_by)
+
+		VALUES(null,5,$nMId2,sysdate(),sysdate(),'admin','admin')");
+
+		
+
+	} 
+
+	
+
+	 
+
+	 $resultnAId = db_query("SELECT mobile_account_map_id from `qtxt_sms_mobile_account_map` where account_id = 5 and mobile_number_id = '$nMId' ");
+
+$nAId = array( );
+
+//$SID = array( );
+
+	while ( $row = db_fetch_object($resultnAId ) ) {
+
+		$nAId = $row->mobile_account_map_id;
+
+		
+
+		$result8 = db_query("insert into qtxt_sms_mobile_student_map (mobile_student_map_id,account_id,account_student_map_id,mobile_account_map_id,creation_date,last_update_date,created_by,last_updated_by)
+VALUES (null,5,$nSId,$nAId,sysdate(),sysdate(),'admin','admin')");
+
+		
+
+	} 
+
+	$resultnAId1 = db_query("SELECT mobile_account_map_id from `qtxt_sms_mobile_account_map` where account_id = 5 and mobile_number_id = '$nMId1' ");
+
+$nAId1 = array( );
+
+//$SID = array( );
+
+	while ( $row = db_fetch_object($resultnAId1 ) ) {
+
+		$nAId1 = $row->mobile_account_map_id;
+
+		
+
+		$result9 = db_query("insert into qtxt_sms_mobile_student_map (mobile_student_map_id,account_id,account_student_map_id,mobile_account_map_id,creation_date,last_update_date,created_by,last_updated_by)VALUES
+
+		(null,5,$nSId,$nAId1,sysdate(),sysdate(),'admin','admin')");
+
+		
+
+	} 
+
+	
+
+	$resultnAId0 = db_query("SELECT mobile_account_map_id from `qtxt_sms_mobile_account_map` where account_id = 5 and mobile_number_id = '$nMId2' ");
+
+$nAId2 = array( );
+
+//$SID = array( );
+
+	while ( $row = db_fetch_object($resultnAId0 ) ) {
+
+		$nAId2 = $row->mobile_account_map_id;
+
+		
+
+		$result5 = db_query("insert into qtxt_sms_mobile_student_map (mobile_student_map_id,account_id,account_student_map_id,mobile_account_map_id,creation_date,last_update_date,created_by,last_updated_by)VALUES
+
+		(null,5,$nSId,$nAId2,sysdate(),sysdate(),'admin','admin')");
+
+		
+
+	} 
+if ( $email != "Enter Your Email Id" ) {
+
+$msg = "$fname $lname $initial Credentials: Url:www.igradenow.com/cdemo - User Name = $sid - Password = $sid "; 
+$params = array(
+
+  'myVar' => $msg,
+);
+$emailTo = 'yuvaranim@quadrobay.com';
+drupal_mail('v3_student_profile', 'invitation', $email, language_default(), $params, "support@quadrobay.com");
+// drupal_set_message(t("Email has sent to the user"));
+  
+}
+	db_set_active( 'default' );
+
+
+
+	
+
+	 drupal_set_message(t("Student Details were Inserted"));
+
+ 
+
+			
+
+		  $form_state['redirect'] = 'sprofile/create';
+
+		  return;
+
+
+
+}
+
+function v3_student_profile_mail($key, &$message, $params) {
+      $message['subject'] = t('User Id and Password of School Connect');
+    //  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+	  $message['body'][] =  $params['myVar'] ;
+	 
+}
+
+
+function sprofile_create_validate( $form, &$form_state ) {
+
+$sid = $form_state['values']['sid'];
+
+	$fname = $form_state['values']['fname'];
+
+	$lname = $form_state['values']['lname'];
+
+	$initial = $form_state['values']['initial'];
+
+	$fmobile = $form_state['values']['fmobile'];
+
+	$mmobile = $form_state['values']['mmobile'];
+
+	$smobile = $form_state['values']['smobile'];
+
+	$father = $form_state['values']['father'];
+
+	$mother = $form_state['values']['mother'];
+
+	$grade = $form_state['values']['grade'];
+
+	$dob = $form_state['values']['dob'];
+$email = $form_state['values']['v3AdminOuter']['subject'] ;
+
+
+
+	
+
+	db_set_active( 'default' );
+
+	// $mail = $form_values['submitted_tree']['$email'];
+if($email != "Enter Your Email Id")
+{
+if (!valid_email_address($email)) {
+   form_set_error(' ', t('The Email Id  %email is Invalid.', array('%email' => $values['v3AdminOuter']['subject'])));}
+}
+$element = $form_state['values'];
+
+    if(!is_numeric($element['fmobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Numbers in Father Mobile Number Field'));
+    }
+if(is_numeric($element['initial'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Initial Field'));
+    }
+if(is_numeric($element['fname'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in First Name Field'));
+    }
+if(is_numeric($element['lname'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Last Name Field'));
+    }
+if(is_numeric($element['father'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Father Name Field'));
+    }
+if(is_numeric($element['mother'])){
+        form_set_error('profile_pno' , t('Please Enter Only Characters in Mother Name Field'));
+    }
+
+
+if($mmobile != "")
+{
+if(!is_numeric($element['mmobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Numbers in Mother Mobile Number Field'));
+    }
+}
+if($smobile != "")
+{
+if(!is_numeric($element['smobile'])){
+        form_set_error('profile_pno' , t('Please Enter Only Numbers in Student Mobile Number Field'));
+    }
+}
+
+if (!checkdate($element['dob']['month'], $element['dob']['day'], $element['dob']['year'])) {
+    form_error($element, t('The specified date is invalid.'));
+  }
+
+
+
+
+
+
+	
+
+  db_set_active( 'qtxt_db' );
+
+  
+
+  $result = db_query("SELECT student_identifier from `qtxt_sms_account_student_map` where student_identifier = '$sid' ");
+
+  $id = array( );
+
+//$SID = array( );
+
+	while ( $row = db_fetch_object($result) ) {
+
+		$id = $row->student_identifier;
+
+		
+
+  }
+
+  db_set_active( 'default' );
+
+	if ($id == $sid) {
+
+    form_set_error('', t('Student Registration Id is already Defined, Please Enter Another id.'));
+
+  }
+
+	
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/**
+
+ * Form builder; Return form for user administration filters.
+
+ *
+
+ * @ingroup forms
+
+ * @see user_filter_form_submit()
+
+ */
+
+function sprofile_filter_form() {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+
+
+
+
+			
+
+	
+
+		
+
+
+
+		
+
+		 $form['adminOuter'] = array(
+
+
+
+
+
+
+
+						'#type' => 'fieldset',
+
+
+
+
+
+
+
+						'#title' => t('Student Profile'),
+
+
+
+
+
+
+
+						'#collapsible' => TRUE, 
+
+
+
+
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+
+
+
+
+						'#tree' => TRUE
+
+
+
+
+
+
+
+	  );
+
+
+
+
+
+
+
+				  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	  db_set_active('qtxt_db');	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	  
+
+
+
+
+
+
+
+	   $resultg1 = db_query("SELECT account_grade_id,grade_name FROM {qtxt_sms_account_grades} a  where  a.account_id = 5  and a.section != 'ALL' order by class_weight ");
+
+// Department Admin filter
+/*
+  $resultg1 = db_query("SELECT a.account_grade_id,a.grade_name,b.mobile_number,b.grade_name FROM {qtxt_sms_account_grades} a,{qtxt_staff_map_with_grade} b  where  a.account_id = 5  and a.section != 'ALL' and b.mobile_number = $myMobileNumber and a.account_grade_id = b.account_grade_id order by class_weight ");
+
+*/
+
+
+				  $igradeOptions = array('' => t('Select..'));
+
+
+
+
+
+
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+
+
+
+
+
+
+
+				  	$igradeOptions[$rowg1->account_grade_id ] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+
+
+
+
+
+
+
+				  	}
+
+
+
+
+
+
+
+				db_set_active('default');
+
+
+
+
+
+
+
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+
+
+
+
+
+
+
+				  				  		'#options' => $igradeOptions,
+
+
+
+
+
+
+
+				  				  		'#title' => t('Class Name'),
+
+
+
+
+
+
+
+				  				  		'#description' => t('Please select the Grade '),
+// '#required' => true,
+
+
+
+
+
+
+
+				  				  		'#disabled' => FALSE,
+
+
+
+
+
+
+
+				  				  		'#ahah' => array(
+
+
+
+
+
+
+
+				  				  		 'path' => 'sprofile/ind/ahahjs2',
+
+
+
+
+
+
+
+				  				  		 'wrapper' => 'ahah-wrapper-grade-sprofile',
+
+
+
+
+
+
+
+				  				  		 'method' => 'replace',
+
+
+
+
+
+
+
+				  				  						)
+
+
+
+
+
+
+
+				  );
+
+
+
+
+
+
+
+				  
+
+
+
+
+
+$clVal = &$_SESSION['t_student'] ;
+
+
+
+				  $form['adminOuter']['student'] = array('#type' => 'select',
+
+
+
+
+
+
+
+				  				  		'#title' => t('Student Name'),
+
+
+
+
+
+
+
+										'#options' =>  array( '' => t('Select ..') ),
+
+
+
+
+
+
+
+				  				  		'#description' => t('Please select the Student'),
+'#default_value' => $c1Val,
+
+'#prefix' =>'<br/><br/><br/><br/>',
+
+
+
+
+
+
+				  				  		'#disabled' => FALSE,
+
+
+
+
+
+
+
+				  				  	'#prefix' => '<div id = "ahah-wrapper-grade-sprofile">',
+
+
+
+
+
+
+
+				  					'#suffix' => '</div>',
+
+
+
+
+
+
+
+				  				  		
+
+
+
+
+
+
+
+				  );
+
+
+
+
+
+
+
+				  
+
+
+
+
+
+
+
+				
+
+
+
+
+
+
+
+  $form['adminOuter']['submit'] = array(
+
+
+
+
+
+
+
+    '#type' => 'submit',
+
+
+
+
+
+
+
+    '#value' => t('Apply'),
+
+
+
+'#prefix' => '<br/>',
+ 
+
+
+
+  );
+
+
+
+
+
+
+
+	
+
+
+
+
+
+ $form['adminOuter']['submit']['#attributes']['class']  = $form['adminOuter']['submit']['#attributes']['class'] . ' qbsubmit';
+	
+
+	return $form;
+
+
+
+}
+
+function sprofile_filter_form_validate($form, &$form_state) {
+ $_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+
+$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+	if(!empty($_SESSION['t_student_grade'])) {
+		$grade = &$_SESSION['t_student_grade'];
+	} else {
+		$grade = "";
+		drupal_set_message(t("Please select the Class Name"));
+
+	}
+}
+
+
+
+
+
+function sprofile_filter_form_submit($form, &$form_state) {
+
+ $_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+
+$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+
+if(!empty($_SESSION['t_student'])) {
+
+
+
+
+
+
+
+		$student = &$_SESSION['t_student'];
+
+
+
+
+
+
+
+	} else {
+
+
+
+
+
+
+
+		$student = 'null';
+
+
+
+
+
+
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	if(!empty($_SESSION['t_student_grade'])) {
+
+
+
+
+
+
+
+		$grade = &$_SESSION['t_student_grade'];
+
+
+
+
+
+
+
+	} else {
+
+
+
+
+
+
+
+		$grade = "";
+
+
+
+
+
+
+
+	}
+
+
+
+
+
+
+
+	
+
+
+       // drupal_set_message(t("s $student"));
+
+
+
+
+
+  
+
+  $form_state['redirect'] = 'sprofile';
+
+  return;
+
+}
+
+
+
+
+
+
+
+function sprofile_details($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;  
+
+$uid = $user->uid;
+
+
+
+  $header = array(
+
+    array(),
+
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+
+	t('Operations'),
+
+  );
+
+
+
+
+
+$clVal = &$_SESSION['t_student'] ;
+
+
+
+$c2Val = &$_SESSION['t_student_grade'] ;
+unset ( $_SESSION['t_student'] );
+
+
+
+
+
+
+
+
+ // drupal_set_message(t("student - $clVal"));	
+
+
+
+  // drupal_set_message(t("grade - $c2Val"));	
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+$filterClass = "";
+
+
+
+    if ( $c2Val != "" ) {
+
+
+
+		
+
+
+
+			$filterClass = " and b.account_grade_id = '$c2Val'";
+
+
+
+	} 
+else 
+{
+$filterClass = " and b.account_grade_id = b.account_grade_id";
+
+
+
+}
+	
+
+
+	$filterSection = "";
+
+
+
+    if ( $clVal != "" ) {
+
+
+
+		
+
+
+
+			$filterSection = " and b.account_student_map_id = '$clVal'";
+
+
+
+	} 
+	
+	else 
+	{
+	$filterSection = " and b.account_student_map_id = b.account_student_map_id ";
+	}
+	
+
+//	drupal_set_message(t("student_1 - $filterSection"));	
+
+
+
+ // drupal_set_message(t("grade_1 - $filterClass"));	
+
+
+
+  db_set_active('qtxt_db');	
+
+  $sql = "select account_student_map_id,student_identifier, student_name, father_name, father_mobile, mother_name, mother_mobile,student_mobile_number,str_dob,grade_name,blood_group,student_come_through,student_email from  {qtxt_sms_mobile_students_v3} b where  1=1 and active_flag = 'Y' " . $filterClass . $filterSection ; 
+
+// Department Admin Filter
+
+/*
+ $sql = "select account_student_map_id,student_identifier, student_name, father_name, father_mobile, mother_name
+, mother_mobile,student_mobile_number,str_dob,b.grade_name,blood_group,student_come_through,student_email,
+c.mobile_number,c.account_grade_id from {qtxt_sms_mobile_students_v3} b,{qtxt_staff_map_with_grade} c where  1=1 and b.active_flag = 'Y' and c.mobile_number = $myMobileNumber and b.account_grade_id = c.account_grade_id " . $filterClass . $filterSection ; 
+*/
+
+
+
+    $query_count = "select COUNT(account_student_map_id) from  {qtxt_sms_mobile_students_v3} b where  1=1 and active_flag = 'Y' " . $filterClass . $filterSection ;
+
+$field = db_fetch_object(db_query("Select grade_name,student_name from qtxt_sms_mobile_students_v3 where account_grade_id = '$c2Val' and active_flag = 'Y' "));
+
+
+  
+
+   $sql .= tablesort_sql($header);
+
+
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+
+  db_set_active('default');
+  $grade = $field->grade_name;
+  
+  if($c2Val != "")
+  {
+  drupal_set_message (t("Class selected is $grade"));
+}
+
+
+
+
+    $form['access'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Access log settings'),
+
+    '#tree' => TRUE,
+
+	'#visible' => false,
+
+  );
+
+
+
+
+
+  $accounts = array();
+
+
+
+$i = 1;  
+
+  while ($account = db_fetch_object($result)) {
+
+
+
+  $form['access']['account'][$i] = array(
+
+		'#type' => 'checkbox',
+
+		'#return_value' => $account->account_student_map_id,
+
+		'#default_value' => 0,
+
+		'#tree' => TRUE,
+
+
+
+	  );
+
+
+
+ 
+
+ 
+
+    $form['access']['studentid'][$account->account_student_map_id] = array('#value' => $account->student_identifier);
+
+    $form['access']['studentname'][$account->account_student_map_id] =  array('#value' => $account->student_name);
+
+    $form['access']['fathername'][$account->account_student_map_id] = array('#value' => $account->father_name);
+
+    $form['access']['fathermobile'][$account->account_student_map_id] =  array('#value' => $account->father_mobile);
+
+    $form['access']['mothername'][$account->account_student_map_id] = array('#value' => $account->mother_name);
+
+    $form['access']['mothermobile'][$account->account_student_map_id] =  array('#value' => $account->mother_mobile);
+
+    $form['access']['grade'][$account->account_student_map_id] = array('#value' => $account->grade_name);
+
+    $form['access']['studentmobilenumber'][$account->account_student_map_id] =  array('#value' => $account->student_mobile_number);
+
+    $form['access']['dob'][$account->account_student_map_id] = array('#value' => $account->str_dob);
+
+$form['access']['bgroup'][$account->account_student_map_id] = array('#value' => $account->blood_group);
+
+$form['access']['scfrom'][$account->account_student_map_id] = array('#value' => $account->student_come_through);
+
+$form['access']['semail'][$account->account_student_map_id] = array('#value' => $account->student_email);
+
+
+
+    $form['access']['account_student_id'][$account->account_student_map_id] =  array('#type' => 'hidden','#value' => $account->account_student_map_id);
+
+	$form['access']['operations'][$account->account_student_map_id] = array('#value' => l(t('edit'), "sprofile/edit/$account->account_student_map_id", array('query' => $destination)));	
+
+	$form['access']['operations2'][$account->account_student_map_id] = array('#value' => l(t('delete'), "sprofile/delete/$account->account_student_map_id", array('query' => $destination)));	
+
+	$i = $i + 1;
+
+  }
+
+// db_set_active('default');
+
+
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+
+  $form['#theme'] = 'sprofile_description_theme';   
+
+  $form['totalcount'] = array(
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+  );  
+
+  return $form;
+
+}
+
+
+
+function v3_student_profile_theme() {
+
+	return array(
+
+		'sprofile_description_theme' => array('arguments'=> array('form' => NULL),),
+
+	);
+
+}
+
+
+
+function theme_sprofile_description_theme($form)
+
+{
+
+$rows = array();
+
+$i = 1;
+
+
+
+foreach(element_children($form['access']['account_student_id']) as $key) {
+
+	$row = array(); 
+
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+
+       $row[] =  drupal_render($form['access']['studentid'][$key]);
+
+       $row[] =  drupal_render($form['access']['studentname'][$key]);
+     $row[] =  drupal_render($form['access']['grade'][$key]);
+
+      $row[] =  drupal_render($form['access']['dob'][$key]);
+
+       $row[] =  drupal_render($form['access']['fathername'][$key]);
+
+       $row[] =  drupal_render($form['access']['fathermobile'][$key]);
+
+       $row[] =  drupal_render($form['access']['mothername'][$key]);
+
+       $row[] =  drupal_render($form['access']['mothermobile'][$key]);
+
+    //   $row[] =  drupal_render($form['access']['studentmobilenumber'][$key]);
+
+        
+
+$row[] =  drupal_render($form['access']['semail'][$key]);
+       
+$row[] =  drupal_render($form['access']['scfrom'][$key]);
+$row[] =  drupal_render($form['access']['bgroup'][$key]);
+
+
+
+      $row[] =  drupal_render($form['access']['operations'][$key]);	   
+
+      $row[] =  drupal_render($form['access']['operations2'][$key]);	   
+    
+
+	$rows[] = $row; 
+
+	$i = $i +1 ;
+
+}
+
+
+
+if(count($rows)){
+
+//			$header = array( theme('table_select_header_cell'), t('Group Name'), t('Group Desc'), t('Group Id') );
+
+				$header = array(  t('Student Id'), t('Student Name'),t('Class Name'),t('Date of Birth'), t('Father/Guardian Name'), 
+t('Father Mobile Number'), t('Mother Name'), t('Mother Mobile Number'),  t('Student Email'),
+t('Student Travels to School'),t('Blood Group'),);
+
+				
+
+				  $header[] = array('data' => t('Action'), 'colspan' => 2);
+
+  }
+
+  else{
+
+    $header = array(t(''), t('')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('Please select the class to view student details'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+$output = theme('table', $header, $rows); 
+
+//$output .= drupal_render($form['options']); 
+
+// $output .= drupal_render($form['options']['submit']); 
+
+  $form['access']['#access'] = false;
+
+ return $output . drupal_render($form); 
+
+ return $output ; 
+
+}  
+
+function v3_for_grade_to_derive_term () {
+
+
+
+
+
+
+
+//  krumo($form_state);
+
+
+
+
+
+
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+
+
+
+
+
+
+
+		$form_build_id = $_POST['form_build_id'];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		// Get for the form from the cache
+
+
+
+
+
+
+
+		$form = form_get_cache($form_build_id, $form_state);
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+		// Get the form set up to process
+
+
+
+
+
+
+
+		$args = $form['#parameters'];
+
+
+
+
+
+
+
+		$form_id = array_shift($args);
+
+
+
+
+
+
+
+		$form_state['post'] = $form['#post'] = $_POST;
+
+
+
+
+
+
+
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		$gid = $form['#post']['adminOuter']['grade'];
+
+
+
+
+
+
+
+		db_set_active('qtxt_db');
+
+
+
+
+
+
+
+		$sqlg = " select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where account_grade_id = $gid and active_flag = 'Y' order by SUBSTRING(student_name, LOCATE('.', student_name)+1) ";
+
+
+
+
+
+
+
+		$resultg = db_query($sqlg);
+
+
+
+
+
+
+
+		$valueg[''] = 'Select a value';
+
+
+
+
+
+
+
+		while($datag = db_fetch_object($resultg))
+
+
+
+
+
+
+
+		{
+
+
+
+
+
+
+
+		$valueg[$datag->account_student_map_id] = $datag->student_name;
+
+
+
+
+
+
+
+		}
+
+
+
+
+
+
+
+		db_set_active('default');
+
+
+
+
+
+
+
+		//$valueg1 = drupal_map_assoc($valueg);
+
+
+
+
+
+
+
+		$form['adminOuter']['student']['#options'] = $valueg;
+
+
+
+
+
+
+
+		form_set_cache($form_build_id, $form, $form_state);
+
+
+
+
+
+
+
+				$form += array(
+
+
+
+
+
+
+
+					'#post' => $_POST,
+
+
+
+
+
+
+
+					'#programmed' => FALSE,
+
+
+
+
+
+
+
+				  );
+
+
+
+
+
+
+
+				$form = form_builder('qtext1_smsform', $form, $form_state);		
+
+
+
+
+
+
+
+				$output = $form['adminOuter']['student'];
+
+
+
+
+
+
+
+				unset($output['#prefix'],$output['#suffix']);
+
+
+
+
+
+
+
+				$out1 =  drupal_render($output);
+
+
+
+
+
+
+
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

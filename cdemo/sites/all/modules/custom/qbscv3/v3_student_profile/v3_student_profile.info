@@ -1,0 +1,9 @@
+name = v3_student_profile
+
+description = "To View Queries and Clients from Customers"
+
+package = School Connect Version 3.0
+core = 6.x
+
+
+

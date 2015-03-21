@@ -1,0 +1,751 @@
+<?php
+
+function v3_cce_add_term_info_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_add_term_info'),
+  );
+}
+
+
+function v3_cce_add_term_info_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'term':
+      return '<p>'. t('Define the number of terms for your institution. The terms are shared by the Groups.') .'</p>';
+	
+	}
+  
+}  
+function v3_cce_add_term_info_menu() {
+	$items['term'] = array(
+    'title' => 'CCE - Define Terms',
+    'description' => 'List, add, and edit Terms.',
+    'page callback' => 'cce_term',
+    'page arguments' => array('list'),
+   // 'access arguments' => array('administer users'),
+	// 'type' => MENU_CALLBACK,
+'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+	
+	);
+
+  $items['term/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+// 'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+'weight' => -10,
+  );
+  $items['term/create'] = array(
+    'title' => 'Add Term',
+    'page arguments' => array('create'),
+  //  'access arguments' => array('administer users'),
+   'type' => MENU_LOCAL_TASK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+
+  );	
+  
+  $items['term/edit'] = array(
+    'title' => 'Edit field',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('term_edit'),
+   //  'access arguments' => array('administer users'),
+  
+'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+
+  );
+  $items['term/delete'] = array(
+    'title' => 'Delete Groups',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('term_delete'),
+    // 'access arguments' => array('administer users'),
+   'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+ );  
+return $items;
+}
+
+function term_edit(&$form_state, $fid) {
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT term_name, term_description, number_of_working_days FROM {cce_term} WHERE term_id = %d", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+		  $form['termid'] = array('#type' => 'value',
+			'#value' => $fid,
+		  );		  
+		$form['edit']['termname'] = array(
+		  '#title' => 'Term Name ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 200,
+//		  '#required' => true,
+		  '#default_value' => $field->term_name,
+		);
+
+		$form['edit']['termdesc'] = array(
+		  '#title' => 'Term Desc ',
+		  '#type' => 'textfield',
+		  '#size' => 120,
+		  '#maxlength' => 500,
+		  '#default_value' => $field->term_description,
+		);
+$currdate = date("Y-m-d");
+$defdoa = $currdate;
+if ( !empty($_SESSION['create']['doa'])) {
+$defdoa = &$_SESSION['doa'];
+// drupal_set_message(t("doa  - $defdoa"));
+} else {
+$defdoa = $currdate;
+}
+
+
+$form['edit']['doa'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('From Date'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $defdoa,
+      	  '#date_year_range' => '-1:+1',
+	);	
+
+$currdate = date("Y-m-d");
+$edefdoa = $currdate;
+if ( !empty($_SESSION['create']['edoa'])) {
+$defdoa = &$_SESSION['edoa'];
+// drupal_set_message(t("edoa  - edefdoa"));
+} else {
+$edefdoaa = $currdate;
+}
+
+
+	$form['edit']['edoa'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('To Date'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $edefdoa,
+       	  '#date_year_range' => '-1:+1',
+	);	
+
+		$form['edit']['noofworkingdays'] = array(
+		  '#title' => 'Number of Working Days',
+		  '#type' => 'textfield',
+		  '#size' => 20,
+		  '#maxlength' => 20,
+		  '#default_value' => $field->number_of_working_days,
+		);	
+	
+
+	 $form['edit']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Edit Term'), 
+                '#prefix' => '<br/><br/><br/><br/>',    
+                                                               
+	  );
+
+	  
+	 $form['edit']['buttons']['cancel'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),
+    //		'#validate' => '',		
+	  );
+	  
+	return $form;
+        $form['edit']['buttons']['submit']['#attributes']['class']  = $form['edit']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+        
+}
+
+function term_edit_submit ($form, &$form_state) {
+
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'term/list';
+		  return;	
+	} 
+
+		
+	$termId = $form_state['values']['termid'];
+	$termName = $form_state['values']['termname'];
+	$termDesc = $form_state['values']['termdesc'];
+       $sdate = $form_state['values']['doa'];
+	$edate = $form_state['values']['edoa'];
+
+	$noofworkingdays = $form_state['values']['noofworkingdays'];
+	
+		db_set_active('qtxt_db');
+
+			$termName = str_replace("'", "''", $termName);
+			$termDesc = str_replace("'", "''", $termDesc);
+			
+		db_query("update {cce_term} set term_name = '%s', term_description = '%s',  number_of_working_days = %d, term_start_date ='$sdate',term_end_date = '$edate'
+WHERE term_id = %d ", $termName, $termDesc, $noofworkingdays, $termId);
+		
+		db_set_active('default');
+
+		drupal_set_message(t('The Term Name  %field has been updated.', array('%field' => $form_state['values']['termname'])));
+
+		cache_clear_all();
+  		unset ( $_SESSION['group_filter_value'] );
+
+		$form_state['redirect'] = 'term/list';
+		return;
+}
+
+function term_edit_validate ($form, &$form_state) {
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  return;	
+	} 
+
+	$termId = $form_state['values']['termid'];
+	$tname = $form_state['values']['termname'];
+	$tdesc = $form_state['values']['termdesc'];
+       $sdate = $form_state['values']['doa'];
+	$edate = $form_state['values']['edoa'];
+	
+	$noofworkingdays = $form_state['values']['noofworkingdays'];
+
+	if ( $tname == "") {
+		form_set_error('', t('Term Name field is required.'));
+	}	
+	$tname = trim(strtoupper($tname));	
+ if ( $edate < $date) {
+		form_set_error('', t('Term Ending Date Must Greater Then From Date'));
+	  }
+$noofworkingdays = $form_state['values']['noofworkingdays'];
+$diffdate= $edate - $sdate;
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT term_name,term_description FROM cce_term where upper(term_name) = '%s' and term_id != %d ",$tname, $termId));
+	db_set_active('default');
+
+	if ($field) {
+			form_set_error('', t('Term already exists'));
+	}		
+	if ( ( $noofworkingdays == "" ) ||  ( $noofworkingdays < 1) ) {
+		form_set_error('', t('Please enter a valid number of working days'));
+	}	
+	
+/*	
+$termname=$field->term_name;
+$termdesc=$field->term_description;
+if($termdesc == $tdesc)
+{
+form_set_error('', t('Code has been already exists'));
+              
+}
+if($termname == $tname)
+{
+form_set_error('', t('Code has been already exists'));
+}
+*/
+}
+
+
+function term_create_validate ($form, &$form_state) {
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  return;	
+	} 
+	$tname = $form_state['values']['termname'];
+	$tdesc = $form_state['values']['termdesc'];
+	$noofworkingdays = $form_state['values']['noofworkingdays'];
+
+$sdate = $form_state['values']['doa'];
+	$edate = $form_state['values']['edoa'];
+
+
+	if ( $tname == "") {
+		form_set_error('', t('Term Name field is required.'));
+	}		
+	
+	$tname = trim(strtoupper($tname));	
+/*
+if ( $edate < $date) {
+		form_set_error('', t('Term Ending Date Must Greater Then From Date'));
+	  }
+$noofworkingdays = $form_state['values']['noofworkingdays'];
+$diffdate= $edate - $sdate;
+if (noofworkingdays <= $diffdate)
+{
+form_set_error('', t('Number of days is greater when we take the difference of Term Start Date and End Date'));
+}
+*/
+
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT term_name,term_description FROM cce_term where upper(term_name) = '%s' ",$tname));
+	db_set_active('default');
+		if ($field) {
+				form_set_error('', t('Term already exists'));
+		}	
+	if ( ( $noofworkingdays == "" ) ||  ( $noofworkingdays < 1) ) {
+		form_set_error('', t('Please enter a valid number of working days'));
+	}
+		
+/*			
+	$termname=$field->term_name;
+	$termdesc=$field->term_description;
+if($termdesc == $tdesc)
+{
+form_set_error('', t('Code has been already exists'));
+              
+}
+if($termname == $tname)
+{
+form_set_error('', t('Code has been already exists'));
+}
+*/
+}
+
+
+function term_delete(&$form_state, $fid) {
+
+
+  
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT term_name, term_description FROM {cce_term} WHERE term_id = %d", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+
+		  $form['termid'] = array('#type' => 'value', '#value' => $fid);
+		  $form['termtitle'] = array('#type' => 'value', '#value' => $field->term_name);
+		  $form['termdesc'] = array('#type' => 'value', '#value' => $field->term_description);
+
+		  return confirm_form($form,
+			t('Are you sure you want to delete the Group Name %field?', array('%field' => $field->term_name)), 'term',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('term/edit/'. $fid))),
+			t('Delete'), t('Cancel'));
+		}
+
+/**
+ * Process a field delete form submission.
+ */
+function term_delete_submit($form, &$form_state) {
+		db_set_active('qtxt_db');
+		db_query('DELETE FROM {cce_term} WHERE term_id = %d', $form_state['values']['termid']);
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The Term Name  %field has been deleted.', array('%field' => $form_state['values']['termtitle'])));
+  		unset ( $_SESSION['group_filter_value'] );
+		$form_state['redirect'] = 'term/list';
+		return;
+}
+
+function term_delete_validate($form, &$form_state) {
+$op = $form_state['values']['op'];
+$termid = $form_state['values']['termid'];
+	db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT term_id FROM {cce_assesment_types} WHERE  term_id = %d", $termid));
+	
+		db_set_active('default');
+
+		if ($field) {
+				form_set_error('', t('You cant able to delete this term, since assessment were already defined to this term'));
+		}	
+}
+
+
+function cce_term($callback_arg = '') {
+/*
+        $output = drupal_get_form('term_filter_form');
+        $output .= drupal_get_form('term_details');
+  return $output;
+  */
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+    case t('Create Term'):
+    case 'create':
+	case 'Cancel':	
+      $output = drupal_get_form('term_create');
+      break;
+
+	  default:
+      if (!empty($_POST['groups']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+        $output = drupal_get_form('group_multiple_delete_confirm');
+      }
+      else {
+        $output = drupal_get_form('term_filter_form');
+        $output .= drupal_get_form('term_details');
+      }
+  }
+  return $output;
+  
+}
+
+function term_create() {
+
+		$form['create']['termname'] = array(
+		  '#title' => 'Term Name ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 200,
+//		  '#required' => true,
+		);
+
+		$form['create']['termdesc'] = array(
+		  '#title' => 'Term Desc ',
+		  '#type' => 'textfield',
+		  '#size' => 120,
+		  '#maxlength' => 500,
+		);
+$currdate = date("Y-m-d");
+$defdoa = $currdate;
+if ( !empty($_SESSION['create']['doa'])) {
+$defdoa = &$_SESSION['doa'];
+// drupal_set_message(t("doa  - $defdoa"));
+} else {
+$defdoa = $currdate;
+}
+
+
+$form['create']['doa'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('From Date'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $defdoa,
+      	  '#date_year_range' => '-1:+1',
+	);	
+
+$currdate = date("Y-m-d");
+$edefdoa = $currdate;
+if ( !empty($_SESSION['create']['edoa'])) {
+$defdoa = &$_SESSION['edoa'];
+// drupal_set_message(t("edoa  - edefdoa"));
+} else {
+$edefdoaa = $currdate;
+}
+
+
+	$form['create']['edoa'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('To Date'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $edefdoa,
+       	  '#date_year_range' => '-1:+1',
+	);	
+
+	
+
+
+
+		 $form['create']['noofworkingdays'] = array(
+		  '#title' => 'Number of Working Days',
+		  '#type' => 'textfield',
+		  '#size' => 20,
+		  '#maxlength' => 20,
+		);	
+	
+
+	 $form['create']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Create Term'),  
+                '#prefix' => '<br/><br/><br/><br/>',                                               
+	  );
+
+	 $form['create']['buttons']['cancel'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'), 
+                 
+//		'#validate' => '',		
+	  );
+	$form['create']['buttons']['submit']['#attributes']['class']  = $form['create']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+  
+	return $form;
+
+}
+
+function term_create_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+
+  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'term/list';
+		  return;	
+	}    
+
+	$termName = $form_state['values']['termname'];
+	$termDesc = $form_state['values']['termdesc'];
+$sdate = $form_state['values']['doa'];
+	$edate = $form_state['values']['edoa'];
+	// $noofworkingdays = $sdate - $edate ;
+	 $noofworkingdays = $form_state['values']['noofworkingdays'];
+
+//	drupal_set_message("Group Name - $groupName ");	
+	
+		$termName = trim($termName);
+
+		db_set_active('qtxt_db');
+
+			$termName = str_replace("'", "''", $termName);
+			$termDesc = str_replace("'", "''", $termDesc);
+		
+			$result = db_query( "INSERT INTO `cce_term`  (`term_id`, `year_id`, `term_name`,  `term_description`,  `creation_date`,  `update_date`,  `created_by`,  `updated_by`, number_of_working_days,term_start_date,term_end_date ) 
+VALUES  (  null, 1,upper('$termName'),  '$termDesc',  sysdate(),  sysdate(),  'admin',  'admin', $noofworkingdays,'$sdate','$edate' )");
+			db_set_active('default');
+			
+			drupal_set_message(t("Term $termName is created."));	
+
+			unset ( $_SESSION['group_filter_value'] );
+			
+		  $form_state['redirect'] = 'term/list';
+		  return;
+
+}
+
+
+
+/**
+ * Form builder; Return form for user administration filters.
+ *
+ * @ingroup forms
+ * @see user_filter_form_submit()
+ */
+function term_filter_form() {
+		
+	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only Term where'),
+
+	  );
+
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select term_name, term_id  from {cce_term} order by term_name  " );
+
+		$options = array('' => t('Select..'));
+
+		$c2Val = "";
+		if(!empty($_SESSION['group_filter_value'])) {
+			$c2Val = &$_SESSION['group_filter_value'];
+		} else {
+			$c2Val = "";
+		}
+		
+		while ($row = db_fetch_object($result)) {
+				$options[$row->term_id ] =  $row->term_name; 
+		}
+
+		db_set_active('default');	 
+		
+
+		$form['filters']['group'] = array(
+		  '#title' => 'Groups  like ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 128,
+		  '#default_value' => $c2Val,
+		);
+
+
+
+	 $form['filters']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Filter'),
+                '#prefix' => '<br/>',                                                 
+	  );
+        
+        $form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+	
+         return $form;
+
+}
+
+
+
+function term_filter_form_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+//  drupal_set_message("Filter Form Submit Operamd - $op ");	  
+  switch ($op) {
+    case t('Filter'): 
+
+
+      if (isset($form_state['values']['group'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['group'];
+			$_SESSION['group_filter_value'] = $form_state['values']['group'];
+	  }
+	  
+      break;
+  }
+  
+  $form_state['redirect'] = 'term';
+  return;
+}
+
+
+
+function term_details($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+    array('data' => t('Term Name'), 'field' => 'b.standard'),
+    array('data' => t('Term Description'), 'field' => 'b.section'),
+	t('Operations'),
+  );
+
+$clVal = &$_SESSION['group_filter_value'] ;
+// drupal_set_message(t("Class Filter 1 - $clVal"));	
+
+  
+$filterClass = "";
+    if ( $clVal != "" ) {
+		$clVal = strtoupper($clVal);
+			$filterClass = " and upper(b.term_name) like '%$clVal%' ";
+	} else {
+			$filterClass = " and b.term_name = b.term_name ";
+	}
+
+  db_set_active('qtxt_db');	
+  $sql = "select b.term_name, b.term_description, b.term_id , b.number_of_working_days,term_start_date,term_end_date from  {cce_term} b  where 1 = 1  " . $filterClass  ." order by 1 , 2 " ; 
+    $query_count = "select COUNT(term_id) from  {cce_term} b  where 1 = 1 " . $filterClass . "order by term_name" ;
+
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+  db_set_active('default');
+
+/*  
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Group Information'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+//    $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+
+  );
+*/
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+
+  $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->term_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+    $form['access']['termname'][$account->term_id] = array('#value' => $account->term_name);
+    $form['access']['termdesc'][$account->term_id] =  array('#value' => $account->term_description);
+$form['access']['startdate'][$account->term_id] =  array('#value' => $account->term_start_date);
+    $form['access']['end_date'][$account->term_id] =  array('#value' => $account->term_end_date);
+
+    
+    $form['access']['number_of_working_days'][$account->term_id] =  array('#value' => $account->number_of_working_days);
+
+    $form['access']['termid'][$account->term_id] =  array('#value' => hidden,'#value' => $account->term_id);
+	$form['access']['operations'][$account->term_id] = array('#value' => l(t('edit'), "term/edit/$account->term_id", array('query' => $destination)));	
+	$form['access']['operations2'][$account->term_id] = array('#value' => l(t('delete'), "term/delete/$account->term_id", array('query' => $destination)));	
+	$i = $i + 1;
+  }
+// db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'term_description_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function v3_cce_add_term_info_theme() {
+	return array(
+		'term_description_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_term_description_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['termid']) as $key) {
+	$row = array(); 
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+       $row[] =  drupal_render($form['access']['termname'][$key]);
+       $row[] =  drupal_render($form['access']['termdesc'][$key]);
+       $row[] =  drupal_render($form['access']['startdate'][$key]);
+       $row[] =  drupal_render($form['access']['end_date'][$key]);
+       $row[] =  drupal_render($form['access']['number_of_working_days'][$key]);
+      //  $row[] =  drupal_render($form['access']['termid'][$key]);
+       $row[] =  drupal_render($form['access']['operations'][$key]);	   
+       $row[] =  drupal_render($form['access']['operations2'][$key]);	   
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+//			$header = array( theme('table_select_header_cell'), t('Group Name'), t('Group Desc'), t('Group Id') );
+				$header = array(  t('Term Name'), t('Term Desc'),t('Term Start Date'),t('Term End Date'), t('Number of Working Days') );
+				
+				  $header[] = array('data' => t('Operations'), 'colspan' => 2);
+  }
+  else{
+    $header = array(t('Group Name'), t('Group description')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No Terms were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//$output .= drupal_render($form['options']); 
+// $output .= drupal_render($form['options']['submit']); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+
+
+
+

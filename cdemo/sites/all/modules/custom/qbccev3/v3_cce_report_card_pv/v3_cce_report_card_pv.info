@@ -1,0 +1,19 @@
+; $Id$
+
+
+
+name = V3 CCE  Report Card PV
+
+
+
+description =  V3 CCE Report Card Parent view
+
+
+
+core = 6.x
+
+core = 6.x
+
+
+
+package = CCE

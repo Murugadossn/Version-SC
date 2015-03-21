@@ -1,0 +1,8 @@
+; $Id: qtxt.info,v 1.7 2008/09/02 17:02:14 smk Exp $
+name = doe_staff_attd
+description = "Allow doe_staff_attd views to be displayed"
+package = doe_staff_attd
+core = 6.x
+
+
+

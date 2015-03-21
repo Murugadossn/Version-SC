@@ -1,0 +1,643 @@
+<?php
+
+
+
+function v3_cce_groups_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_groups'),
+  );
+}
+
+
+function v3_cce_groups_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'groups':
+      return '<p>'. t('Groups help you to categorize classes following a common pattern. For example - Class 9th and Class 10th have one pattern and Class 6th through Class 8th have different pattern.') .'</p>';
+	
+	}
+  
+}  
+function v3_cce_groups_menu() {
+	$items['groups'] = array(
+    'title' => 'CCE - Define Groups',
+    'description' => 'List, add, and edit Groups.',
+    'page callback' => 'cce_group',
+    'page arguments' => array('list'),
+    // 'access arguments' => array('administer users'),
+'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+
+		
+	);
+
+  $items['groups/list'] = array(
+    'title' => 'List',
+   'type' => MENU_DEFAULT_LOCAL_TASK,
+// 'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+
+
+    'weight' => -10,
+  );
+  $items['groups/create'] = array(
+    'title' => 'Add Group',
+    //  'page callback' => 'cce_group',
+
+    'page arguments' => array('create'),
+   // 'access arguments' => array('administer users'),
+  'type' => MENU_LOCAL_TASK,
+ // 'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+
+
+   
+  );	
+  
+  $items['groups/edit'] = array(
+    'title' => 'Edit field',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('group_edit'),
+    // 'access arguments' => array('administer users'),
+   //  'type' => MENU_CALLBACK,
+'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+
+
+  );
+  $items['groups/delete'] = array(
+    'title' => 'Delete Groups',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('group_delete'),
+    // 'access arguments' => array('administer users'),
+    // 'type' => MENU_CALLBACK,
+'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+'access arguments' => array('access content'),
+
+
+  );  
+return $items;
+}
+
+function group_edit(&$form_state, $fid) {
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT group_name, group_description FROM {cce_groups} WHERE group_id = %d", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+		  $form['groupid'] = array('#type' => 'value',
+			'#value' => $fid,
+		  );		  
+		$form['edit']['groupname'] = array(
+		  '#title' => 'Group Name ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 200,
+		//  '#required' => true,
+		  '#default_value' => $field->group_name,
+		);
+
+		$form['edit']['groupdesc'] = array(
+		  '#title' => 'Group Desc ',
+		  '#type' => 'textfield',
+		  '#size' => 120,
+		  '#maxlength' => 500,
+		  '#default_value' => $field->group_description,
+		);
+
+
+	 $form['edit']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Edit Group'),
+                '#prefix' => '<br/><br/><br/><br/><br/><br/>',                                                 
+	  );
+	 $form['edit']['buttons']['cancel'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+	  
+	$form['edit']['buttons']['submit']['#attributes']['class']  = $form['edit']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+  
+	  
+	return $form;
+
+}
+
+function group_edit_submit ($form, &$form_state) {
+
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'groups/list';
+		  return;	
+	} 
+	
+	$groupId = $form_state['values']['groupid'];
+	$groupName = $form_state['values']['groupname'];
+	$groupDesc = $form_state['values']['groupdesc'];
+
+		db_set_active('qtxt_db');
+
+			$groupName = str_replace("'", "''", $groupName);
+			$groupDesc = str_replace("'", "''", $groupDesc);
+			
+		db_query("update {cce_groups} set group_name =upper('%s'), group_description = '%s' WHERE group_id = %d ", $groupName, $groupDesc, $groupId);
+		
+		db_set_active('default');
+
+		drupal_set_message(t('The Group Name  %field has been updated.', array('%field' => $form_state['values']['groupname'])));
+
+		cache_clear_all();
+  		unset ( $_SESSION['group_filter_value'] );
+
+		$form_state['redirect'] = 'groups/list';
+		return;
+}
+
+function group_edit_validate ($form, &$form_state) {
+
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  return;	
+	} 
+    $groupId = $form_state['values']['groupid'];
+	$groupName = $form_state['values']['groupname'];
+	$groupDesc = $form_state['values']['groupdesc'];
+
+	if ( $groupName == "") {
+		form_set_error('', t('Group Name field is required.'));
+	}			
+	
+	$groupName = trim(strtoupper($groupName));
+
+	
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT group_name, group_description FROM {cce_groups} WHERE upper(group_name) = '%s' and  group_id != %d", $groupName, $groupId));
+		db_set_active('default');
+
+		if ($field) {
+				form_set_error('', t('Group already exists'));
+		}	
+			
+	/*
+ db_set_active('qtxt_db');
+$field = db_fetch_object(db_query("SELECT group_name,group_description FROM cce_groups where group_id = %d ",$groupId));
+$gname=$field->group_name;
+$gdesc=$field->group_description;
+if($gname == $groupName)
+{
+form_set_error('', t('Code has been already exists'));
+              
+}
+if($gdesc == $groupDesc)
+{
+form_set_error('', t('Code has been already exists'));
+}
+*/
+}
+
+
+
+function group_delete(&$form_state, $fid) {
+
+
+  
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT group_name, group_description FROM {cce_groups} WHERE group_id = %d", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+
+		  $form['groupid'] = array('#type' => 'value', '#value' => $fid);
+		  $form['grouptitle'] = array('#type' => 'value', '#value' => $field->group_name);
+		  $form['groupdesc'] = array('#type' => 'value', '#value' => $field->group_description);
+
+		  return confirm_form($form,
+			t('Are you sure you want to delete the Group Name %field?', array('%field' => $field->group_name)), 'groups',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('groups/edit/'. $fid))),
+			t('Delete'), t('Cancel'));
+		}
+
+/**
+ * Process a field delete form submission.
+ */
+function group_delete_submit($form, &$form_state) {
+		db_set_active('qtxt_db');
+		db_query('DELETE FROM {cce_groups} WHERE group_id = %d', $form_state['values']['groupid']);
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The Group Name  %field has been deleted.', array('%field' => $form_state['values']['grouptitle'])));
+  		unset ( $_SESSION['group_filter_value'] );
+		$form_state['redirect'] = 'groups/list';
+		return;
+}
+function group_delete_validate($form, &$form_state) {
+ $op = $form_state['values']['op'];
+  
+	
+    $groupId = $form_state['values']['groupid'];
+	$groupName = $form_state['values']['groupname'];
+	$groupDesc = $form_state['values']['groupdesc'];
+	
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT group_id FROM {cce_assesment_types} WHERE  group_id != %d", $groupId));
+	
+		db_set_active('default');
+
+		if ($field) {
+				form_set_error('', t('You cant able to delete this group, since assessment were already defined to that group'));
+		}	
+			
+}
+
+function cce_group($callback_arg = '') {
+/*
+        $output = drupal_get_form('group_filter_form');
+        $output .= drupal_get_form('group_details');
+  return $output;
+  */
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+    case t('Create Group'):
+    case 'create':
+	case 'Cancel':
+      $output = drupal_get_form('group_create');
+      break;
+
+	  default:
+      if (!empty($_POST['groups']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+        $output = drupal_get_form('group_multiple_delete_confirm');
+      }
+      else {
+        $output = drupal_get_form('group_filter_form');
+        $output .= drupal_get_form('group_details');
+      }
+  }
+  return $output;
+  
+}
+
+function group_create() {
+
+		$form['create']['groupname'] = array(
+		  '#title' => 'Group Name ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 200,
+		//  '#required' => true,
+		);
+
+		$form['create']['groupdesc'] = array(
+		  '#title' => 'Group Desc ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 500,
+		);
+
+
+	 $form['create']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Create Group'), 
+                '#prefix' => '<br/>',                                                
+	  );
+	 $form['create']['buttons']['cancel'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+$form['create']['buttons']['submit']['#attributes']['class']  = $form['create']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+	return $form;
+
+}
+
+function group_create_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'groups/list';
+		  return;	
+	} 
+	$groupName = $form_state['values']['groupname'];
+	$groupDesc = $form_state['values']['groupdesc'];
+	
+//	drupal_set_message("Group Name - $groupName ");	
+	
+
+
+		
+			$groupName = str_replace("'", "''", $groupName);
+			$groupDesc = str_replace("'", "''", $groupDesc);
+			
+			$groupName = trim($groupName);	
+			
+
+			global $user;
+			$uid=$user->uid;
+			db_set_active('qtxt_db');
+			$sql = "select account_id from {cce_account_admin} where drupal_uid=$uid "   ; 
+
+			$resultg2 = db_query($sql);	  
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$cceArray =  $rowg2->account_id ; 
+			}
+			db_set_active('default');
+			$cceaccountid=$cceArray;
+			//drupal_set_message("accountid:$cceaccountid");
+			
+			db_set_active('qtxt_db');		
+		
+			$result = db_query( "INSERT INTO `cce_groups`  (`group_id`,  `group_name`,  `group_description`,  `creation_date`,  `update_date`,  `created_by`,  `updated_by`,`account_id`)  
+VALUES  (  null,upper('$groupName'),  '$groupDesc',  sysdate(),  sysdate(),  'admin',  'admin' ,$cceaccountid)");
+			db_set_active('default');
+			drupal_set_message(t("Group $groupName is created."));	
+
+			unset ( $_SESSION['group_filter_value'] );
+			
+		  $form_state['redirect'] = 'groups/list';
+		  return;
+
+}
+
+function group_create_validate ($form, &$form_state) {
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		 // $form_state['redirect'] = 'groups/list';
+		  return;	
+	} 
+
+	$groupId = $form_state['values']['groupid'];
+	$groupName = $form_state['values']['groupname'];
+	$groupDesc = $form_state['values']['groupdesc'];
+
+	if ( $groupName == "") {
+		form_set_error('', t('Group Name field is required.'));
+	}		
+	
+	$groupName = trim(strtoupper($groupName));
+
+	
+	
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT group_name, group_description FROM {cce_groups} WHERE upper(group_name) = '%s' ", $groupName));
+		db_set_active('default');
+
+		if ($field) {
+				form_set_error('', t('Group already exists'));
+		}	
+		
+	
+//	$gname=$field->group_name;
+//	$gdesc=$field->group_description;
+//	if($gname == $groupName)
+//	{
+//	form_set_error('', t('Code has been already exists'));
+//	}
+
+}
+
+
+
+
+
+/**
+ * Form builder; Return form for user administration filters.
+ *
+ * @ingroup forms
+ * @see user_filter_form_submit()
+ */
+function group_filter_form() {
+
+			
+	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only Groups where'),
+
+	  );
+
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select group_name , group_id  from {cce_groups} a  " );
+
+		$options = array('' => t('Select..'));
+
+		$c2Val = "";
+		if(!empty($_SESSION['group_filter_value'])) {
+			$c2Val = &$_SESSION['group_filter_value'];
+		} else {
+			$c2Val = "";
+		}
+		
+		while ($row = db_fetch_object($result)) {
+				$options[$row->group_id ] =  $row->group_name; 
+		}
+
+		db_set_active('default');	 
+		
+
+		$form['filters']['group'] = array(
+		  '#title' => 'Groups  like ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 128,
+		  '#default_value' => $c2Val,
+		);
+
+
+
+	 $form['filters']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Filter'),
+                '#prefix' => '<br/>',                                                 
+	  );
+ $form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+	return $form;
+       
+
+
+}
+
+
+
+function group_filter_form_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+//  drupal_set_message("Filter Form Submit Operamd - $op ");	  
+  switch ($op) {
+    case t('Filter'): 
+
+
+      if (isset($form_state['values']['group'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['group'];
+			$_SESSION['group_filter_value'] = $form_state['values']['group'];
+	  }
+	  
+      break;
+  }
+  
+  $form_state['redirect'] = 'groups';
+  return;
+}
+
+
+
+function group_details($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+	t('Operations'),
+  );
+
+$clVal = &$_SESSION['group_filter_value'] ;
+// drupal_set_message(t("Class Filter 1 - $clVal"));	
+
+  
+$filterClass = "";
+    if ( $clVal != "" ) {
+		$clVal = strtoupper($clVal);
+			$filterClass = " and upper(b.group_name) like '%$clVal%' ";
+	} else {
+			$filterClass = " and b.group_name = b.group_name ";
+	}
+
+  db_set_active('qtxt_db');	
+  $sql = "select b.group_name, b.group_description, b.group_id  from  {cce_groups} b  where 1 = 1  " . $filterClass  ." order by 1 , 2 " ; 
+    $query_count = "select COUNT(group_id) from  {cce_groups} b  where 1 = 1 " . $filterClass  ;
+
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+  db_set_active('default');
+
+/*  
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Group Information'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+//    $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+
+  );
+*/
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+
+  $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->group_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+    $form['access']['groupname'][$account->group_id] = array('#value' => $account->group_name);
+    $form['access']['groupdesc'][$account->group_id] =  array('#value' => $account->group_description);
+    $form['access']['groupid'][$account->group_id] =  array('#value' => $account->group_id);
+	$form['access']['operations'][$account->group_id] = array('#value' => l(t('edit'), "groups/edit/$account->group_id", array('query' => $destination)));	
+	$form['access']['operations2'][$account->group_id] = array('#value' => l(t('delete'), "groups/delete/$account->group_id", array('query' => $destination)));	
+	$i = $i + 1;
+  }
+// db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'group_description_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function v3_cce_groups_theme() {
+	return array(
+		'group_description_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_group_description_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['groupid']) as $key) {
+	$row = array(); 
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+       $row[] =  drupal_render($form['access']['groupname'][$key]);
+       $row[] =  drupal_render($form['access']['groupdesc'][$key]);
+       $row[] =  drupal_render($form['access']['groupid'][$key]);
+       $row[] =  drupal_render($form['access']['operations'][$key]);	   
+       $row[] =  drupal_render($form['access']['operations2'][$key]);	   
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+//			$header = array( theme('table_select_header_cell'), t('Group Name'), t('Group Desc'), t('Group Id') );
+				$header = array(  t('Group Name'), t('Group Desc'), t('Group Id') );
+				
+				  $header[] = array('data' => t('Operations'), 'colspan' => 2);
+  }
+  else{
+    $header = array(t('Group Name'), t('Group description')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No groups were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//$output .= drupal_render($form['options']); 
+// $output .= drupal_render($form['options']['submit']); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+

@@ -1,0 +1,1782 @@
+<?php
+function v3_route_stops_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_route_stops'),
+  );
+}
+/*
+function v3_route_stops_help($path, $arg) {
+  global $user;
+// drupal_add_js( drupal_get_path('MODULE', 'v3_route_stops').'/cceScholDesc.js' );
+  switch ($path) {
+    case 'scholdesc':
+      return '<p>'. t('Define a scholastic descriptors for the scholastic assessment categories. If all the default values has been defined, then we can create our own descriptors') .'</p>';
+	
+	}
+  
+}  
+*/
+function v3_route_stops_menu() {
+	$items['routestops'] = array(
+    'title' => 'Add Route Stops',
+    'description' => 'List, add, and edit Route Stops.',
+    'page callback' => 'v3_busroute',
+    'page arguments' => array('list'),
+    // 'access arguments' => array('administer users'),
+	'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+		'access arguments' => array('access content'),		
+	);
+
+  $items['routestops/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+    'weight' => -10,
+  );
+  $items['routestops/create'] = array(
+    'title' => 'Add New Route And Stops',
+    'page arguments' => array('create'),
+    // 'access arguments' => array('administer users'),
+    'type' => MENU_LOCAL_TASK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );	
+
+	$items['routestops/create/next'] = array(
+    'title' => 'Routes And Stops',
+    'description' => 'Routes And Stops',
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('busroute_next_create'),	
+   // 'access arguments' => array('administer users'),
+    'weight' => 0,
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+	);  
+ 
+  
+  $items['routestops/edit'] = array(
+    'title' => 'Edit Routes And Stops',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('busroute_edit'),
+    // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+  $items['routestops/delete'] = array(
+    'title' => 'Delete Routes And Stops',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('busroute_delete'),
+   // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );  
+
+   $items['routestops/studentlist'] = array(
+    'title' => 'List Student Bus Details',
+    'page arguments' => array('studentlist'),
+    // 'access arguments' => array('administer users'),
+	'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),
+		
+  );
+/* 
+$items['routestops/studentlist/ind/ahahjs2'] = array(
+        'page callback' => 'busroute_student_ahah_field_js_for_ind3',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  ); 
+*/ 
+$items['routestops/studentlist/edit'] = array(
+    'title' => 'Edit Student And Bus Details',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('busroute_student_edit'),
+    // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+  $items['routestops/studentlist/delete'] = array(
+    'title' => 'Delete Student And Bus Details',
+    'page callback' => 'drupal_get_form',
+	'page arguments' => array('busroute_studentlist_delete'),
+   // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );  
+$items['routestops/studentlist_create'] = array(
+    'title' => 'Add Student Bus Details',
+    'page arguments' => array('studentlist_create'),
+    // 'access arguments' => array('administer users'),
+	'weight' => 4,
+    'type' => MENU_LOCAL_TASK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );	
+  
+  $items['routestops/studentlist_create/ind/ahahjs2'] = array(
+        'page callback' => 'busroute_studentlist_ahah_field_js_for_ind2',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+  
+  $items['routestops/studentlist_create/from/ind/ahahjs3'] = array(
+        'page callback' => 'busroute_student_from_stops_ahah_field_js_for_ind3',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+$items['routestops/studentlist_create/to/ind/ahahjs4'] = array(
+        'page callback' => 'busroute_student_to_stops_ahah_field_js_for_ind4',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+
+return $items;
+}
+
+function busroute_edit(&$form_state, $fid) {
+		db_set_active('qtxt_db');
+
+$field = db_fetch_object(db_query("select route_number,route_description,stop_name,stop_description,stop_weight,account_route_id,route_stop_id from {qtxt_sms_route_stops_details_v3} b WHERE route_stop_id = %d ", $fid));
+
+
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+		  $form['route_stop_id'] = array('#type' => 'value',
+			'#value' => $fid,
+		  );		  
+
+		$form['userdefinedroute'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter Your Route'),
+			'#title' => t('Route Name'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->route_number,
+		);	
+
+        $form['userdefinedroutedesc'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter Your Route Description'),
+			'#title' => t('Route Description'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->route_description,
+		);			
+
+		$form['userdefinedstop'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter Your Stop'),
+			'#title' => t('Stop Name'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->stop_name,				  
+		);
+$form['userdefinedstopdesc'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter Your Stop Description'),
+			'#title' => t('Stop Description'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->stop_description,				  
+		);
+$form['userdefinedstopweight'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter Your Stop Weight'),
+			'#title' => t('Stop Weight'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->stop_weight,				  
+		);
+        
+		$form['userdefinedrouteid'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $field->account_route_id,
+		);			
+
+		$form['userdefinedstopid'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $field->route_stop_id,				  
+		);
+
+
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Edit Route And Stops'),                                                 
+	  );
+ $form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+
+	return $form;
+		
+
+
+}
+
+function busroute_edit_submit ($form, &$form_state) {
+$op = $form_state['values']['op'];
+ // drupal_set_message(t("$op"));  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'routestops/list';
+		  return;	
+	} 
+	
+
+		
+	$routeNumber = $form_state['values']['route_stop_id'];
+	
+	$userdefinedroute = $form_state['values']['userdefinedroute'];
+	$userdefinedroutedesc = $form_state['values']['userdefinedroutedesc'];
+	$userdefinedstop = $form_state['values']['userdefinedstop'];
+	$userdefinedstopdesc = $form_state['values']['userdefinedstopdesc'];
+	$userdefinedstopweight = $form_state['values']['userdefinedstopweight'];
+	$userdefinedrouteid = $form_state['values']['userdefinedrouteid'];
+	$userdefinedstopid = $form_state['values']['userdefinedstopid'];
+      drupal_set_message(t("Route : $userdefinedroute"));
+      drupal_set_message(t("Route Desc : $userdefinedroutedesc"));
+      drupal_set_message(t("Stop : $userdefinedstop"));
+	  drupal_set_message(t("Stop Desc : $userdefinedstopdesc"));
+	  drupal_set_message(t("Stop Weight : $userdefinedstopweight"));
+      drupal_set_message(t("Route Id : $userdefinedrouteid"));
+      drupal_set_message(t("Stop Id :  $userdefinedstopid"));
+     
+	
+
+    $userdefinedroute = str_replace("'", "''", $userdefinedroute);
+	$userdefinedroutedesc = str_replace("'", "''", $userdefinedroutedesc);		
+    $userdefinedstop = str_replace("'", "''", $userdefinedstop);
+	$userdefinedstopdesc = str_replace("'", "''", $userdefinedstopdesc);
+
+			
+		db_set_active('qtxt_db');
+		
+		
+	
+		db_query("update {qtxt_sms_account_routes} set  route_number = '%s', route_description = '%s'  WHERE account_route_id = %d ", $userdefinedroute, $userdefinedroutedesc,$userdefinedrouteid);
+
+			
+		db_query("update {qtxt_sms_route_stops} set  stop_name = '%s', stop_description = '%s',stop_weight = %d  WHERE route_stop_id = %d ", $userdefinedstop, $userdefinedstopdesc,$userdefinedstopweight,$userdefinedstopid);
+
+			
+	
+		db_set_active('default');
+
+		drupal_set_message(t('The Routes And Stops  %field has been updated.', array('%field' => $form_state['values']['userdefinedroute'])));
+
+		cache_clear_all();
+  		unset ( $_SESSION['t_route'] );
+  	//	unset ( $_SESSION['scholAccountGradeId'] );
+  	//	unset ( $_SESSION['scholAssessmentName'] );
+  	//	unset ( $_SESSION['scholAssessmentCategory'] );
+
+		$form_state['redirect'] = 'routestops/list';
+		return;
+}
+
+function busroute_delete(&$form_state, $fid) {
+
+
+  
+		db_set_active('qtxt_db');
+	//	$field = db_fetch_object(db_query("SELECT descriptor_name, assessment_category_type, assessment_name  FROM {cce_schol_assesment_cat_det_descriptor_v} WHERE assessment_cat_det_descriptor_id = %d", $fid));
+		
+		$field = db_fetch_object(db_query("select route_number,route_description,stop_name,stop_description,stop_weight,account_route_id,route_stop_id from {qtxt_sms_route_stops_details_v3} b WHERE route_stop_id = %d ", $fid));
+		
+		
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+          $form['delroutestopid'] = array('#type' => 'value', '#value' => $fid);
+		  $form['delroutenumber'] = array('#type' => 'value', '#value' => $field->route_number);
+		  $form['delstopname'] = array('#type' => 'value', '#value' => $field->stop_name);
+		//  $form['scholassessname'] = array('#type' => 'value', '#value' => $field->assessment_name);
+		
+/*
+  $form['scholdescid'] = array('#type' => 'value', '#value' => $fid);
+		  $form['scholdescname'] = array('#type' => 'value', '#value' => $field->descriptor_name);
+		  $form['scholcategtype'] = array('#type' => 'value', '#value' => $field->assessment_category_type);
+		  $form['scholassessname'] = array('#type' => 'value', '#value' => $field->assessment_name);
+		 // $form['groupdesc'] = array('#type' => 'value', '#value' => $field->group_description);
+  return confirm_form($form,
+			t('Are you sure you want to delete the Descriptor Name -  %field  defined for Assessment Name %field2 and category type %field3 ?', array('%field' => $field->descriptor_name, '%field2' => $field->assessment_name, '%field3' => $field->assessment_category_type)), 'scholdesc',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('scholdesc/edit/'. $fid))),
+			t('Delete'), t('Cancel'));
+
+*/
+		  return confirm_form($form,
+			t('Are you sure you want to delete the Route -  %field  defined for Stop %field2 ?', array('%field' => $field->route_number, '%field2' => $field->stop_name)), 'routestops',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('routestops/edit/'. $fid))),
+			t('Delete'), t('Cancel'));
+		}
+
+/**
+ * Process a field delete form submission.
+ */
+function busroute_delete_submit($form, &$form_state) {
+		db_set_active('qtxt_db');
+		db_query('DELETE FROM {qtxt_sms_route_stops} WHERE route_stop_id = %d', $form_state['values']['delroutestopid']);
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The Stop %field2 has been deleted.', array('%field2' => $form_state['values']['delstopname'])));
+  		unset ( $_SESSION['t_route'] );
+  //		unset ( $_SESSION['scholAccountGradeId'] );
+  	//	unset ( $_SESSION['scholAssessmentName'] );
+  	//	unset ( $_SESSION['scholAssessmentCategory'] );
+		
+		$form_state['redirect'] = 'routestops/list';
+		return;
+}
+
+
+function v3_busroute($callback_arg = '') {
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+//    case t('Add Stops'):
+    case t('Add Stops'):	
+    case 'create':
+      $output = drupal_get_form('busroute_create');
+      break;
+
+	  case t('Add Student'):	
+    case 'studentlist_create':
+      $output = drupal_get_form('busroute_studentlist_create');
+      break;
+
+    case t('Apply'):
+   case 'studentlist':
+	  $output = drupal_get_form('busroute_student_filter_form');
+      $output .= drupal_get_form('busroute_student_details');
+      break;
+	  
+
+	  default:
+      if (!empty($_POST['routestops']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+        $output = drupal_get_form('group_multiple_delete_confirm');
+      }
+      else {
+        $output = drupal_get_form('busroute_filter_form');
+        $output .= drupal_get_form('busroute_details');
+//		$output .= drupal_get_form('busroute_student_details');
+      }
+  }
+  return $output;
+  
+}
+
+
+function busroute_create() {
+
+		$form['rname'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter The Route Name'),
+		//	'#default_value' => 5,
+			'#title' => t('Route Name'),
+		);			
+
+	$form['rnamedesc'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter The Route Description'),
+		//	'#default_value' => 5,
+			'#title' => t('Route Description'),
+		);			
+
+		
+				
+		//$catOptions = array( '' => t('Select the Assessment Category Detail') );
+
+		$form['numrows'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter Number of assessment descriptors you want to create'),
+			'#default_value' => 1,
+			'#title' => t('Number of Stops'),
+		);			
+		
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Add Stops'),                                                 
+	  );
+
+	return $form;
+
+		
+}
+
+/*
+function busroute_create_validate($form, &$form_state) {
+  if ($form_state['values']['group'] == '') {
+    form_set_error('', t('You must select a Group Name.'));
+  }
+  if ($form_state['values']['groupfields']['assessname'] == '') {
+    form_set_error('', t('You must select an Assessment Name.'));
+  }  
+	$default_list = $form_state['values']['groupfields']['default_list'];  
+	$new_array = array_values($default_list); 		
+	foreach($new_array as $key => $value) {
+	  if($value == "") {
+		unset($new_array[$key]);
+	  }
+	}
+	$final_array = array_values($new_array); 	
+	$finalcount= count(	$final_array );
+	if ( $finalcount < 1 ) {
+	    form_set_error('', t('You must select at least one class'));
+	}
+
+
+  if ( ($form_state['values']['numrows'] == '' ) || ($form_state['values']['numrows'] < 1  ) || ($form_state['values']['numrows'] > 20  )) {
+    form_set_error('', t('You must enter a value between 1 and 20.'));
+  } 
+		
+}	
+*/
+function busroute_create_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+  
+	$routename = $form_state['values']['rname'];
+    $routenamedesc = $form_state['values']['rnamedesc'];
+	$totalrows =  $form_state['values']['numrows'];
+
+	$_SESSION['route_name'] = $routename;	
+	$_SESSION['route_description'] = $routenamedesc;	
+	$_SESSION['num_rows'] = $totalrows;	
+	
+	
+	
+	 
+		  $form_state['redirect'] = 'routestops/create/next';
+		  return;
+}
+
+// function busroute_next_create() {
+function busroute_next_create_test(&$form_state, $fid) {
+		$route_name = &$_SESSION['route_name'] ;		
+		$num_rows = &$_SESSION['num_rows'];
+		
+	 $form['buttons']['submit1'] = array(                                                          
+		'#type' => 'button',
+		'#value' => t('Add New Row'), 
+		'#name' => "check",
+	  );
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Add Stops'),                                                 
+	  );
+
+
+	return $form;
+}
+
+//function scholdesc_next_create_test(&$form_state, $fid) {
+function busroute_next_create() {
+
+		$route_name = &$_SESSION['route_name'] ;		
+		$route_namedesc = &$_SESSION['route_description'] ;		
+		$num_rows = &$_SESSION['num_rows'];
+		
+//		drupal_set_message(t("Route Name - $route_name"));			
+//		drupal_set_message(t("No Of Rows - $num_rows"));			
+		
+
+		$form['access'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Access log settings'),
+		'#tree' => TRUE,
+		'#visible' => false,	   
+		 );			
+
+		$i = 1;
+		while( $i < ($num_rows +1 )) {
+		
+		$form['access']['sstop'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please Enter The Start Stop'),
+			//		'#options'=> $subjectOptions,
+					'#title' => t('Start Stop'),
+				);		
+						 
+				 
+		$form['access']['estopdesc'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please Enter Stop Description'),
+			//		'#options'=> $valueg,
+					'#title' => t('Stop Description'),
+				);
+
+        $form['access']['stopweight'][$i] = array(
+					'#type' => 'textfield',
+					'#description' => t('Please Enter The Weight Of The Stop'),
+			//		'#options'=> $valueg,
+					'#title' => t('Stop Weight'),
+			        '#size' => 10,
+		        	'#maxlength' => 10,
+				);
+
+				$form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+				
+				$i = $i + 1;
+		}
+	$form['#theme'] = 'test_form_busroute_theme';  
+
+	$form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Add Stops'),                                                 
+	  );
+
+$form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+	return $form;
+
+}
+
+function busroute_next_create_submit($form, &$form_state) {
+$op = $form_state['values']['op'];
+if($op == "Cancel")
+{
+ $form_state['redirect'] = 'routestops/create';
+		  return;
+}
+		$route_name = &$_SESSION['route_name'] ;
+		$route_namedesc = &$_SESSION['route_description'] ;
+		$num_rows = &$_SESSION['num_rows'];
+
+		drupal_set_message(t("Route Name - $route_name"));	
+        drupal_set_message(t("Route Description - $route_namedesc"));			
+		drupal_set_message(t("No Of Rows - $num_rows"));			
+		/*
+		// derive classs		
+		$new_array = array_values($default_list); 		
+		foreach($new_array as $key => $value) {
+		  if($value == "") {
+			unset($new_array[$key]);
+		  }
+		}
+		
+		$final_array = array_values($new_array); 	
+		$finalcount= count(	$final_array );
+		$comma_separated = implode(",", $final_array);
+
+*/
+		
+		$sstopArray = array();
+		$estopdescArray = array();
+        $stopweightArray = array();
+		
+
+
+		
+	if ( isset( $form_state['clicked_button']['#post']['access']['sstop']) ) {
+	$sstopArray = $form_state['clicked_button']['#post']['access']['sstop'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['estopdesc']) ) {
+	$estopdescArray = $form_state['clicked_button']['#post']['access']['estopdesc'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['stopweight']) ) {
+	$stopweightArray = $form_state['clicked_button']['#post']['access']['stopweight'];
+	}
+	
+	db_set_active('qtxt_db');	
+					db_query( "INSERT INTO `qtxt_sms_account_routes`(`account_route_id`,`route_number`,`route_description`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`account_id`,`route_type`)VALUES(null,'$route_name','$route_namedesc',sysdate(),sysdate(),'School Admin','School Admin',5,'Null')" ); 
+					
+					
+					$resultnAccountRouteId = db_query("select account_route_id from `qtxt_sms_account_routes` where route_number = '$route_name' and route_description = '$route_namedesc' ");
+
+     $nAccountRouteId = array( );
+	while ( $row = db_fetch_object( $resultnAccountRouteId ) ) {
+		$nAccountRouteId = $row->account_route_id;
+	}
+	
+					
+					
+	db_set_active('default');	
+	
+	$a = 1;
+	foreach ( $sstopArray as $key => $value ) {
+			//db_set_active('qtxt_db');	
+
+			$sstopa = $sstopArray[$key] ;
+			$estopdesca = $estopdescArray[$key] ;
+			$sweight = $stopweightArray[$key] ;
+		
+	 drupal_set_message( t( "CLicked button Set"));
+		 drupal_set_message(t("Combo2 *** $a :  $sstopa  ---  $estopdesca -- $sweight"));
+		 
+		 db_set_active('qtxt_db');	
+					
+db_query( "INSERT INTO `qtxt_sms_route_stops`(`route_stop_id`,`account_route_id`,`stop_name`,`stop_description`,`stop_weight`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`)VALUES(null,$nAccountRouteId,'$sstopa','$estopdesca','$sweight',sysdate(),sysdate(),'School Admin','School Admin');
+"); 					
+					db_set_active('default');	
+		
+/*
+			
+			if ( ($assesscatdetlistId != "") && ($subjectId != "") && ($nonserassessdate != "") && ($name != "") && ($maxmarks != "" ) && ($finalcount > 0)) {
+				$fromDateExp = "$nonserassessdate[year]-$nonserassessdate[month]-$nonserassessdate[day]";
+				db_set_active('qtxt_db');
+					$field = db_fetch_object(db_query("select assessment_category_code, assessment_category_type, assessment_type_code from cce_assesment_category_details where assessment_category_detail_id = %d", $assesscatdetlistId));
+				db_set_active('default');
+
+				if (!$field) {
+					drupal_not_found();
+					return;
+				  }	
+				$asscategcode = $field->assessment_category_code;
+				$asscategtype = $field->assessment_category_type;		
+				$asstypecode = $field->assessment_type_code;
+				foreach ( $final_array as $k => $v) {
+					db_set_active('qtxt_db');	
+					$result = db_query( "INSERT INTO `cce_assesment_cat_det_descriptor` (`assessment_cat_det_descriptor_id`,  `assessment_category_detail_id`,  `assessment_category_code`,  `assessment_category_type`,  `descriptor_name`,  `max_marks`,  `descriptor_description`,  `category_short_code`,  `category_order`,  `assessment_id`,  `assessment_type_code`,  `creation_date`,  `update_date`,  `created_by`,  `updated_by`,  `subject_id`,  `subject_name`,  `assessment_date`,  `account_grade_id`,  `master_assessment_cat_det_descriptor_id`)  VALUES  (  null ,  $assesscatdetlistId,  '$asscategcode' ,  '$asscategtype',  '$name',  $maxmarks,  '$name' , '$name',  $a,   $assessId,  '$asstypecode',  sysdate(),   sysdate(),   'admin',   'admin', $subjectId,  null,  '$fromDateExp' ,  $v,  null  )");  
+					db_set_active('default');	
+				}
+			}
+			*/
+			$a = $a + 1;
+	}
+	
+	drupal_set_message(t("Your Route and Stops have been inserted successfully."));	
+	unset ( $_SESSION['t_route'] );
+//  		unset ( $_SESSION['scholAccountGradeId'] );
+//  		unset ( $_SESSION['scholAssessmentName'] );
+//  		unset ( $_SESSION['scholAssessmentCategory'] );
+	
+    $form_state['redirect'] = 'routestops/list';
+	return;
+}
+
+
+function v3_route_stops_theme() {
+	return array(
+		'test_form_busroute_theme' => array('arguments'=> array('form' => NULL),),
+		'busroute_theme' => array('arguments'=> array('form' => NULL),),
+		'student_busroute_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_test_form_busroute_theme($form)
+{
+	$rows = array();
+	$i = 1;
+	foreach(element_children($form['access']['index']) as $key) {
+		$row = array(); 
+		   $row[] =  drupal_render($form['access']['sstop'][$key]);
+		   $row[] =  drupal_render($form['access']['estopdesc'][$key]);
+		   $row[] =  drupal_render($form['access']['stopweight'][$key]);
+		   $row[] =  drupal_render($form['access']['index'][$key]);
+		   $rows[] = $row; 
+		$i = $i +1 ;
+	}
+  if(count($rows)){
+				$header = array(
+					t('Start Stop'), t('Stop Description'), t('Stop Weight') );
+	  }
+  else{
+    $header = array(t('First Name'), t('Last Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+ $form['access']['#access'] = false;
+return $output . drupal_render($form); 
+}  
+
+
+
+/**
+ * Form builder; Return form for user administration filters.
+ *
+ * @ingroup forms
+ * @see user_filter_form_submit()
+ */
+function busroute_filter_form() {
+
+			
+//	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only Routes where'),
+		'#tree' => TRUE,
+	  );
+
+	  db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT distinct account_route_id,route_stop_id,route_number from qtxt_sms_route_details_v3 where account_id = 5");
+		$accessOptions = array( '' => t('Select The Route') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->account_route_id] = $row->route_number; 
+		}
+		db_set_active('default');
+		
+		$form['filters']['route'] = array( '#type' => 'select',
+			'#description' => t('Please Select The Route'),
+			'#options'=> $accessOptions,
+			'#title' => t('Route'),
+			'#disabled' => FALSE,
+							
+		);
+		
+
+	 $form['filters']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Filter'),                                                 
+	  );
+
+	return $form;
+
+}
+
+
+
+function busroute_filter_form_submit($form, &$form_state) {
+
+
+$_SESSION['t_route'] = $form_state['values']['filters']['route'];
+
+	if(!empty($_SESSION['t_route'])) {
+
+		$grade = &$_SESSION['t_route'];
+
+	} else {
+
+		$grade = "";
+
+	}
+
+
+  $form_state['redirect'] = 'routestops';
+  return;
+}
+
+
+
+function busroute_details($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+	t('Operations'),
+  );
+
+
+$c2Val = &$_SESSION['t_route'] ;
+
+
+ // drupal_set_message(t("student - $clVal"));	
+
+
+
+ // drupal_set_message(t("grade - $c2Val"));	
+
+
+$filterClass = "";
+
+    if ( $c2Val != "" ) {
+
+			$filterClass = " and b.account_route_id = $c2Val ";
+			 drupal_set_message(t("Inside of filter : $filterClass"));
+	} else {
+			$filterClass = " and b.account_route_id = b.account_route_id ";
+			 drupal_set_message(t("Outside of filter : $filterClass"));
+	}
+	
+  db_set_active('qtxt_db');	
+  $sql = "select route_number,route_description,stop_name,stop_description,route_number,stop_weight,route_stop_id from  {qtxt_sms_route_stops_details_v3} b where account_id = 5 " . $filterClass   ; 
+    $query_count = "select COUNT(route_stop_id) from {qtxt_sms_route_stops_details_v3} b where account_id = 5 " . $filterClass ;
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+  db_set_active('default');
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+
+  $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->route_stop_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+
+// $form['access']['rnum'][$account->route_stop_id] =  array('#value' => $account->route_number);
+
+ $form['access']['rnumdesc'][$account->route_stop_id] =  array('#value' => $account->route_description);
+
+	$form['access']['sname'][$account->route_stop_id] =  array('#value' => $account->stop_name);
+
+	$form['access']['snamedesc'][$account->route_stop_id] =  array('#value' => $account->stop_description);
+
+  $form['access']['sweight'][$account->route_stop_id] =  array('#value' => $account->stop_weight);
+
+    $form['access']['rnum'][$account->route_stop_id] =  array('#type' => 'hidden','#value' => $account->route_stop_id);
+   
+   $form['access']['operations'][$account->route_stop_id] = array('#value' => l(t('edit'), "routestops/edit/$account->route_stop_id", array('query' => $destination)));	
+
+
+	$form['access']['operations2'][$account->route_stop_id] = array('#value' => l(t('delete'), "routestops/delete/$account->route_stop_id", array('query' => $destination)));	
+	$i = $i + 1;
+  }
+// db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'busroute_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function theme_busroute_theme($form)
+{
+$rows = array();
+$i = 1;
+
+foreach(element_children($form['access']['rnum']) as $key) {
+	$row = array(); 
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+
+       $row[] =  drupal_render($form['access']['rnumdesc'][$key]);
+
+       $row[] =  drupal_render($form['access']['sname'][$key]);
+
+	   $row[] =  drupal_render($form['access']['snamedesc'][$key]);
+
+       $row[] =  drupal_render($form['access']['sweight'][$key]);
+ 
+	   $row[] =  drupal_render($form['access']['operations'][$key]);	
+       $row[] =  drupal_render($form['access']['operations2'][$key]);	   
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+
+
+if(count($rows)){
+				
+				$header = array( ('Route Description'), t('Stop Name'),t('Stop Description'), t('Stop Weight') );
+
+				$header[] = array('data' => t('Operations'), 'colspan' => 2);
+  }
+  else{
+    $header = array(t('Route Name '), t('Stop Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No Routes were Created'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+/*
+function busroute_student_filter_form() {
+
+	$form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only Students where'),
+		'#tree' => TRUE,
+	  );
+	  
+db_set_active('qtxt_db');	
+
+	  
+	  $resultg1 = db_query("SELECT account_grade_id,grade_name FROM {qtxt_sms_account_grades} a, {qtxt_sms_account} b where   a.account_id = b.account_id and section != 'ALL' order by class_weight ");
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->account_grade_id ] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['filters']['stugrade'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('Grade'),
+				  				  		'#description' => t('Please Select The Grade'),
+				  				  		'#disabled' => FALSE,
+				  				  		'#ahah' => array(
+				  				  		 'path' => 'routestops/studentlist/ind/ahahjs2',
+				  				  		 'wrapper' => 'ahah-wrapper-stugrade',
+				  				  		 'method' => 'replace',
+				  				  						)
+				  );
+				  
+				  $form['filters']['studentname'] = array('#type' => 'select',
+				  				  		'#title' => t('Student Name'),
+										'#options' =>  array( '' => t('Select ..') ),
+				  				  		'#description' => t('Please Select The Student'),
+				  				  		'#disabled' => FALSE,
+				  				  	'#prefix' => '<div id = "ahah-wrapper-stugrade">',
+				  					'#suffix' => '</div>',
+				  				  		
+				  );
+				  
+		
+
+	 $form['filters']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Apply'),                                                 
+	  );
+
+	return $form;
+
+}
+
+
+
+function busroute_student_filter_form_submit($form, &$form_state) {
+
+
+$_SESSION['t_stuname'] = $form_state['values']['filters']['stuname'];
+
+	if(!empty($_SESSION['t_stuname'])) {
+
+		$stuname = &$_SESSION['t_stuname'];
+drupal_set_message(t("Inside of filter1 : $stuname"));
+	} else {
+
+		$stuname = "";
+drupal_set_message(t("Inside of filter1 : $stuname"));
+	}
+
+
+  $form_state['redirect'] = 'routestops/studentlist';
+  return;
+}
+
+
+function busroute_student_ahah_field_js_for_ind3 () {
+//  krumo($form_state);
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+
+
+		$gid = $form['#post']['filters']['stugrade'];
+		db_set_active('qtxt_db');
+		$sqlg = " select account_route_student_map_id,student_name from {qtxt_sms_mobile_students_v} where account_grade_id = $gid order by substring(student_name , LOCATE('.', student_name)+1)";
+
+//order by SUBSTRING(student_name, LOCATE('.', student_name)+1)" ;
+
+		$resultg = db_query($sqlg);
+		$valueg[''] = 'Select a value';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->account_route_student_map_id] = $datag->student_name;
+		}
+		db_set_active('default');
+		$form['filters']['studentname']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+		//		$form = form_builder('qtext1_smsform', $form, $form_state);		
+				$output = $form['filters']['studentname'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+}
+
+*/
+
+function busroute_student_filter_form() {
+
+			
+//	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only Students where'),
+		'#tree' => TRUE,
+	  );
+/*	  
+	  db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_grade_id,grade_name from qtxt_sms_route_details_v3 where account_id = 5");
+		$accessOptions = array( '' => t('Select The Grade Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->account_grade_id] = $row->grade_name; 
+		}
+		db_set_active('default');
+		
+		$form['filters']['grade'] = array( '#type' => 'select',
+			'#description' => t('Please Select Grade'),
+			'#options'=> $accessOptions,
+			'#title' => t('Grade Name'),
+			'#disabled' => FALSE,
+							
+		);
+*/
+	  db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT distinct account_route_student_map_id,student_name from qtxt_sms_route_details_v3 where account_id = 5");
+		$accessOptions = array( '' => t('Select The Student Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->account_route_student_map_id] = $row->student_name; 
+		}
+		db_set_active('default');
+		
+		$form['filters']['stuname'] = array( '#type' => 'select',
+			'#description' => t('Please Select The Student'),
+			'#options'=> $accessOptions,
+			'#title' => t('Student Name'),
+			'#disabled' => FALSE,
+							
+		);
+		
+
+	 $form['filters']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Apply'),                                                 
+	  );
+
+	return $form;
+
+}
+
+
+
+function busroute_student_filter_form_submit($form, &$form_state) {
+
+// $_SESSION['t_grade'] = $form_state['values']['filters']['grade'];
+
+$_SESSION['t_stuname'] = $form_state['values']['filters']['stuname'];
+/*	
+	if(!empty($_SESSION['t_grade'])) {
+
+		$grade = &$_SESSION['t_grade'];
+drupal_set_message(t("Inside of filter3 : $grade"));
+	} else {
+
+		$grade = "";
+drupal_set_message(t("Inside of filter3 : $grade"));
+	}
+
+*/
+	if(!empty($_SESSION['t_stuname'])) {
+
+		$stuname = &$_SESSION['t_stuname'];
+drupal_set_message(t("Inside of filter1 : $stuname"));
+	} else {
+
+		$stuname = "";
+drupal_set_message(t("Inside of filter1 : $stuname"));
+	}
+//	unset ( $_SESSION['t_stuname'] );
+
+  $form_state['redirect'] = 'routestops/studentlist';
+  return;
+}
+
+
+
+function busroute_student_details($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+    array('data' => t('Group Name'), 'field' => 'b.standard'),
+    array('data' => t('Group Description'), 'field' => 'b.section'),
+	t('Operations'),
+  );
+
+
+// $c30Val = &$_SESSION['t_grade'] ;
+
+$c20Val = &$_SESSION['t_stuname'] ;
+
+ // drupal_set_message(t("student - $clVal"));	
+
+
+
+ // drupal_set_message(t("grade - $c2Val"));	
+/*
+$filterClass30 = "";
+
+    if ( $c30Val != "" ) {
+
+			$filterClass20 = " and b.account_grade_id = '$c30Val' ";
+			 drupal_set_message(t("Inside of filter : $filterClass30"));
+	} else {
+			$filterClass20 = " and b.account_grade_id = b.account_grade_id ";
+			 drupal_set_message(t("Outside of filter : $filterClass30"));
+	}
+*/
+$filterClass20 = "";
+
+    if ( $c20Val != "" ) {
+
+			$filterClass20 = " and b.account_route_student_map_id = '$c20Val' ";
+			 drupal_set_message(t("Inside of filter : $filterClass20"));
+	} else {
+			$filterClass20 = " and b.account_route_student_map_id = b.account_route_student_map_id ";
+			 drupal_set_message(t("Outside of filter : $filterClass20"));
+	}
+	
+  db_set_active('qtxt_db');	
+  $sql = "select account_route_student_map_id,student_name,grade_name,route_number,stop_name,route_stop_id from  {qtxt_sms_route_details_v3} b where account_id = 5 "  . $filterClass20   ; 
+    $query_count = "select COUNT(account_route_student_map_id) from {qtxt_sms_route_details_v3} b where account_id = 5 " . $filterClass20 ;
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+  db_set_active('default');
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+
+  $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->account_route_student_map_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+  
+// $form['access']['sid'][$account->account_route_student_map_id] =  array('#value' => $account->account_route_student_map_id);
+
+ $form['access']['sname'][$account->account_route_student_map_id] =  array('#value' => $account->student_name);
+
+	$form['access']['gname'][$account->account_route_student_map_id] =  array('#value' => $account->grade_name);
+
+	$form['access']['rnum'][$account->account_route_student_map_id] =  array('#value' => $account->route_number);
+
+  $form['access']['stopname'][$account->account_route_student_map_id] =  array('#value' => $account->stop_name);
+
+$form['access']['rid'][$account->account_route_student_map_id] =  array('#value' => $account->route_stop_id);
+  
+  $form['access']['sid'][$account->account_route_student_map_id] =  array('#type' => 'hidden','#value' => $account->account_route_student_map_id);
+   
+   $form['access']['operations'][$account->account_route_student_map_id] = array('#value' => l(t('edit'), "routestops/studentlist/edit/$account->account_route_student_map_id", array('query' => $destination)));	
+
+
+	$form['access']['operations2'][$account->account_route_student_map_id] = array('#value' => l(t('delete'), "routestops/studentlist/delete/$account->account_route_student_map_id", array('query' => $destination)));	
+	$i = $i + 1;
+  }
+// db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'student_busroute_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function theme_student_busroute_theme($form)
+{
+$rows = array();
+$i = 1;
+
+foreach(element_children($form['access']['sid']) as $key) {
+	$row = array(); 
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+
+       $row[] =  drupal_render($form['access']['sname'][$key]);
+
+       $row[] =  drupal_render($form['access']['gname'][$key]);
+
+	   $row[] =  drupal_render($form['access']['rnum'][$key]);
+
+       $row[] =  drupal_render($form['access']['stopname'][$key]);
+ 
+	   $row[] =  drupal_render($form['access']['operations'][$key]);	
+       $row[] =  drupal_render($form['access']['operations2'][$key]);	   
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+
+
+if(count($rows)){
+				
+				$header = array( ('Student Name'), t('Grade Name'),t('Route'), t('Stop Name') );
+
+				$header[] = array('data' => t('Operations'), 'colspan' => 2);
+  }
+  else{
+    $header = array(t('Route Name '), t('Stop Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No Students Were Found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+
+function busroute_student_edit(&$form_state, $fid1) {
+		db_set_active('qtxt_db');
+// $field = db_fetch_object(db_query("select route_number,route_description,stop_name,stop_description,stop_weight,account_route_id,route_stop_id from  {qtxt_sms_route_details_v3} b WHERE route_stop_id = %d ", $fid1));
+
+$field = db_fetch_object(db_query("select account_route_student_map_id,student_name,grade_name,route_number,stop_name,route_stop_id,account_route_id from  {qtxt_sms_route_details_v3} b WHERE account_route_student_map_id = '%s' ", $fid1));
+
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+		  $form['account_route_student_map_id'] = array('#type' => 'value',
+			'#value' => $fid1,
+		  );		  
+
+		$form['userdefinedsname'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter The Student Name'),
+			'#title' => t('Student Name'),
+			  '#size' => 60,
+			  '#maxlength' => 500,
+            '#disabled' => TRUE,			  
+			'#default_value' => $field->student_name,
+		);	
+
+        $form['userdefinedgname'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter The Grade'),
+			'#title' => t('Grade'),
+			  '#size' => 60,
+			  '#maxlength' => 500,
+            '#disabled' => TRUE,			  
+			'#default_value' => $field->grade_name,
+		);			
+
+		$form['userdefinedrnum'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter The Route'),
+			'#title' => t('Route'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->route_number,				  
+		);
+$form['userdefinedstopname'] = array(
+			'#type' => 'textfield',
+			'#description' => t('Please Enter The Stop Name'),
+			'#title' => t('Stop Name'),
+			  '#size' => 60,
+			  '#maxlength' => 500,	
+			'#default_value' => $field->stop_name,				  
+		);
+
+
+		$form['userdefinedstopid'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $field->route_stop_id,				  
+		);
+		$form['userdefinedrouteid'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $field->account_route_id,				  
+		);
+
+		$form['userdefinedstuidentifier'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $field->account_route_student_map_id,				  
+		);
+
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Edit Route And Stops'),                                                 
+	  );
+ $form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Cancel'),                                                 
+	  );
+
+
+	return $form;
+		
+
+
+}
+
+function busroute_student_edit_submit ($form, &$form_state) {
+$op = $form_state['values']['op'];
+ // drupal_set_message(t("$op"));  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'routestops/studentlist';
+		  return;	
+	} 
+	
+
+		
+	$studentIdentifier = $form_state['values']['account_route_student_map_id'];
+	
+	$userdefinedsname = $form_state['values']['userdefinedsname'];
+	$userdefinedgname = $form_state['values']['userdefinedgname'];
+	$userdefinedrnum = $form_state['values']['userdefinedrnum'];
+	$userdefinedstopname = $form_state['values']['userdefinedstopname'];
+	$userdefinedstopid = $form_state['values']['userdefinedstopid'];
+	$userdefinedstuidentifier = $form_state['values']['userdefinedstuidentifier'];
+	$userdefinedrouteid= $form_state['values']['userdefinedrouteid'];
+      drupal_set_message(t("Student Name : $userdefinedsname"));
+      drupal_set_message(t("Grade NAme : $userdefinedgname"));
+      drupal_set_message(t("Route Name : $userdefinedrnum"));
+	  drupal_set_message(t("Stop name : $userdefinedstopname"));
+	  drupal_set_message(t("Stop Id : $userdefinedstopid"));
+      drupal_set_message(t("Student Id  : $userdefinedstuidentifier"));
+      drupal_set_message(t("Route Id :  $userdefinedrouteid"));
+     
+	
+
+    $userdefinedsname = str_replace("'", "''", $userdefinedsname);
+	$userdefinedgname = str_replace("'", "''", $userdefinedgname);		
+    $userdefinedrnum = str_replace("'", "''", $userdefinedrnum);
+	$userdefinedstopname = str_replace("'", "''", $userdefinedstopname);
+
+			
+		db_set_active('qtxt_db');
+		
+		
+	
+//		db_query("update {qtxt_sms_account_routes} set  route_number = '%s', route_description = '%s'  WHERE account_route_id = %d ", $userdefinedroute, $userdefinedroutedesc,$userdefinedrouteid);
+
+			
+//		db_query("update {qtxt_sms_route_stops} set  stop_name = '%s', stop_description = '%s',stop_weight = %d  WHERE route_stop_id = %d ", $userdefinedstop, $userdefinedstopdesc,$userdefinedstopweight,$userdefinedstopid);
+
+			
+//		db_query("update {cce_assesment_cat_det_descriptor} set  descriptor_name = '%s', max_marks = '%d', descriptor_description = '%s',  category_short_code = '%s', category_order = '%d'  WHERE assessment_cat_det_descriptor_id = %d ", $userdefinedvalue, $userdefinedmarks, $userdefineddesc, $userdefinedshortcode,  $userdefinedcategoryorder,  $scholdescId);
+	
+		db_set_active('default');
+
+		drupal_set_message(t('The Routes And Stops  %field has been updated.', array('%field' => $form_state['values']['userdefinedstuidentifier'])));
+		$form_state['redirect'] = 'routestops/studentlist';
+		return;
+}
+
+function busroute_studentlist_delete(&$form_state, $fid1) {
+
+
+  
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("select account_route_student_map_id,student_name,grade_name,route_number,stop_name,route_stop_id from  {qtxt_sms_route_details_v3} b WHERE account_route_student_map_id = '%s' ", $fid1));
+		
+		
+		
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+
+		  $form['delaccroutestudid'] = array('#type' => 'value', '#value' => $fid1);
+		  $form['delstudname'] = array('#type' => 'value', '#value' => $field->student_name);
+	//	  $form['delstugrade'] = array('#type' => 'value', '#value' => $field->grade_name);
+		  $form['delsturoutename'] = array('#type' => 'value', '#value' => $field->route_number);
+		  $form['delstustopname'] = array('#type' => 'value', '#value' => $field->stop_name);
+		 // $form['groupdesc'] = array('#type' => 'value', '#value' => $field->group_description);
+
+		  return confirm_form($form,
+			t('Are you sure you want to delete the Student -  %field  defined for the Route %field2 and Stop %field3 ?', array('%field' => $field->student_name, '%field2' => $field->route_number, '%field3' => $field->stop_name)), 'routestops/studentlist/',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('routestops/studentlist/edit/'. $fid1))),
+			t('Delete'), t('Cancel'));
+			
+			/*
+					  return confirm_form($form,
+			t('Are you sure you want to delete the Descriptor Name -  %field  defined for Assessment Name %field2 and category type %field3 ?', array('%field' => $field->descriptor_name, '%field2' => $field->assessment_name, '%field3' => $field->assessment_category_type)), 'scholdesc',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('scholdesc/edit/'. $fid))),
+			t('Delete'), t('Cancel'));
+
+			*/
+			
+			
+		}
+
+
+function busroute_studentlist_delete_submit($form, &$form_state) {
+		db_set_active('qtxt_db');
+//		db_query('DELETE FROM {cce_assesment_cat_det_descriptor} WHERE assessment_cat_det_descriptor_id = %d', $form_state['values']['scholdescid']);
+		db_query('DELETE FROM {qtxt_sms_account_route_student_map} WHERE account_route_student_map_id = %d', $form_state['values']['delaccroutestudid']);
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The Student %field has been deleted.', array('%field' => $form_state['values']['delstudname'])));
+  //			unset ( $_SESSION['t_stuname'] );
+  //		unset ( $_SESSION['scholAccountGradeId'] );
+  //		unset ( $_SESSION['scholAssessmentName'] );
+  //		unset ( $_SESSION['scholAssessmentCategory'] );
+		
+		$form_state['redirect'] = 'routestops/studentlist';
+		return;
+}
+
+
+
+
+function busroute_studentlist_create() {
+
+$form['adminOuter'] = array(
+						'#type' => 'fieldset',
+						'#title' => t(' Information Delivered To Students'),
+						'#collapsible' => FALSE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+	  );
+				  
+
+	  db_set_active('qtxt_db');	
+
+	  
+	  $resultg1 = db_query("SELECT account_grade_id,grade_name FROM {qtxt_sms_account_grades} a, {qtxt_sms_account} b where   a.account_id = b.account_id and section != 'ALL' and a.account_id = 5 order by class_weight ");
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->account_grade_id ] =  $rowg1->grade_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('Grade'),
+				  				  		'#description' => t('Please Select The Grade'),
+				  				  		'#disabled' => FALSE,
+				  				  		'#ahah' => array(
+				  				  		 'path' => 'routestops/studentlist_create/ind/ahahjs2',
+				  				  		 'wrapper' => 'ahah-wrapper-grade',
+				  				  		 'method' => 'replace',
+				  				  						)
+				  );
+				  
+				  $form['adminOuter']['student'] = array('#type' => 'select',
+				  				  		'#title' => t('Student Name'),
+										'#options' =>  array( '' => t('Select ..') ),
+				  				  		'#description' => t('Please Select The Student'),
+				  				  		'#disabled' => FALSE,
+				  				  	'#prefix' => '<div id = "ahah-wrapper-grade">',
+				  					'#suffix' => '</div>',
+				  				  		
+				  );
+		
+		
+			  db_set_active('qtxt_db');	
+
+	  
+	  $resultg1 = db_query("SELECT account_route_id,route_number FROM {qtxt_sms_account_routes} a, {qtxt_sms_account} b where   a.account_id = b.account_id  and a.account_id = 5 and route_type = 'inbound' ");
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->account_route_id ] =  $rowg1->route_number; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['routename'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('From Route'),
+				  				  		'#description' => t('Please Select From Route'),
+				  				  		'#disabled' => FALSE,
+				  				  		'#ahah' => array(
+				  				  		 'path' => 'routestops/studentlist_create/from/ind/ahahjs3',
+				  				  		 'wrapper' => 'ahah-wrapper-routename',
+				  				  		 'method' => 'replace',
+				  				  						)
+				  );
+				  
+				  $form['adminOuter']['stopname'] = array('#type' => 'select',
+				  				  		'#title' => t('From Stop'),
+										'#options' =>  array( '' => t('Select ..') ),
+				  				  		'#description' => t('Please Select From Stop'),
+				  				  		'#disabled' => FALSE,
+				  				  	'#prefix' => '<div id = "ahah-wrapper-routename">',
+				  					'#suffix' => '</div>',
+				  				  		
+				  );
+				  
+				  			  db_set_active('qtxt_db');	
+
+	  
+	  $resultg1 = db_query("SELECT account_route_id,route_number FROM {qtxt_sms_account_routes} a, {qtxt_sms_account} b where   a.account_id = b.account_id  and a.account_id = 5 and route_type = 'outbound' ");
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->account_route_id ] =  $rowg1->route_number; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');
+				  $form['adminOuter']['troutename'] = array('#type' => 'select',
+				  				  		'#options' => $igradeOptions,
+				  				  		'#title' => t('To Route'),
+				  				  		'#description' => t('Please Select To Route'),
+				  				  		'#disabled' => FALSE,
+				  				  		'#ahah' => array(
+				  				  		 'path' => 'routestops/studentlist_create/to/ind/ahahjs4',
+				  				  		 'wrapper' => 'ahah-wrapper-troutename',
+				  				  		 'method' => 'replace',
+				  				  						)
+				  );
+				  
+				  $form['adminOuter']['tstopname'] = array('#type' => 'select',
+				  				  		'#title' => t('To Stop'),
+										'#options' =>  array( '' => t('Select ..') ),
+				  				  		'#description' => t('Please Select To Stop'),
+				  				  		'#disabled' => FALSE,
+				  				  	'#prefix' => '<div id = "ahah-wrapper-troutename">',
+				  					'#suffix' => '</div>',
+				  				  		
+				  );
+
+		
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Add Student'),                                                 
+	  );
+
+	return $form;
+
+		
+}
+
+function busroute_studentlist_create_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+  
+//	$routename = $form_state['values']['rname'];
+//	$totalrows =  $form_state['values']['numrows'];
+
+	$grade = $form_state['values']['adminOuter']['grade'];
+	$student = $form_state['values']['adminOuter']['student'];
+    $routename = $form_state['values']['adminOuter']['routename'];
+	$stopname = $form_state['values']['adminOuter']['stopname'];
+    $troutename = $form_state['values']['adminOuter']['troutename'];
+	$tstopname = $form_state['values']['adminOuter']['tstopname'];
+	
+	db_set_active('qtxt_db');	
+	
+			$resultnsStudentname = db_query("SELECT student_name from qtxt_sms_account_student_map where account_student_map_id = $student ");
+
+     $sStudentname = array( );
+	while ( $row = db_fetch_object( $resultnsStudentname ) ) {
+		$sStudentname = $row->student_name;
+	}
+				
+					
+	
+ db_query( "INSERT INTO `qtxt_sms_account_route_student_map`(`account_route_student_map_id`,`account_route_id`,`account_student_map_id`,`account_id`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`route_stop_id`)VALUES(null,$routename,$student,5,sysdate(),sysdate(),'School Admin','School Admin',$stopname)" ); 
+
+ db_query( "INSERT INTO `qtxt_sms_account_route_student_map`(`account_route_student_map_id`,`account_route_id`,`account_student_map_id`,`account_id`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`route_stop_id`)VALUES(null,$troutename,$student,5,sysdate(),sysdate(),'School Admin','School Admin',$tstopname)" ); 
+						
+	
+
+
+   db_set_active('default');	
+
+	  drupal_set_message(t("Grade : $grade"));
+      drupal_set_message(t("Student name : $student"));
+      drupal_set_message(t("From Route : $routename"));
+	  drupal_set_message(t("From Stop : $stopname"));
+	  drupal_set_message(t("To Route : $troutename"));
+	  drupal_set_message(t("To Stop : $tstopname"));
+//	  drupal_set_message(t("Grade name : $sGradename "));
+	drupal_set_message(t("Your Student $sStudentname Details have been inserted successfully."));	
+
+ 
+		  $form_state['redirect'] = 'routestops/studentlist_create';
+		  return;
+}
+
+
+
+
+function busroute_studentlist_ahah_field_js_for_ind2 () {
+//  krumo($form_state);
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+
+
+		$gid = $form['#post']['adminOuter']['grade'];
+		db_set_active('qtxt_db');
+		$sqlg = " select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where account_grade_id = $gid order by substring(student_name , LOCATE('.', student_name)+1)";
+
+//order by SUBSTRING(student_name, LOCATE('.', student_name)+1)" ;
+
+		$resultg = db_query($sqlg);
+		$valueg[''] = 'Select a value';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->account_student_map_id] = $datag->student_name;
+		}
+		db_set_active('default');
+		$form['adminOuter']['student']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+				$form = form_builder('v3_route_stops', $form, $form_state);		
+				$output = $form['adminOuter']['student'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+}
+
+
+function busroute_student_from_stops_ahah_field_js_for_ind3 () {
+//  krumo($form_state);
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+
+
+		$gid = $form['#post']['adminOuter']['routename'];
+		db_set_active('qtxt_db');
+		$sqlg = " select route_stop_id,stop_name from {qtxt_sms_route_stops} where account_route_id = $gid order by stop_weight";
+
+//order by SUBSTRING(student_name, LOCATE('.', student_name)+1)" ;
+
+		$resultg = db_query($sqlg);
+		$valueg[''] = 'Select a value';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->route_stop_id] = $datag->stop_name;
+		}
+		db_set_active('default');
+		$form['adminOuter']['stopname']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+				 $form = form_builder('v3_route_stops', $form, $form_state);		
+				$output = $form['adminOuter']['stopname'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+}
+function busroute_student_to_stops_ahah_field_js_for_ind4 () {
+//  krumo($form_state);
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+
+
+		$gid = $form['#post']['adminOuter']['troutename'];
+		db_set_active('qtxt_db');
+		$sqlg = " select route_stop_id,stop_name from {qtxt_sms_route_stops} where account_route_id = $gid order by stop_weight";
+
+//order by SUBSTRING(student_name, LOCATE('.', student_name)+1)" ;
+
+		$resultg = db_query($sqlg);
+		$valueg[''] = 'Select a value';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->route_stop_id] = $datag->stop_name;
+		}
+		db_set_active('default');
+		$form['adminOuter']['tstopname']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+				 $form = form_builder('v3_route_stops', $form, $form_state);		
+				$output = $form['adminOuter']['tstopname'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+}

@@ -1,0 +1,171 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+function v3_sms_usage_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_sms_usage'),
+  );
+}
+
+function v3_sms_usage_menu() {
+	$items['smsusage'] = array(
+			'title' => t('Sms Sent By The School'),
+			'page callback' => 'v3_sms_usage_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	
+
+	return $items;
+	
+	}
+	
+	function v3_sms_usage_form() {
+			$output = drupal_get_form('v3_usage_form');
+			 
+			return $output ;
+}
+
+function v3_usage_form( $form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+db_set_active('qtxt_db');
+
+
+$tsms = db_query("select count(log_request_id) from {qtxt_sms_log_header_v} b");
+
+ $to = db_result($tsms);
+
+$filterCla = " Total No.Of Message sent = $to ";
+	
+drupal_set_message(t("$filterCla"));
+
+
+
+$totalsms = db_query("select count(log_response_id) from qtxt_sms_log_response");
+
+ $total = db_result($totalsms);
+
+$filterClass = " Total No.Of Message Delivered To The Mobile = $total ";
+	
+drupal_set_message(t("$filterClass"));
+
+
+  $header = array(
+    array(),
+    array('data' => t('Mobile Number'), 'field' => 'b.sender_mobile_number,'),
+    array('data' => t('Sent By'), 'field' => 'b.sender_name'),
+    array('data' => t('Message'), 'field' => 'b.message'),
+    array('data' => t('Sent on'), 'field' => 'b.str_creation_date'),
+array('data' => t('Message Type'), 'field' => 'b.message_type'),
+	array('data' => t('Id'), 'field' => 'b.log_request_id'),
+
+
+
+
+	 );
+
+
+  db_set_active('qtxt_db');	
+   
+$sql = " SELECT b.log_request_id,b.sender_mobile_number,b.message,b.str_creation_date,b.sender_name,b.message_type FROM {qtxt_sms_log_header_v} b order by 1 desc ";
+
+       $query_count = "select count(log_request_id) from {qtxt_sms_log_header_v} b";
+
+ 
+	 
+	 	 
+   
+	 $sql .= tablesort_sql($header);
+
+   $result = pager_query($sql, 100, 0, $query_count);
+
+   $account = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+	//	'#type' => 'checkbox',
+		'#return_value' => $account->log_request_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+		'#disabled'=>True,
+		
+
+	  );
+	$form['access']['mobilenumber'][$account->log_request_id] = array('#value' => $account->sender_mobile_number);
+    $form['access']['name'][$account->log_request_id] =  array('#value' => $account->sender_name);
+    $form['access']['message'][$account->log_request_id] =  array('#value' => $account->message);
+	$form['access']['crdate'][$account->log_request_id] =  array('#value' => $account->str_creation_date);
+    $form['access']['msgid'][$account->log_request_id] =  array('#value' => $account->message_type);
+	$form['access']['requestid'][$account->log_request_id] =  array('#type' => 'hidden','#value' => $account->log_request_id);
+	
+	 
+	$i = $i + 1;
+  }
+db_set_active('default');
+
+   $form['pager'] = array('#value' => theme('pager', NULL, 10, 0));
+  $form['#theme'] = 'v3_usage_form_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+
+}
+
+function v3_sms_usage_theme() {
+	return array(
+		'v3_usage_form_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+
+
+function theme_v3_usage_form_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['requestid']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['access']['account'][$i]);
+	   $row[] =  drupal_render($form['access']['mobilenumber'][$key]);
+       $row[] =  drupal_render($form['access']['name'][$key]);
+       $row[] =  drupal_render($form['access']['message'][$key]);
+       $row[] =  drupal_render($form['access']['crdate'][$key]);
+	   $row[] =  drupal_render($form['access']['msgid'][$key]);
+	   $row[] =  drupal_render($form['access']['requestid'][$key]);
+	  
+	  
+	   $rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+			 $header = array(
+				theme ('table_select_header_cell'), t('Mobile Number'), t('Sent By'),  t('Message'), t('Sent On'),
+				t('Msg Type'),t(' '));
+  }
+  else{
+    $header = array(t(''), t('')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t(''),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+
+ $output = theme('table', $header, $rows); 
+return $output . drupal_render($form); 
+}  

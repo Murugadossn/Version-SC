@@ -1,0 +1,2016 @@
+<?php
+
+
+
+
+
+
+
+function v3_support_profile_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', 'v3_support_profile'),
+
+
+
+  );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function v3_support_profile_help($path, $arg) {
+
+
+
+  global $user;
+
+
+
+
+
+
+
+  switch ($path) {
+
+
+
+    case 'support':
+
+
+
+      return '<p>'. t('Queries From Clients.') .'</p>';
+
+
+
+	
+
+
+
+	}
+
+
+
+  
+
+
+
+}  
+
+
+
+function v3_support_profile_menu() {
+
+
+
+	$items['support'] = array(
+
+
+
+    'title' => 'List Of Queries From Clients',
+
+
+
+    'description' => 'List, add, and edit Student Data.',
+
+
+
+    'page callback' => 'v3_support_cb',
+
+
+
+    'page arguments' => array('list'),
+
+
+
+    // 'access arguments' => array('administer users'),
+
+
+
+	'type' => MENU_CALLBACK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+	
+
+
+
+	);
+
+
+
+
+
+
+
+  $items['support/list'] = array(
+
+
+
+    'title' => 'List',
+
+
+
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+
+
+
+
+    'weight' => -10,
+
+
+
+  );
+
+
+
+  $items['support/create'] = array(
+
+
+
+    'title' => '',
+
+
+
+    'page arguments' => array('create'),
+
+
+
+    // 'access arguments' => array('administer users'),
+
+
+
+    'type' => MENU_LOCAL_TASK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+
+
+
+
+  );	
+
+
+
+  
+
+
+
+  $items['support/edit'] = array(
+
+
+
+    'title' => 'Update The Status',
+
+
+
+    'page callback' => 'drupal_get_form',
+
+
+
+    'page arguments' => array('support_edit'),
+
+
+
+ //   'access arguments' => array('administer users'),
+
+
+
+    'type' => MENU_CALLBACK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+
+
+
+
+  );
+
+$items['support/delete'] = array(
+
+
+
+    'title' => 'Are You Sure To Delete The Query',
+
+
+
+    'page callback' => 'drupal_get_form',
+
+
+
+    'page arguments' => array('support_delete'),
+
+
+
+ //   'access arguments' => array('administer users'),
+
+
+
+    'type' => MENU_CALLBACK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+
+
+
+
+  );
+
+ 
+
+
+
+	
+
+
+
+ 
+
+
+
+  
+
+
+
+return $items;
+
+
+
+}
+
+
+
+
+
+
+
+function support_edit(&$form_state, $fid) {
+
+
+
+global $user;
+
+
+
+
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+
+
+
+
+ $myMobileNumber =  $user->profile_mobile;  
+
+
+
+
+
+
+
+$uid = $user->uid;
+
+
+
+		
+
+
+
+		
+
+
+
+
+
+
+
+		db_set_active('qtxt_db');	
+
+
+
+		$field = db_fetch_object(db_query("select id,from_email,msg,status_report,Comments from v3_issues_report where id = $fid"));
+
+		
+
+
+
+         
+
+
+
+db_set_active('default');
+
+
+
+
+
+
+
+		if (!$field) {
+
+
+
+			drupal_not_found();
+
+
+
+			return;
+
+
+
+		  }
+
+
+
+		  $form['account_student_map_id'] = array('#type' => 'value',
+
+
+
+			'#value' => $fid,
+
+
+
+		  );		  
+
+
+
+				$form['v3AdminOuter'] = array(
+						'#type' => 'fieldset',
+						// '#title' => t('Testing Message'),
+						'#collapsible' => FALSE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE,
+	  );
+
+
+
+
+
+
+
+
+
+	
+
+
+
+		$form['v3AdminOuter']['fname'] = array(
+
+
+
+		  '#title' => 'Customer Email Id ',
+
+
+
+		  '#type' => 'textfield',
+
+
+
+		  '#size' => 60,
+
+
+
+		  '#maxlength' => 100,
+
+
+
+		 '#required' => true,
+
+		// '#disabled' => true,
+
+
+
+		  '#default_value' => $field->from_email,
+
+
+
+		);
+		
+		
+$form['v3AdminOuter']['notes'] = array(
+
+		
+		  '#title' => 'Notes History',
+
+
+
+		  '#type' => 'textarea',
+
+
+
+		  '#size' => 60,
+
+
+
+		  '#maxlength' => 4000,
+
+		 //  '#required'=>true,
+
+
+
+		   '#default_value' => $field->status_report,
+
+
+
+		);
+
+
+
+
+
+
+
+
+
+
+		$form['v3AdminOuter']['lname'] = array(
+
+		
+		  '#title' => 'Notes',
+
+
+
+		  '#type' => 'textarea',
+
+
+
+		  '#size' => 60,
+
+
+
+		  '#maxlength' => 100,
+
+		//   '#required'=>true,
+
+
+
+		 //  '#default_value' => $field->status_report,
+
+
+
+		);
+
+$form['v3AdminOuter']['srole'] = array (
+
+					  '#type' => 'select', 
+
+					  '#title' => 'Status', 
+					  '#options' => array(
+
+					'select' => 'select',  
+
+				
+				'New' => 'New',
+                            'Work In Progress' => 'Work In Progress',
+                            'Success' => 'Success',
+				'Next Release' => 'Next Release',
+
+
+
+				),
+				'#default_value' => $field->Comments,
+				'#required' => true,
+
+
+				);
+				
+$form['v3AdminOuter']['semail'] = array (
+
+					  '#type' => 'select', 
+
+					  '#title' => 'Send An Email To Customer', 
+					  '#options' => array(
+
+					'select' => 'select',  
+
+				
+				'Yes' => 'Yes',
+                            
+
+
+				),
+				'#default_value' => $field->Comments,
+				'#required' => true,
+
+
+				);
+				
+
+				
+
+
+$dvalue = "Enter Your Email Id";
+/*
+
+$form['v3AdminOuter']['subject'] = array(
+				  	// 	'#title' => t('Enter Your Email Id'),
+				  		'#type' => 'textfield',
+						 '#size' => 30, 
+						  '#maxlength' => 100, 
+                                               //   '#maxbreadth'=>100,
+				  		'#disabled' => false,
+						'#default_value' => $dvalue,
+					); 
+*/
+
+
+	 $form['buttons']['submit'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+    
+
+
+ 
+
+
+
+		'#value' => t('Submit'),                                                 
+
+
+
+	  );
+
+
+
+$form['edit']['buttons']['cancel'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+
+
+		'#value' => t('Cancel'),                                                 
+
+
+
+	  );
+
+
+
+
+
+
+
+  $form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+
+
+
+
+
+	return $form;
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function support_edit_submit ($form, &$form_state) {
+
+
+
+ $op = $form_state['values']['op'];
+
+
+
+
+
+
+
+if ( $op == "Cancel" ) {
+
+
+
+		  $form_state['redirect'] = 'support/list';
+
+
+
+		  return;	
+
+
+
+	} 
+
+
+
+
+
+
+
+db_set_active('default');
+
+
+
+
+
+
+
+	$id = $form_state['values']['account_student_map_id'];	
+
+
+
+	
+
+
+
+	$fname = $form_state['values']['v3AdminOuter']['fname'];
+	$lname = $form_state['values']['v3AdminOuter']['lname'];
+       $semail = $form_state['values']['v3AdminOuter']['semail'];
+	$notes = $form_state['values']['v3AdminOuter']['notes'];
+	$srole = $form_state['values']['v3AdminOuter']['srole'];
+	
+
+	db_set_active('qtxt_db');
+              $field1 = db_fetch_object(db_query("select( now())date"));
+		$dtime = $field1->date;
+		$msg = " $notes; [$dtime] $lname ";
+	$field = db_fetch_object(db_query("select id,from_email,status_report,Comments from v3_issues_report where id = $id"));
+
+		db_query("update {v3_issues_report} set  status_report = '$msg', Comments = '$srole' where id = $id ");
+		
+
+
+
+		db_set_active('default');
+
+
+
+	if ( $semail == "Yes" ) {
+
+
+
+$params = array(
+
+
+
+  'myVar' => $msg,
+
+
+
+);
+
+
+
+// $emailTo = 'yuvaranim@quadrobay.com';
+
+
+
+drupal_mail('v3_support_profile', 'invitation', $fname, language_default(), $params, "support@quadrobay.com");
+
+
+
+}
+
+
+
+
+
+		
+
+		db_set_active('default');
+
+
+
+		drupal_set_message(t("Status has been Updated Sucessfully")); 
+
+
+
+		$form_state['redirect'] = 'support/list';
+
+
+
+		return;
+
+
+
+}
+
+function support_delete(&$form_state, $fid) {
+
+
+
+global $user;
+
+
+
+
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+
+
+
+
+ $myMobileNumber =  $user->profile_mobile;  
+
+
+
+
+
+
+
+$uid = $user->uid;
+
+
+
+		
+
+
+
+		
+
+
+
+
+
+
+
+		db_set_active('qtxt_db');	
+
+
+
+		$field = db_fetch_object(db_query("select id,from_email,status_report from v3_issues_report where id = $fid"));
+
+		
+
+
+
+         
+
+
+
+db_set_active('default');
+
+
+
+
+
+
+
+		if (!$field) {
+
+
+
+			drupal_not_found();
+
+
+
+			return;
+
+
+
+		  }
+
+
+
+		  $form['account_student_map_id'] = array('#type' => 'value',
+
+
+
+			'#value' => $fid,
+
+
+
+		  );		  
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+		$form['fname'] = array(
+
+
+
+		  '#title' => 'Email Id ',
+
+
+
+		  '#type' => 'textfield',
+
+
+
+		  '#size' => 60,
+
+
+
+		  '#maxlength' => 100,
+
+
+
+		//  '#required' => true,
+
+		'#disabled' => true,
+
+
+
+		  '#default_value' => $field->from_email,
+
+		  
+
+
+
+		);
+
+
+
+
+
+
+
+		$form['lname'] = array(
+
+        '#prefix' =>'<br/><br/><br/><br/>',
+
+		  '#title' => 'Status',
+
+
+
+		  '#type' => 'textarea',
+
+
+
+		  '#size' => 60,
+
+
+
+		  '#maxlength' => 100,
+
+		  
+
+
+
+		  '#default_value' => $field->status_report,
+
+		  '#disabled' => true,
+
+
+
+		);
+
+
+
+		
+
+
+
+
+
+		
+
+
+
+		
+
+
+
+		
+
+
+
+	 $form['buttons']['submit'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+    
+
+'#prefix' => '<br/>',
+
+ 
+
+
+
+		'#value' => t('Confirm'),                                                 
+
+
+
+	  );
+
+
+
+$form['edit']['buttons']['cancel'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+
+
+		'#value' => t('Cancel'),                                                 
+
+
+
+	  );
+
+
+
+
+
+
+
+  $form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+
+
+
+
+
+	return $form;
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function support_delete_submit ($form, &$form_state) {
+
+
+
+ $op = $form_state['values']['op'];
+
+
+
+
+
+
+
+if ( $op == "Cancel" ) {
+
+
+
+		  $form_state['redirect'] = 'support/list';
+
+
+
+		  return;	
+
+
+
+	} 
+
+
+
+
+
+
+
+db_set_active('default');
+
+
+
+
+
+
+
+	$id = $form_state['values']['account_student_map_id'];	
+
+
+
+	
+
+
+
+	$fname = $form_state['values']['fname'];
+
+
+
+	$lname = $form_state['values']['lname'];
+
+
+
+	
+
+db_set_active('qtxt_db');
+
+		db_query("update {v3_issues_report} set  admin_active_flag ='N' where id = $id ");
+
+			
+
+		db_set_active('default');
+
+
+
+		drupal_set_message(t("Status has been Deleted Sucessfully")); 
+
+
+
+		$form_state['redirect'] = 'support/list';
+
+
+
+		return;
+
+
+
+}
+
+
+
+
+
+function support_edit_validate( $form, &$form_state ) {
+
+
+
+$asmid = $form_state['values']['account_student_map_id'];	
+
+
+
+	
+
+
+
+	$fname = $form_state['values']['v3AdminOuter']['fname'];
+
+
+
+	$lname = $form_state['values']['v3AdminOuter']['lname'];
+
+	$values = $form_state['values']['v3AdminOuter'];
+
+ 
+
+  	if($fname != "")
+
+
+
+{
+
+if($fname != "")
+{
+if (!valid_email_address($fname)) {
+
+
+
+   form_set_error(' ', t('The Email Id  %email is Invalid.', array('%email' => $values['$fname'])));
+
+
+
+}
+
+
+
+}
+
+
+
+}
+}
+
+function v3_support_cb($callback_arg = '') {
+
+
+
+
+
+
+
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+
+
+
+
+
+
+//  drupal_set_message("Operamd - $op ");	
+
+
+
+  
+
+
+
+  switch ($op) {
+
+
+
+  /*  case t('Add Student Details'):
+
+
+
+    case 'create':
+
+*/
+
+case 'Cancel':
+
+
+
+      $output = drupal_get_form('support_create');
+
+
+
+      break;
+
+
+
+
+
+
+
+	  default:
+
+
+
+      if (!empty($_POST['assess']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+
+
+
+        $output = drupal_get_form('group_multiple_delete_confirm');
+
+
+
+      }
+
+
+
+      else {
+
+
+
+        $output = drupal_get_form('support_filter_form');
+
+
+
+        $output .= drupal_get_form('support_details');
+
+
+
+      }
+
+
+
+  }
+
+
+
+  return $output;
+
+
+
+  
+
+
+
+}
+
+
+
+
+
+function v3_support_profile_mail($key, &$message, $params) {
+
+      $message['subject'] = t('Message from Cdemo');
+
+    //  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+
+	  $message['body'][] =  $params['myVar'] ;
+
+	 
+
+}
+
+/**
+
+
+
+ * Form builder; Return form for user administration filters.
+
+
+
+ *
+
+
+
+ * @ingroup forms
+
+
+
+ * @see user_filter_form_submit()
+
+
+
+ */
+
+
+
+function support_filter_form() {
+
+
+
+
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;
+
+$uid = $user->uid;
+
+$defusermobile = $myMobileNumber;
+
+$defadminuserid = "";
+
+$defadminpwd = "";
+
+ 
+
+$form['adminOuter'] = array(
+
+	'#type' => 'fieldset',
+
+
+
+						'#title' => t('Filter the Queries by Date'),
+
+
+
+						'#collapsible' => TRUE, 
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+						'#tree' => TRUE,
+
+
+
+
+
+
+
+	  );
+
+
+
+$date = &$_SESSION['t_student'];
+
+
+
+
+
+
+
+	  $form['adminOuter']['dob'] = array(
+
+
+
+	  '#type' => 'date_popup',
+
+
+
+	  '#title' => t('Date'),
+
+
+
+	  '#date_format' => 'Y-m-d',
+
+
+
+	  '#default_value' => $date,
+
+
+
+	 // '#required' => true,
+
+
+
+
+
+      	  '#date_year_range' => '-1:+1',
+
+	
+
+
+
+
+
+
+
+	  );
+
+
+
+
+
+
+
+
+
+
+
+$form['adminOuter']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Apply'),
+
+
+
+
+
+'#prefix' => '<br/>',
+
+
+
+
+
+  );
+
+return $form;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function support_filter_form_submit($form, &$form_state) {
+
+
+
+$op = $form_state['values']['op'];
+
+
+
+
+
+	global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+
+
+
+
+
+
+	$uid = $user->uid;
+
+
+
+
+
+
+
+	$_SESSION['t_student'] = $form_state['values']['adminOuter']['dob'];
+
+
+
+
+
+
+
+	
+
+
+
+	if(!empty($_SESSION['t_student'])) {
+
+
+
+
+
+
+
+		$date = &$_SESSION['t_student'];
+
+
+
+
+
+
+
+	} else {
+
+
+
+
+
+
+
+		$date = 'null';
+
+
+
+
+
+
+
+	}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function support_details($form_state) {
+
+
+
+ $date = &$_SESSION['t_student'];
+
+
+
+	
+
+
+
+	// drupal_set_message("listValues Id : $date ");
+
+
+
+	
+
+
+
+		$form['access'] = array(
+
+
+
+		'#type' => 'fieldset',
+
+
+
+		'#title' => t('Access log settings'),
+
+
+
+		'#tree' => TRUE,
+
+
+
+		'#visible' => false,	   
+
+
+
+		 );	
+
+
+
+		 if($date!= "")
+
+
+
+		 {
+
+
+
+		 $datefilter = " and b.created_on = '$date' " ;
+
+
+
+		 }
+
+
+
+		 else
+
+
+
+		 {
+
+
+
+		  $datefilter = " and b.created_on = b.created_on " ;
+
+
+
+		 }
+
+
+
+	
+
+
+
+
+
+
+
+  db_set_active('qtxt_db');	
+
+
+
+   $sql = "select id,from_email,status_report,Comments,created_on,admin_active_flag,created_on_str,v3_mobile_number from {v3_issues_report_v3} b where admin_active_flag ='Y' " .$datefilter . "order by 1 desc"  ;
+
+
+
+
+
+
+
+   $query_count = "select count(id) from {v3_issues_report_v3} b where admin_active_flag ='Y' " . $datefilter ;
+
+
+
+   
+
+
+
+	//$sql .= tablesort_sql($header);
+
+
+
+
+
+
+
+   $result = pager_query($sql, 1000, 0, $query_count);
+
+
+
+	db_set_active('default');
+
+
+
+
+
+
+
+	
+
+
+
+  $account = array();
+
+
+
+
+
+
+
+$i = 1;  
+
+
+
+
+
+
+
+  while ($account = db_fetch_object($result)) {
+
+
+
+  $form['access']['account'] = array(
+
+		 '#type' => 'checkbox',
+
+
+
+		'#return_value' => $account->id,
+
+
+
+	      '#default_value' => 0,
+
+		'#tree' => TRUE,
+
+
+
+	  );  
+
+
+
+  
+
+
+
+
+
+
+
+	$form['access']['femail'][$account->id] = array('#value' => $account->from_email);
+$form['access']['number'][$account->id] = array('#value' => $account->v3_mobile_number);
+   $form['access']['msg'][$account->id] =  array('#value' => $account->status_report);
+
+
+
+    $form['access']['createdon'][$account->id] =  array('#value' => $account->created_on_str);
+
+
+
+    $form['access']['status'][$account->id] =  array('#value' => $account->Comments);
+
+
+
+    $form['access']['operations'][$account->id] = array('#value' => l(t('Update the Status'), "support/edit/$account->id", array('query' => $destination)));	
+
+    $form['access']['operations1'][$account->id] = array('#value' => l(t('Delete'), "support/delete/$account->id", array('query' => $destination)));
+
+   $form['access']['id'][$account->id] =  array('#type' => 'hidden','#value' => $account->id);
+
+	
+
+
+
+     
+
+
+
+
+
+	$i = $i + 1;
+
+
+
+	
+
+
+
+	}
+
+
+
+	
+
+
+
+// db_set_active('default');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  $form['#theme'] = 'support_description_theme';   
+
+
+
+
+
+
+
+  $form['totalcount'] = array(
+
+
+
+
+
+
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+
+
+
+
+
+
+  );   
+
+
+
+
+
+	return $form;
+
+
+
+}
+
+
+
+
+
+
+
+function v3_support_profile_theme() {
+
+
+
+	return array(
+
+
+
+		'support_description_theme' => array('arguments'=> array('form' => NULL),),
+
+
+
+	);
+
+
+
+}
+
+
+
+
+
+
+
+function theme_support_description_theme($form)
+
+
+
+{
+
+
+
+$rows = array();
+
+
+
+	$i = 1;
+
+
+
+	foreach(element_children($form['access']['id']) as $key) {
+
+
+
+		$row = array(); 
+
+
+
+	//  $row[] =  drupal_render($form['access']['account'][$i]);
+
+
+
+		   $row[] =  drupal_render($form['access']['femail'][$key]);
+ $row[] =  drupal_render($form['access']['number'][$key]);
+	   $row[] =  drupal_render($form['access']['msg'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['createdon'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['status'][$key]);
+
+		   $row[] =  drupal_render($form['access']['operations1'][$key]);
+
+ 		   	  $row[] =  drupal_render($form['access']['operations'][$key]);
+
+
+
+		   $rows[] = $row; 
+
+
+
+		$i = $i +1 ;
+
+
+
+	}
+
+
+
+  if(count($rows)){
+
+
+
+				$header = array(
+
+
+
+					t('Email From'),t('Mobile Number'), t('Message'), t('Message sent on'), t('Status') );
+
+
+
+					 $header[] = array('data' => t('Action'), 'colspan' => 2);
+
+
+
+	  }
+
+
+
+  else{
+
+
+
+    $header = array(t(''), t('')); 
+
+
+
+    $row = array();
+
+
+
+    $row[] = array
+
+
+
+    (
+
+
+
+      'data' => t('Select the date to filter'),
+
+
+
+      'colspan' => 2,
+
+
+
+      'style' => 'text-align:center'
+
+
+
+    );
+
+
+
+    $rows[] = $row;
+
+
+
+  }
+
+
+
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+
+
+
+ $form['access']['#access'] = false;
+
+
+
+return $output . drupal_render($form); 
+
+
+
+}
+
+
+
+
+

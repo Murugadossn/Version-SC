@@ -1,0 +1,772 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+//require ( "cceClass.php");
+
+function v3_cce_scholastic_fileupload_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_scholastic_fileupload'),
+  );
+}
+
+
+function v3_cce_scholastic_fileupload_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'scholupload':
+      return '<p>'. t('Drupal allows users to register, login, log out, maintain user profiles, etc. Users of the site may not use their own names to post content until they have signed up for a user account.') .'</p>';
+	
+	}
+  
+}  
+
+function v3_cce_scholastic_fileupload_menu() {
+	$items['scholupload'] = array(
+    'title' => 'CCE - Upload Scholastic Data',
+    'description' => 'CCE - Upload Schlastic Data.',
+    'page callback' => 'cce_scholupload',
+    'page arguments' => array('upload'),
+    'access arguments' => array('administer users'),
+	'type' => MENU_CALLBACK,	
+	);
+
+  $items['scholupload/upload'] = array(
+    'title' => 'Upload',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+	$items['scholupload/next'] = array(
+			'title' => t('CCE - Upload Scholastic Data -  Next Screen'),
+			'page callback' => 'v3_cce_schol_fileupload_next_form_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);  
+
+	$items['scholupload/fileuploadnext'] = array(
+			'title' => t('CCE - Upload Scholastic Data File Upload -  Next Screen'),
+			'page callback' => 'v3_cce_schol_upload_form_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);  
+
+
+	
+ $items['scholupload/group/ahahjs1'] = array(
+        'page callback' => 'ahah_for_group_to_derive_class',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	    
+		
+ $items['scholupload/term/ahahjs2'] = array(
+        'page callback' => 'ahah_for_term_to_derive_assess',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );		
+  
+ 
+ $items['scholupload/assessname/ahahjs3'] = array(
+        'page callback' => 'ahah_for_assess_to_derive_assesscateg',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );		
+  
+  
+ $items['scholupload/assesscatdetlist/ahahjs4'] = array(
+        'page callback' => 'ahah_for_assesscateg_to_derive_assesscategdescriptor',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );	
+return $items;
+}
+
+
+
+function v3_cce_schol_fileupload_next_form_wrap() {
+			$output = drupal_get_form('v3_cce_schol_fileupload_next_form');
+			return $output ;
+}
+
+function v3_cce_schol_upload_form_wrap() {
+			$output = drupal_get_form('v3_cce_schol_upload_form');
+			return $output ;
+}
+
+
+
+function cce_scholupload($callback_arg = '') {
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+    case 'upload':
+	case 'Process File':
+      $output = drupal_get_form('scholastic_upload');
+      break;
+
+	default:
+      $output = drupal_get_form('scholastic_upload');
+  }
+  return $output;
+  
+}
+
+
+function scholastic_upload() {
+
+
+// get the list of active Year
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_id, account_name from {qtxt_sms_account} a where a.party_id = 5 ");
+		$yearOptions = array();
+		while ($row = db_fetch_object($result1)){
+		  $yearOptions[$row->account_id ] = $row->account_name; 
+		}
+		db_set_active('default');	
+		$form['institution'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Institution'),
+			'#options'=> $yearOptions,
+			'#title' => t('Institution'),
+			'#disabled' => FALSE,
+		);
+		
+		
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT group_id, concat( group_name, ' - ',  group_description) group_desc FROM {cce_groups} a ");
+		$groupOptions = array( '' => t('Select the Group Name') );
+		
+		while ($row = db_fetch_object($result1)){
+		  $groupOptions[$row->group_id ] = $row->group_desc; 
+		}
+		db_set_active('default');	
+
+
+		$form['group'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Group'),
+			'#options'=> $groupOptions,
+			'#title' => t('Group'),
+			'#ahah' => array(
+				  	'path' => 'scholupload/group/ahahjs1',
+				  	'wrapper' => 'ahah-wrapper-group',
+				  	'method' => 'replace',
+				  			)
+		);
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT term_id, term_name FROM {cce_term_v} a ");
+		$accessOptions = array( '' => t('Select the Term Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->term_id] = $row->term_name; 
+		}
+		db_set_active('default');			
+		$form['term'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Term'),
+			'#options'=> $accessOptions,
+			'#title' => t('Term Name'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'scholupload/term/ahahjs2',
+				  	'wrapper' => 'ahah-wrapper-term',
+				  	'method' => 'replace',
+				  			)
+			);		
+
+		
+		$form['standard'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Class'),
+			'#disabled' => FALSE,
+			'#prefix' => '<div id = "ahah-wrapper-group">',
+			'#suffix' => '</div>',	
+		);
+
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT subject_id, subject_name  FROM {qtxt_sms_subjects} a ");
+		$accessOptions1 = array( '' => t('Select the Subject') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions1[$row->subject_id ] = $row->subject_name; 
+		}
+		db_set_active('default');	
+		
+		$form['subject'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Subject'),
+			'#options'=> $accessOptions1,
+			'#title' => t('Subject'),
+			'#disabled' => FALSE,
+		);		
+
+		$form['assessname'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Assessment Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Assessment Name'),
+			'#disabled' => FALSE,
+			'#prefix' => '<div id = "ahah-wrapper-term">',
+			'#suffix' => '</div>',		
+			'#ahah' => array(
+				  	'path' => 'scholupload/assessname/ahahjs3',
+				  	'wrapper' => 'ahah-wrapper-assessname',
+				  	'method' => 'replace',
+				  			)
+		);
+
+		$form['assesscatdetlist'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Category'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Category Type'),
+			'#disabled' => FALSE,
+			'#prefix' => '<div id = "ahah-wrapper-assessname">',
+			'#suffix' => '</div>',			
+			'#ahah' => array(
+				  	'path' => 'scholupload/assesscatdetlist/ahahjs4',
+				  	'wrapper' => 'ahah-wrapper-assesscatdetlist',
+				  	'method' => 'replace',
+				  			)			
+		);
+		
+		$form['assesscatdescriptors'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Descriptor'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Category Name'),
+			'#disabled' => FALSE,
+			 '#prefix' => '<div id = "ahah-wrapper-assesscatdetlist">',
+				'#suffix' => '</div>',	
+		);			
+		$form['assessdate'] = array(
+		  '#type' => 'date',
+		  '#title' => 'Assessment date',
+//		  '#default_value' => $date_array,  
+		);
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Process File'),                                                 
+	  );
+			
+	return $form;		
+
+}
+		
+function scholastic_upload_submit($form, &$form_state) {
+/*
+	$dir = file_directory_path();
+
+		if(isset($_FILES) && !empty($_FILES) && $_FILES['files']['size']['tcsv'] != 0){
+		
+			#this structure is kind of wacky
+			$name = $_FILES['files']['name']['tcsv'];
+			$size = $_FILES['files']['size']['tcsv'];
+			$type = $_FILES['files']['type']['tcsv'];
+
+			#this is the actual place where we store the file
+			$file = file_save_upload('tcsv', array() , $dir);
+
+		} 	
+*/		
+	$nonserassessdate = $form_state['values']['assessdate'];
+	
+	$fromDateExp = "$nonserassessdate[year]-$nonserassessdate[month]-$nonserassessdate[day]";	
+	
+	$_SESSION['ccefilename'] = $name;
+	$_SESSION['ccedir'] = $dir;
+	$_SESSION['cceaccount'] = $form_state['values']['institution'];
+	$_SESSION['t_interface_type'] = $form_state['values']['interfaceType'];	
+	$_SESSION['groupid'] = $form_state['values']['group'];
+	$_SESSION['class'] = $form_state['values']['standard'];
+	$_SESSION['term'] = $form_state['values']['term'];
+	$_SESSION['assessdate'] = $fromDateExp;
+	
+	$_SESSION['subject'] = $form_state['values']['subject'];
+	$_SESSION['assessname'] = $form_state['values']['assessname'];
+	$_SESSION['assesscatdetlist'] = $form_state['values']['assesscatdetlist'];
+	$_SESSION['assesscatdescriptors'] = $form_state['values']['assesscatdescriptors'];
+
+	$groupId = &$_SESSION['groupid'];
+	$classId = &$_SESSION['class'];
+	$termId = &$_SESSION['term'];
+	$assess_date = &$_SESSION['assessdate'];
+	$subject = &$_SESSION['subject'];
+	$assessname = &$_SESSION['assessname'];
+	$assesscatdetlist = &$_SESSION['assesscatdetlist'];	
+	$assesscatdescriptors = &$_SESSION['assesscatdescriptors'];	
+	db_set_active('qtxt_db');	
+	  $resultg2 = db_query("SELECT group_id, concat( group_name , ' - ' , group_description ) 'groupdesc' FROM {cce_groups} a where group_id =$groupId");
+				 $accountGradeId = array();
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+                  $accountGradeId[] =  $rowg2->groupdesc; 
+				  	}
+	db_set_active('default');
+if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( " ", $accountGradeId );
+		}
+$groupname = " $accountArray ";
+drupal_set_message(t("Group Name: $groupname"));
+
+db_set_active('qtxt_db');	
+	  $resultg2 = db_query("SELECT  term_id,term_name FROM {cce_term} a where group_id =$termId");
+				 $accountGradeId1 = array();
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+                  $accountGradeId1[] =  $rowg2->term_name; 
+				  	}
+	db_set_active('default');
+if (  count( $accountGradeId1 ) > 0 ) {
+			$accountArray1 = join( " ", $accountGradeId1 );
+		}
+$termname = " $accountArray1 ";
+drupal_set_message(t("Term Name: $termname"));
+
+db_set_active('qtxt_db');	
+	  $resultg2 = db_query("SELECT grade_name FROM {qtxt_sms_account_grades} a where account_grade_id =$classId");
+				 $accountGradeId2 = array();
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+                  $accountGradeId2[] =  $rowg2->term_id; 
+				  	}
+	db_set_active('default');
+if (  count( $accountGradeId2 ) > 0 ) {
+			$accountArray2 = join( " ", $accountGradeId2 );
+		}
+$classname = " $accountArray2 ";
+drupal_set_message(t("Class Name: $classname"));
+
+db_set_active('qtxt_db');	
+	  $resultg2 = db_query("SELECT subject_id, subject_name FROM {qtxt_sms_subjects} a where subject_id=$subject");
+				 $accountGradeId3 = array();
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+                  $accountGradeId3[] =  $rowg2->subject_name; 
+				  	}
+	db_set_active('default');
+if (  count( $accountGradeId3 ) > 0 ) {
+			$accountArray3 = join( " ", $accountGradeId3 );
+		}
+$subjectname = " $accountArray3 ";
+drupal_set_message(t("Subject Name: $subjectname"));
+
+db_set_active('qtxt_db');	
+	  $resultg2 = db_query("select  assessment_id, assessment_name  from cce_assesment_types b  where assessment_id =$assessname");
+				 $accountGradeId3 = array();
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+                  $accountGradeId3[] =  $rowg2->assessment_name; 
+				  	}
+	db_set_active('default');
+if (  count( $accountGradeId3 ) > 0 ) {
+			$accountArray3 = join( " ", $accountGradeId3 );
+		}
+$assessname = " $accountArray3 ";
+drupal_set_message(t("Assessment Name: $assessname"));
+db_set_active('qtxt_db');	
+	  $resultg2 = db_query("select  assessment_category_type, assessment_category_detail_id from cce_assesment_category_details_v b  where assessment_category_detail_id  = $assesscatdetlist ");
+				 $accountGradeId3 = array();
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+                  $accountGradeId3[] =  $rowg2->assessment_category_type; 
+				  	}
+	db_set_active('default');
+if (  count( $accountGradeId3 ) > 0 ) {
+			$accountArray3 = join( " ", $accountGradeId3 );
+		}
+$categorytype = " $accountArray3 ";
+drupal_set_message(t("Category Type: $categorytype"));
+
+
+
+db_set_active('qtxt_db');	
+	  $resultg2 = db_query("select  descriptor_name, assessment_cat_det_descriptor_id from cce_assesment_cat_det_descriptor b  
+	  where assessment_cat_det_descriptor_id = $assesscatdescriptors");
+				 $accountGradeId3 = array();
+				  while ($rowg2 = db_fetch_object($resultg2)) {
+                  $accountGradeId3[] =  $rowg2->descriptor_name; 
+				  	}
+	db_set_active('default');
+if (  count( $accountGradeId3 ) > 0 ) {
+			$accountArray3 = join( " ", $accountGradeId3 );
+		}
+$categoryname = " $accountArray3 ";
+drupal_set_message(t("Category Name: $categoryname"));
+
+
+
+
+
+
+	
+	
+	$form_state['redirect'] = 'scholupload/fileuploadnext';
+
+		  return;
+}
+
+function v3_cce_schol_upload_form ($form_state) {
+
+
+	$groupId = &$_SESSION['groupid'];	
+	$classId = &$_SESSION['class'];	
+	$termId = &$_SESSION['term'];	
+	$assessDate = &$_SESSION['assessdate'];	
+	$subject = &$_SESSION['subject'];	
+	$assessname = &$_SESSION['assessname'];	
+	$assesscatdetlist = &$_SESSION['assesscatdetlist'];	
+	$assesscatdescriptors = &$_SESSION['assesscatdescriptors'];	
+
+
+	
+
+  // drupal_set_message("groupId - $groupId ");	
+  // drupal_set_message("classId - $classId ");	
+  // drupal_set_message("termId - $termId ");	
+  drupal_set_message("Assessment Date - $assessDate ");	
+  // drupal_set_message("subject - $subject ");	
+  // drupal_set_message("assessname - $assessname ");	
+  // drupal_set_message("assesscatdetlist - $assesscatdetlist ");	
+ // drupal_set_message("assesscatdescriptors - $assesscatdescriptors ");
+  
+	  $form['#attributes']['enctype'] = "multipart/form-data";
+		db_set_active('qtxt_db');		  
+	  $resultg1 = db_query("select template_id, template_name from {qtxt_sms_template_master} where tag = 'cce'");
+				  $igradeOptions2 = array();
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions2[$rowg1->template_id ] =  $rowg1->template_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');				  
+				  
+				  $form['interfaceType'] = array('#type' => 'select',
+				  				  		'#title' => t('Interface Type'),
+										'#options' =>  $igradeOptions2,
+				  				  		'#description' => t('Please select the Template'),
+				  				  		'#disabled' => FALSE,
+				  );
+				  
+				  $form['tcsv'] = array('#type' => 'file',
+				  				  		'#title' => t('Upload File'),
+				  				  		'#description' => t('Pick a file to upload'),
+				  );
+				  
+
+		
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Process Scholastic Data'),                                                 
+	  );
+	
+	return $form;
+	
+}	
+
+function v3_cce_schol_upload_form_submit($form, &$form_state) {
+
+	$dir = file_directory_path();
+
+		if(isset($_FILES) && !empty($_FILES) && $_FILES['files']['size']['tcsv'] != 0){
+		
+			#this structure is kind of wacky
+			$name = $_FILES['files']['name']['tcsv'];
+			$size = $_FILES['files']['size']['tcsv'];
+			$type = $_FILES['files']['type']['tcsv'];
+
+			#this is the actual place where we store the file
+			$file = file_save_upload('tcsv', array() , $dir);
+
+		} 	
+	$_SESSION['ccefilename'] = $name;
+	$_SESSION['ccedir'] = $dir;		
+	$_SESSION['t_interface_type'] = $form_state['values']['interfaceType'];		
+/*		
+	$nonserassessdate = $form_state['values']['assessdate'];
+	
+	$fromDateExp = "$nonserassessdate[year]-$nonserassessdate[month]-$nonserassessdate[day]";	
+	
+	$_SESSION['ccefilename'] = $name;
+	$_SESSION['ccedir'] = $dir;
+	$_SESSION['cceaccount'] = $form_state['values']['institution'];
+
+	$_SESSION['groupid'] = $form_state['values']['group'];
+	$_SESSION['class'] = $form_state['values']['standard'];
+	$_SESSION['term'] = $form_state['values']['term'];
+	$_SESSION['assessdate'] = $fromDateExp;
+	
+	$_SESSION['subject'] = $form_state['values']['subject'];
+	$_SESSION['assessname'] = $form_state['values']['assessname'];
+	$_SESSION['assesscatdetlist'] = $form_state['values']['assesscatdetlist'];
+	$_SESSION['assesscatdescriptors'] = $form_state['values']['assesscatdescriptors'];
+*/	
+	
+	$form_state['redirect'] = 'scholupload/next';
+
+		  return;
+}
+
+function ahah_for_group_to_derive_class(){
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['group'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select grade_name, account_grade_id  from {cce_qtxt_sms_account_grades_v} where group_id = $gid";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->account_grade_id] = $datag->grade_name;
+		}
+		db_set_active('default');
+
+		$form['standard']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['standard'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function ahah_for_term_to_derive_assess () {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['group'];
+		$tid = $form['#post']['term'];
+		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_id, b.assessment_name  from cce_assesment_types b  where group_id = $gid  and  term_id = $tid  ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_id] = $datag->assessment_name;
+		}
+		db_set_active('default');
+
+		$form['assessname']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assessname'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function ahah_for_assess_to_derive_assesscateg () {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['assessname'];
+		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_category_type,   assessment_category_detail_id from cce_assesment_category_details_v b  where assessment_id  = $gid ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_category_detail_id] = $datag->assessment_category_type;
+		}
+		db_set_active('default');
+
+		$form['assesscatdetlist']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assesscatdetlist'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function ahah_for_assesscateg_to_derive_assesscategdescriptor () {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['assesscatdetlist'];
+		$sid = $form['#post']['subject'];		
+		$aid = $form['#post']['standard'];			
+		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.descriptor_name,   assessment_cat_det_descriptor_id from cce_assesment_cat_det_descriptor b  where assessment_category_detail_id  = $gid and subject_id = $sid and account_grade_id = $aid ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_cat_det_descriptor_id] = $datag->descriptor_name;
+		}
+		db_set_active('default');
+
+		$form['assesscatdescriptors']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assesscatdescriptors'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+function v3_cce_schol_fileupload_next_form ($form_state) {
+
+	$name = &$_SESSION['ccefilename'];
+	$dir = &$_SESSION['ccedir'];
+	$acc = &$_SESSION['cceaccount'];
+	$intType = &$_SESSION['t_interface_type'];	
+	$groupId = &$_SESSION['groupid'];	
+	$classId = &$_SESSION['class'];	
+	$termId = &$_SESSION['term'];	
+	$assessDate = &$_SESSION['assessdate'];	
+	$subject = &$_SESSION['subject'];	
+	$assessname = &$_SESSION['assessname'];	
+	$assesscatdetlist = &$_SESSION['assesscatdetlist'];	
+	$assesscatdescriptors = &$_SESSION['assesscatdescriptors'];	
+
+
+	$filename = $dir . '/' .$name ;
+	
+  drupal_set_message("name - $name ");	
+  drupal_set_message("dir - $dir ");	
+  drupal_set_message("acc - $acc ");	
+  drupal_set_message("intType - $intType ");	
+  drupal_set_message("groupId - $groupId ");	
+  drupal_set_message("classId - $classId ");	
+  drupal_set_message("termId - $termId ");	
+  drupal_set_message("assessDate - $assessDate ");	
+  drupal_set_message("subject - $subject ");	
+  drupal_set_message("assessname - $assessname ");	
+  drupal_set_message("assesscatdetlist - $assesscatdetlist ");	
+  drupal_set_message("assesscatdescriptors - $assesscatdescriptors ");	
+	
+
+	
+	$sms= new Qtxt_CCE_Common;
+	
+	
+//	$rs5 = $sms->cceLoad1A( $filename, $acc, $intType );
+//	$rs5 = $sms->cceMainLoad( $filename, $acc, $intType, $assId );	
+	$rs5 = $sms->cceMainScholLoadDetails ( $filename, $acc, $intType, $groupId, $classId , $termId , $assessDate, $subject, $assessname, $assesscatdetlist , $assesscatdescriptors );
+	
+	
+	if ( $intType ==211 ) {
+	$form[$rowval]['tabstart'] = array( '#value' => "", '#prefix'=>'<table  class="views-view-grid" >  <tbody> ', );
+	$i = 1 ;
+	$j = 1;
+	//SELECT Student_Id,Student_Name,class, section, year,batch_id,row_id,process_status,process_flag
+	
+				while($row3 = mysql_fetch_assoc($rs5)) {
+					$rowval = "row" . $i;
+						$j = 1;
+					$form[$rowval]['template'] = array( '#value' => $row3["Student_Id"], '#prefix'=>'<tr class="row-".$i  ><td class="col-1" >', '#suffix' => '</td>',);
+					$j =  $j + 1;
+					$form[$rowval]['templaten'] = array( '#value' => $row3["Student_Name"], '#prefix'=>'<td class="col-2" >', '#suffix' => '</td>',);
+					$j =  $j + 1;
+					$form[$rowval]['active'] = array( '#value' => $row3["process_flag"], '#prefix'=>'<td class="col-3" >', '#suffix' => '</td>',);
+					$j =  $j + 1;
+					$form[$rowval]['tag'] = array( '#value' => $row3["process_status"], '#prefix'=>'<td  class="col-4">', '#suffix' => '</td></tr>',);
+					$i =  $i + 1;
+				}
+
+		$form[$rowval]['tabend'] = array( '#value' => "", '#suffix' => '</table>',);	
+	}
+	else {
+			$form[$rowval]['tabstart'] = array( '#value' => "", '#prefix'=>'<table  class="views-view-grid" >  <tbody> ', );
+			$i = 1 ;
+			$j = 1;
+						while($row3 = mysql_fetch_assoc($rs5)) {
+							$rowval = "row" . $i;
+								$j = 1;
+							$form[$rowval]['template'] = array( '#value' => $row3["template_id"], '#prefix'=>'<tr class="row-".$i  ><td class="col-1" >', '#suffix' => '</td>',);
+							$j =  $j + 1;
+							$form[$rowval]['templaten'] = array( '#value' => $row3["template_name"], '#prefix'=>'<td class="col-2" >', '#suffix' => '</td>',);
+							$j =  $j + 1;
+							$form[$rowval]['active'] = array( '#value' => $row3["active_flag"], '#prefix'=>'<td class="col-3" >', '#suffix' => '</td>',);
+							$j =  $j + 1;
+							$form[$rowval]['tag'] = array( '#value' => $row3["tag"], '#prefix'=>'<td  class="col-4">', '#suffix' => '</td></tr>',);
+							$i =  $i + 1;
+						}
+
+				$form[$rowval]['tabend'] = array( '#value' => "", '#suffix' => '</table>',);
+	}
+	
+
+	return $form;
+	
+}
+

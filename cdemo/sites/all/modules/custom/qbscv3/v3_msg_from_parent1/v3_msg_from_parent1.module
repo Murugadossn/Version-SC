@@ -1,0 +1,420 @@
+<?php
+
+/**
+
+ * Implementation of hook_views_api().
+
+ *
+
+ */
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+function v3_msg_from_parent1_views_api() {
+
+  return array(
+
+    'api' => 2,
+
+    'path' => drupal_get_path('module', '  '),
+
+  );
+
+}
+
+
+
+
+
+function v3_msg_from_parent1_menu() {
+
+		
+
+	$items['pmsgblock'] = array(
+
+			'title' => t('Teacher Messages'),
+
+			'page callback' => 'ver3_parent1_my_form',
+
+			'type' => MENU_CALLBACK,
+
+			'access callback' => 'user_access',
+
+			'access arguments' => array('access content'),
+
+	);	
+
+	
+
+
+
+	return $items;
+
+	
+
+
+
+}
+
+
+
+	
+
+function ver3_parent1_my_form() {
+
+			$output = drupal_get_form('v3_msg_from_parent1_my_form');
+
+			return $output ;
+
+}
+
+
+
+function v3_msg_from_parent1_theme() {
+
+	return array(
+
+		      'v3_msg_from_parent1_my_form_theme' => array('arguments'=> array('form' => NULL),),
+
+
+
+	);
+
+}
+
+
+
+
+
+
+
+function v3_msg_from_parent1_my_form($form_state) {
+
+global $user; 
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid;
+
+
+
+  $header = array(
+
+    array(),
+
+    array('data' => t('Student Name'), 'field' => 'student_name'),
+
+    array('data' => t('Teacher Name'), 'field' => 'teacher_name'),
+
+    array('data' => t('Message'), 'field' => 'message'),
+
+    array('data' => t('Created On'), 'field' => 'msg_creation_date'),
+
+    array('data' => t('Msg For'), 'field' => 'msg_type'),
+
+	
+
+  );
+
+
+
+$clVal = &$_SESSION['user_class_filter_value'] ;
+
+$c2Val = &$_SESSION['user_section_filter_value'] ;
+
+
+
+
+
+$filterClass = "";
+
+
+
+
+
+			$accountArray = "";
+
+		db_set_active('qtxt_db');	
+
+
+
+		$result = db_query("select distinct(account_grade_id) from {qtxt_sms_parent_messages_v3} where drupal_uid = $uid ");
+
+
+
+		$accountGradeId = array();
+
+
+
+		while ($row = db_fetch_object($result)) {
+
+
+
+		  $accountGradeId[] =  $row->account_grade_id; 
+
+		  // This is the only line that changed from the code above.
+
+		}
+
+		db_set_active('default');
+
+		
+
+		if (  count( $accountGradeId ) > 0 ) {
+
+			$accountArray = join( ",", $accountGradeId );
+
+		}
+
+		$filterClass = " and account_grade_id in (" . $accountArray . " ) ";
+
+	
+
+// drupal_set_message(t("Class Filter, $filterClass"));	
+
+
+
+
+
+
+
+$filterSection = "";
+
+
+
+	 $accountArray = "";
+
+		//drupal_set_message(t("log 2 c2Val Not Set "));	
+
+		db_set_active('qtxt_db');	
+
+
+
+		$result = db_query("select type_id FROM {qtxt_sms_teacher_message_type} where type_id = 5");
+
+
+
+		$typeId = array();
+
+
+
+		while ($row = db_fetch_object($result)) {
+
+
+
+		  $typeId[] =  $row->type_id; 
+
+		  // This is the only line that changed from the code above.
+
+		}
+
+		db_set_active('default');
+
+		
+
+		if (  count( $typeId ) > 0 ) {
+
+			$accountArray = join( ",", $typeId );
+
+		}
+
+		$filterSection = " and type_id in (" . $accountArray . " ) ";
+
+	
+
+//drupal_set_message(t("Section Filter, $filterSection"));	
+
+
+
+
+
+	
+
+
+
+  
+
+  db_set_active('qtxt_db');	
+
+  
+
+ 
+
+$sql = "select distinct(student_name),teacher_name,message,msg_creation_date,msg_type,parent_message_id  from {qtxt_sms_parent_messages_v3} where process_flag = 1 and drupal_uid = $uid " . $filterClass . $filterSection."ORDER BY parent_message_id DESC " ; 
+
+
+
+$query_count = "select count(parent_message_id) from {qtxt_sms_parent_messages_v3}  
+
+	 where process_flag = 1 and drupal_uid = $uid "  . $filterClass . $filterSection  ; 
+
+
+
+$sql .= tablesort_sql($header);
+
+
+
+   $result = pager_query($sql, 5, 0, $query_count);
+
+
+
+ 
+
+
+
+    $form['access'] = array(
+
+    '#type' => 'fieldset',
+
+    '#title' => t('Access log settings'),
+
+    '#tree' => TRUE,
+
+	'#visible' => false,
+
+  );  
+
+
+
+  $account = array();
+
+
+
+$i = 1;  
+
+  while ($account = db_fetch_object($result)) {
+
+	$form['access']['account'][$i] = array(
+
+		// '#type' => 'checkbox',
+
+		'#return_value' => $account->parent_message_id,
+
+		'#default_value' => 0,
+
+		'#tree' => TRUE,
+
+
+
+	  );
+
+    $form['access']['studentname'][$account->parent_message_id] = array('#value' => $account->student_name);
+
+    $form['access']['teachername'][$account->parent_message_id] =  array('#value' => $account->teacher_name);
+
+    $form['access']['message'][$account->parent_message_id] =  array('#value' => $account->message);
+
+    $form['access']['msgtype'][$account->parent_message_id] =  array('#value' => $account->msg_type);
+
+    $form['access']['msgcreationdate'][$account->parent_message_id] =  array('#value' => $account->msg_creation_date);
+
+    $form['access']['accountgradeid'][$account->parent_message_id] =  array('#type' => 'hidden','#value' => $account->parent_message_id);
+
+	
+
+	$i = $i + 1;
+
+  }
+
+db_set_active('default');
+
+
+
+  // $form['pager'] = array('#value' => theme('pager', NULL, 25, 0));
+
+  $form['#theme'] = 'v3_msg_from_parent1_my_form_theme';   
+
+  $form['totalcount'] = array(
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+  );  
+
+  return $form;
+
+}
+
+
+
+function theme_v3_msg_from_parent1_my_form_theme($form)
+
+{
+
+$rows = array();
+
+$i = 1;
+
+foreach(element_children($form['access']['accountgradeid']) as $key) {
+
+	$row = array(); 
+
+   //    $row[] =  drupal_render($form['access']['account'][$i]);
+
+	$row[] =  drupal_render($form['access']['studentname'][$key]);
+
+       // $row[] =  drupal_render($form['access']['teachername'][$key]);
+
+       $row[] =  drupal_render($form['access']['message'][$key]);
+
+    $row[] =  drupal_render($form['access']['msgcreationdate'][$key]);
+
+	   $row[] =   l(t('More info'), 'pmsg');
+
+
+
+       $rows[] = $row; 
+
+	$i = $i +1 ;
+
+}
+
+
+
+if(count($rows)){
+
+		//	$header = array( theme('table_select_header_cell'), t('Student Name'), t('Message'), t('More Info'));
+	$header = array( t('Student Name'), t('Message'),t('Created On'), t('More Info'));
+
+
+  }
+
+  else{
+
+    $header = array(t(''), t('')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('No Data Found for the Selected Criteria'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+$output = theme('table', $header, $rows); 
+
+//return $output . drupal_render($form); 
+
+ $form['access']['#access'] = false;
+
+ return $output . drupal_render($form); 
+
+ return $output ;
+
+}
+
+
+

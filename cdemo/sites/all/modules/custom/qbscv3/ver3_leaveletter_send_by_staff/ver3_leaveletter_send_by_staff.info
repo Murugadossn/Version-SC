@@ -1,0 +1,7 @@
+; $Id: ver3_leaveletter_send_by_staff.info,v 1.7 2008/09/02 17:02:14 smk Exp $
+name = ver3_leaveletter_send_by_staff
+description = "Allow ver3_leaveletter_send_by_staff views to be displayed"
+package = ver3_leaveletter_send_by_staff
+core = 6.x
+
+

@@ -1,0 +1,5 @@
+; $Id$
+name = Pay For It Admin - Create Activity Module 
+description = Pay For It Admin - Create Activity Module 
+core = 6.x
+package = payforit

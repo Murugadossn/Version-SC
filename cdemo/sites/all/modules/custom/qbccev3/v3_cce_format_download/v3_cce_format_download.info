@@ -1,0 +1,5 @@
+; $Id$
+name = V3 CCE Data File Format Download
+description = CCE Data File Download
+core = 6.x
+package = CCE

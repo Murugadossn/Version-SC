@@ -1,0 +1,690 @@
+<?php
+
+
+
+/**
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+ *
+
+
+
+ */
+
+
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+
+
+
+
+function v3_staff_grade_map_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', '  '),
+
+
+
+  );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function v3_staff_grade_map_menu() {
+
+
+
+	$items['sgm'] = array(
+
+
+
+			'title' => t('Mapping the Staff  Grades'),
+
+
+
+			'page callback' => 'v3_staff_grade_map_cb_form',
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+			'access callback' => 'user_access',
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+	);
+
+ 
+
+return $items;
+
+
+
+}
+
+
+
+function v3_staff_grade_map_cb_form() {
+
+
+
+			$output = drupal_get_form('v3_staff_grade_map_form');
+
+            $output .= drupal_get_form('v3_staff_grade_map_form_next');
+
+
+
+			return $output ;
+
+
+
+}
+
+
+
+
+
+function v3_staff_grade_map_form() {
+
+
+
+ // $num_rows = &$_SESSION['num_rows'];
+
+		      	
+
+		$form['numrows'] = array(
+
+			'#type' => 'textfield',
+
+			'#description' => t('Please Enter Number of Staff to Add'),
+
+			'#size' => 60,
+
+		  '#maxlength' => 100,
+
+			'#default_value' => 1,
+
+			'#title' => t('Number of Staffs'),
+
+			'#required' => TRUE,
+
+		//	'#prefix' => '<br/><br/><br/><br/>',
+
+		);			
+
+		
+
+		
+
+
+
+	 $form['buttons']['submit'] = array(                                                          
+
+		'#type' => 'submit',
+
+		'#value' => t('Apply'), 
+
+'#prefix' => '<br/><br/><br/><br/>' 		
+
+	  );
+
+$form[ 'buttons' ]['submit']['#attributes']['class']  = $form[ 'buttons' ]['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+
+	return $form;
+
+
+
+		
+
+}
+
+
+
+
+
+function v3_staff_grade_map_form_validate($form, &$form_state) {
+
+
+
+   
+
+   if ( ($form_state['values']['numrows'] == '' ) || ($form_state['values']['numrows'] < 1  ) || ($form_state['values']['numrows'] > 10  )) {
+
+    form_set_error('', t('You must enter a number of stops value between 1 to 10.'));
+
+  } 
+
+
+
+		
+
+}	
+
+
+
+function v3_staff_grade_map_form_submit($form, &$form_state) {
+
+
+
+
+
+		  
+
+   $op = $form_state['values']['op'];
+
+  
+
+	$totalrows =  $form_state['values']['numrows'];
+
+
+
+		$_SESSION['num_rows'] = $totalrows;	
+
+	
+
+	
+
+	
+
+	 
+
+			  $form_state['redirect'] = 'sgm';
+
+
+
+		  return;
+
+}
+
+
+
+
+
+function v3_staff_grade_map_form_next() {
+
+
+
+				$num_rows = &$_SESSION['num_rows'];
+
+		
+
+	//	drupal_set_message(t("No Of Rows - $num_rows"));			
+
+		
+
+
+
+		$form['access'] = array(
+
+		'#type' => 'fieldset',
+
+		'#title' => t('Access log settings'),
+
+		'#tree' => TRUE,
+
+		'#visible' => false,	   
+
+		 );			
+
+
+
+		$i = 1;
+
+		while( $i < ($num_rows +1 )) {
+
+		
+
+		
+
+		 db_set_active('qtxt_db');	
+
+		$result1 = db_query("select staff_id,staff_name from {qtxt_sms_account_staff} ");
+
+		$subjectOptions1 = array( '' => t('Select The Staff Name') );
+
+		while ($row = db_fetch_object($result1)){
+
+		  $subjectOptions1[$row->staff_id] = $row->staff_name; 
+
+		}
+
+		db_set_active('default');
+
+		
+
+		$form['access']['sname'][$i] = array(
+
+					'#type' => 'select',
+
+					'#description' => t('Please select the Subject Name'),
+
+					'#options'=> $subjectOptions1,
+
+			//		'#title' => t('Staff Name'),
+
+					'#disabled' => FALSE,
+
+					'#required' => TRUE,
+
+				);
+
+				
+
+				
+
+				db_set_active('qtxt_db');	
+
+		$result2 = db_query("select account_grade_id,grade_name from {qtxt_sms_account_grades} where standard != 'ALL' ");
+
+		$subjectOptions2 = array( '' => t('Select The Department') );
+
+		while ($row = db_fetch_object($result2)){
+
+		  $subjectOptions2[$row->account_grade_id] = $row->grade_name; 
+
+		}
+
+		db_set_active('default');
+
+		
+
+		$form['access']['grade'][$i] = array(
+
+					'#type' => 'select',
+
+					'#description' => t('Please select the Department'),
+
+					'#options'=>$subjectOptions2,
+
+			//		'#title' => t('Dept/Year'),
+
+					'#disabled' => FALSE,
+
+					'#required' => TRUE,
+
+				);
+
+
+
+				$form['access']['adminrole'][$i] = array (
+
+					  '#type' => 'select', 
+
+			//		  '#title' => 'Role', 
+
+					  '#options' => array(
+
+					  ' ' => 'Select the Role',
+
+					  'Tutor' => 'Tutor',
+
+					 'Lecturer' => 'Lecturer',
+
+					 'HOD' => 'HOD',
+
+					   ),
+
+					   '#required' => TRUE,
+
+																
+
+				);
+
+	
+
+	
+
+				$form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+
+				
+
+				$i = $i + 1;
+
+		}
+
+	$form['#theme'] = 'staff_form_grade_theme';  
+
+
+
+	$form['buttons']['submit'] = array(                                                          
+
+		'#type' => 'submit',
+
+		'#value' => t('Submit'),                                                 
+
+	  );
+
+	return $form;
+
+
+
+}
+
+
+
+function v3_staff_grade_map_form_next_submit($form, &$form_state) {
+
+$op = $form_state['values']['op'];
+
+
+
+		$num_rows = &$_SESSION['num_rows'];
+
+
+
+//		drupal_set_message(t("No Of Rows - $num_rows"));			
+
+	
+
+		
+
+		$snameArray = array();
+
+		$gradeArray = array();
+
+       $roleArray = array();
+
+		
+
+
+
+
+
+		
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['sname']) ) {
+
+	$snameArray = $form_state['clicked_button']['#post']['access']['sname'];
+
+	}
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['grade']) ) {
+
+	$gradeArray = $form_state['clicked_button']['#post']['access']['grade'];
+
+	}
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['adminrole']) ) {
+
+	$roleArray = $form_state['clicked_button']['#post']['access']['adminrole'];
+
+	}
+
+
+
+	
+
+	$a = 1;
+
+	foreach ( $snameArray as $key => $value ) {
+
+		
+
+			$snamea = $snameArray[$key] ;
+
+			$gradea = $gradeArray[$key] ;
+
+			$adminrolea = $roleArray[$key] ;
+
+		
+
+//	 drupal_set_message( t( "CLicked button Set"));
+
+		
+
+	db_set_active('qtxt_db');	
+
+	
+
+				
+
+					$resultnStaffId = db_query("select staff_name,mobile_number from `qtxt_sms_account_staff` where staff_id = $snameArray[$key] ");
+
+
+
+     $nStaffId = array();
+
+	while ( $row = db_fetch_object( $resultnStaffId ) ) {
+
+		 $nStaffId = $row->staff_name;
+
+		
+
+	}
+
+	
+
+	$resultnGradeId = db_query("select account_grade_id,grade_name from `qtxt_sms_account_grades` where account_grade_id = $gradeArray[$key] ");
+
+
+
+     $nGradeId = array();
+
+	while ( $row = db_fetch_object( $resultnGradeId ) ) {
+
+		 $nGradeId = $row->grade_name;
+
+		
+
+	}
+
+
+
+	$resultnStandard = db_query("select account_grade_id,standard from `qtxt_sms_account_grades` where account_grade_id = $gradeArray[$key] ");
+
+
+
+     $nStandard = array();
+
+	while ( $row = db_fetch_object( $resultnStandard ) ) {
+
+		 $nStandard = $row->standard;
+
+		
+
+	}
+
+
+
+	$resultSection = db_query("select account_grade_id,section from `qtxt_sms_account_grades` where account_grade_id = $gradeArray[$key] ");
+
+
+
+     $nSection = array();
+
+	while ( $row = db_fetch_object( $resultSection ) ) {
+
+		 $nSection = $row->section;
+
+		
+
+	}
+
+				$resultnMobile = db_query("select staff_name,mobile_number from `qtxt_sms_account_staff` where staff_id = $snameArray[$key] ");
+
+
+
+     $nMobile = array();
+
+	while ( $row = db_fetch_object( $resultnMobile ) ) {
+
+		 $nMobile = $row->mobile_number;
+
+		
+
+	}
+
+	
+
+ $resultnDrupalId = db_query("select mobile_number,drupal_uid from `qtxt_sms_mobile_numbers` where mobile_number = $nMobile and person_name = '$nStaffId' ");
+
+
+
+     $nDrupalId = array();
+
+	while ( $row = db_fetch_object( $resultnDrupalId ) ) {
+
+		 $nDrupalId = $row->drupal_uid;
+
+		
+
+	}
+
+	
+
+	 db_query( "INSERT INTO `qtxt_staff_map_with_grade`(`id`,`staff_id`,`account_id`,`mobile_number`,`staff_name`,`contact_details`,`staff_std`,`staff_section`,`grade_name`,`account_grade_id`,`staff_subject`,`admin_type`,`admin_role`,`active_flag`,`created_date`,`last_updated_date`,`created_by`,`last_updated_by`,`staff_email`,`staff_dob`,`gender`,`drupal_uid`)VALUES(null,$snamea,5,$nMobile,'$nStaffId','','$nStandard','$nSection','$nGradeId',$gradea,'','','$adminrolea','Y',sysdate(),sysdate(),'sysadmin','sysadmin','','','',$nDrupalId)"); 					
+
+	
+
+						
+
+	db_set_active('default');	
+
+//	 drupal_set_message(t("Combo2 *** $a :  $snamea ----- $nStaffId --- $nGradeId ---- $gradea--- $nStandard --- $nSection --- $adminrolea --- $nMobile--- $nDrupalId "));
+
+
+
+		 
+
+		
+
+			$a = $a + 1;
+
+	}
+
+	
+
+	drupal_set_message(t("Data have been inserted successfully."));	
+
+	
+
+    $form_state['redirect'] = 'sgm';
+
+	return;
+
+}
+
+
+
+function v3_staff_grade_map_theme() {
+
+	return array(
+
+		'staff_form_grade_theme' => array('arguments'=> array('form' => NULL),),
+
+		
+
+	);
+
+}
+
+
+
+function theme_staff_form_grade_theme($form)
+
+{
+
+	$rows = array();
+
+	$i = 1;
+
+	foreach(element_children($form['access']['index']) as $key) {
+
+		$row = array(); 
+
+		   $row[] =  drupal_render($form['access']['sname'][$key]);
+
+		   $row[] =  drupal_render($form['access']['grade'][$key]);
+
+		   $row[] =  drupal_render($form['access']['adminrole'][$key]);
+
+		   $row[] =  drupal_render($form['access']['index'][$key]);
+
+		   $rows[] = $row; 
+
+		$i = $i +1 ;
+
+	}
+
+  if(count($rows)){
+
+				$header = array(
+
+					t('Staff Name'), t('Dept/Year'), t('Role'), t(' '));
+
+	  }
+
+  else{
+
+    $header = array(t('Staff Name'), t('Role Name')); 
+
+    $row = array();
+
+    $row[] = array
+
+    (
+
+      'data' => t('Please select the no of staff'),
+
+      'colspan' => 2,
+
+      'style' => 'text-align:center'
+
+    );
+
+    $rows[] = $row;
+
+  }
+
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+
+ $form['access']['#access'] = false;
+
+return $output . drupal_render($form); 
+
+}  
+
+
+
+
+
+
+
+
+

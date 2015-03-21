@@ -1,0 +1,288 @@
+<?php
+/*
+ * @file link_image.module
+ * Defines a field formatter to display a link to an image as an HTML image
+ * element.
+ * Primarily Drupal hooks and module functions.
+ */
+
+define('LINK_IMAGE_ADMIN_PATH', 'admin/settings/link_image');
+
+/**
+ * Implements hook_perm().
+ */
+function link_image_perm() {
+  return array('administer link_image presets');
+}
+
+/**
+ * Implements hook_theme().
+ */
+function link_image_theme() {
+  $base = array(
+    'file' => 'link_image.theme.inc',
+  );
+  
+  $theme = array();
+  
+  $theme['link_image_formatter_image'] = array(
+    'arguments' => array('element' => NULL),
+  ) + $base;
+  $theme['link_image_formatter_image_linked'] = array(
+    'arguments' => array('element' => NULL),
+  ) + $base;
+  $theme['link_image_formatter_image_imagelink'] = array(
+    'arguments' => array('element' => NULL),
+  ) + $base;
+  
+  if (module_exists('imagecache_external')) {
+    $theme['link_image_formatter_imagecache_default'] = array(
+      'arguments' => array('element' => NULL),
+    ) + $base;
+    $theme['link_image_formatter_imagecache_linked'] = array(
+      'arguments' => array('element' => NULL),
+    ) + $base;
+    $theme['link_image_formatter_imagecache_imagelink'] = array(
+      'arguments' => array('element' => NULL),
+    ) + $base;
+    
+    foreach (imagecache_presets() as $preset) {
+      $theme['link_image_formatter_'. $preset['presetname'] .'_imagecache_default'] = array(
+        'arguments' => array('element' => NULL),
+        'function' => 'theme_link_image_formatter_imagecache_default',
+      ) + $base;
+      $theme['link_image_formatter_'. $preset['presetname'] .'_imagecache_linked'] = array(
+        'arguments' => array('element' => NULL),
+        'function' => 'theme_link_image_formatter_imagecache_linked',
+      ) + $base;
+      $theme['link_image_formatter_'. $preset['presetname'] .'_imagecache_imagelink'] = array(
+        'arguments' => array('element' => NULL),
+        'function' => 'theme_link_image_formatter_imagecache_imagelink',
+      ) + $base;
+    }
+  }
+  
+  return $theme;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function link_image_menu() {
+  $items = array();
+  $items[LINK_IMAGE_ADMIN_PATH] = array(
+    'title' => 'Link image presets',
+    'description' => 'Configure how content input by users is filtered, including allowed HTML tags. Also allows enabling of module-provided filters.',
+    'page callback' => 'link_image_admin_overview',
+    'access arguments' => array('administer link_image presets'),
+    'file' => 'link_image.admin.inc',
+  );
+  $items[LINK_IMAGE_ADMIN_PATH . '/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items[LINK_IMAGE_ADMIN_PATH . '/add'] = array(
+    'title' => 'Add link image preset',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('link_image_preset_form'),
+    'access arguments' => array('administer link_image presets'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'file' => 'link_image.admin.inc',
+  );
+  
+  $items[LINK_IMAGE_ADMIN_PATH . '/%link_image'] = array(
+    'type' => MENU_CALLBACK,
+    'title callback' => 'link_image_preset_title',
+    'title arguments' => array(3),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('link_image_preset_form', 3),
+    'access arguments' => array('administer link_image presets'),
+    'file' => 'link_image.admin.inc',
+  );
+  $items[LINK_IMAGE_ADMIN_PATH . '/%link_image/edit'] = array(
+    'title' => 'Edit',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+    'file' => 'link_image.admin.inc',
+  );
+  $items[LINK_IMAGE_ADMIN_PATH . '/%link_image/delete'] = array(
+    'title' => 'Delete input format',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('link_image_preset_delete', 3),
+    'access arguments' => array('administer link_image presets'),
+    'type' => MENU_CALLBACK,
+    'file' => 'link_image.admin.inc',
+  );
+  return $items;
+}
+
+function link_image_load($arg) {
+  return db_fetch_object(db_query("SELECT * FROM {link_image_preset} WHERE name = '%s'", $arg));
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function link_image_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'content_display_overview_form') {
+    link_image_content_display_form($form, $form_state);
+  }
+}
+
+/**
+ * Implements CCK's hook_field_formatter_info().
+ */
+function link_image_field_formatter_info() {
+  $formatters = array();
+  
+  $formatters['image'] = array(
+    'label' => t('Image'),
+    'field types' => array('link'),
+  );
+  $formatters['image_linked'] = array(
+    'label' => t('Image linked to node'),
+    'field types' => array('link'),
+  );
+  $formatters['image_imagelink'] = array(
+    'label' => t('Image linked to image'),
+    'field types' => array('link'),
+  );
+  
+  if (module_exists('imagecache_external')) {
+    foreach (imagecache_presets() as $preset) {
+      $formatters[$preset['presetname'] .'_imagecache_default'] = array(
+        'label' => t('@preset image', array('@preset' => $preset['presetname'])),
+        'field types' => array('link'),
+      );
+      $formatters[$preset['presetname'] .'_imagecache_linked'] = array(
+        'label' => t('@preset image linked to node', array('@preset' => $preset['presetname'])),
+        'field types' => array('link'),
+      );
+      $formatters[$preset['presetname'] .'_imagecache_imagelink'] = array(
+        'label' => t('@preset image linked to image', array('@preset' => $preset['presetname'])),
+        'field types' => array('link'),
+      );
+      $formatters[$preset['presetname'] .'_imagecache_path'] = array(
+        'label' => t('@preset file path', array('@preset' => $preset['presetname'])),
+        'field types' => array('link'),
+      );
+      $formatters[$preset['presetname'] .'_imagecache_url'] = array(
+        'label' => t('@preset URL', array('@preset' => $preset['presetname'])),
+        'field types' => array('link'),
+      );
+    }
+  }
+  
+  return $formatters;
+}
+
+/**
+ * Page title callback.
+ */
+function link_image_preset_title($preset) {
+  return $preset->name;
+}
+
+/**
+ * Alter content display form to include extra data for link image type
+ * formatter.
+ */
+function link_image_content_display_form(&$form, &$form_state) {
+  $fields = content_fields();
+  $link_fields = array();
+  foreach ($fields as $field) {
+    if ($field['type'] == 'link') {
+     $link_fields[$field['field_name']] = $field;
+    }
+  }
+  foreach ($form as $field_name => $element) {
+    if (substr($field_name, 0, 6) == 'field_') {
+      if (array_key_exists($field_name, $link_fields)) {
+        $field = $link_fields[$field_name];
+        foreach ($element as $context => $value) {
+          if (!in_array($context, array('human_name', 'weight', 'parent', 'label'))) {
+            $base_form = $form[$field_name][$context]['format'];
+            $formatter = $base_form['#default_value'];
+            if (in_array($formatter, array('image', 'image_linked', 'image_imagelink'))) {
+              $options['type_name'] = $form['#type_name'];
+              $options['context'] = $context;
+              $form[$field_name][$context]['format'] = array();
+              $form[$field_name][$context]['format']['base'] = $base_form;
+              $form[$field_name][$context]['format']['extra'] = link_image_formatter_settings($form_state, $field, $options);
+              $form[$field_name][$context]['format']['#element_validate'] = array('link_image_formatter_settings_validate');
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Settings form for link display image type formatter.
+ */
+function link_image_formatter_settings($form_state = NULL, $field, $options = array()) {
+  $field_name = $field['field_name'];
+  $field = content_fields($field_name);
+  $type_name = isset($options['type_name']) ? $options['type_name'] : $field['type_name'];
+  $context = isset($options['context']) ? $options['context'] : 'full';
+
+  if (empty($options['width'])) {
+    $options = _link_image_formatter_get_settings($field_name, $type_name, $context);
+  }
+
+  $form['width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Width'),
+    '#default_value' => !empty($options['width']) ? $options['width'] : '',
+    '#description' => t('Enter a width in pixels. Leave blank for default.'),
+  );
+  $form['height'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Height'),
+    '#default_value' => !empty($options['height']) ? $options['height'] : '',
+    '#description' => t('Enter a height in pixels. Leave blank for default.'),
+  );
+
+  $form['field'] = array(
+    '#type' => 'value',
+    '#value' => $field,
+  );
+  $form['type_name'] = array(
+    '#type' => 'value',
+    '#value' => $type_name,
+  );  
+  $form['context'] = array(
+    '#type' => 'value',
+    '#value' => $context,
+  );
+
+  return $form;
+}
+
+function _link_image_formatter_get_settings($field_name, $type_name, $context) {
+  $options = array();
+  $value = 'link_image:'. $type_name .':'. $context .':'. $field_name;
+  $options['width'] = variable_get($value .'_width', 0);
+  $options['height'] = variable_get($value .'_height', 0);
+  return $options;
+}
+
+/**
+ * Store the formatter settings 
+ * and reset the form back to the value CCK expects.
+ */
+function link_image_formatter_settings_validate(&$form, &$form_state) {
+  $field = $form['extra']['field']['#value'];
+  $field_name = $field['field_name'];
+  
+  $type_name = $form['extra']['type_name']['#value'];
+  $context = $form['extra']['context']['#value'];
+  $form_values = $form_state['values'][$field_name][$context]['format']['extra'];
+  $value = 'link_image:'. $type_name .':'. $context .':'. $field_name;
+  variable_set($value .'_width', (int) $form_values['width']);
+  variable_set($value .'_height', (int) $form_values['height']);
+  
+  form_set_value($form, $form_state['values'][$field_name][$context]['format']['base'], $form_state);
+}

@@ -1,0 +1,5 @@
+; $Id$
+name = Pay For It Admin Create Manual Receipts Module 
+description = Pay For It Admin Create Manual Receipts Module 
+core = 6.x
+package = payforit

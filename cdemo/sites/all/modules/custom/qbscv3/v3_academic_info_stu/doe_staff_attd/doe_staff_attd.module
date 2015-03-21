@@ -1,0 +1,831 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+
+function doe_staff_attd_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'doe_staff_attd'),
+  );
+}
+
+
+function doe_staff_attd_menu() {
+
+$items['staffattinit'] = array(
+			'title' => t('staff Attendance - Welcome Screen'),
+			'page callback' => 'doe_staff_attd_first_page_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+
+	$items['attdstaff'] = array(
+			'title' => t('Mark Staff Attendance'),
+			'page callback' => 'doe_staff_attd_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	
+	$items['attdstaff/next'] = array(
+			'title' => t('Attendance has been updated.'),
+			'page callback' => 'doe_staff_attd_next_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+	$items['attdstaff/final'] = array(
+			'title' => t(''),
+			'page callback' => 'doe_staff_attd_final_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+return $items;
+}
+
+
+function doe_staff_attd_first_page_cb() {
+			$output = drupal_get_form('doe_staff_attd_first_page');
+			return $output ;
+}
+
+function doe_staff_attd_next_form() {
+			// $output = drupal_get_form('doe_next_form');
+			return $output ;
+}
+
+
+function doe_staff_attd_final_form() {
+			$output = drupal_get_form('doe_final_form');
+			return $output ;
+}
+
+function doe_staff_attd_form() {
+			$output = drupal_get_form('doe_filter_form');
+			$output .= drupal_get_form('doe_form');
+
+			return $output ;
+}
+
+
+
+
+function doe_staff_attd_first_page( $form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+// unset ( $_SESSION['user_section_filter_value'] );
+//unset ( $_SESSION['user_class_filter'] );
+unset ( $_SESSION['user_mobile_number'] );
+unset ( $_SESSION['admin_user_id'] );
+unset ( $_SESSION['admin_pwd'] );
+/*
+unset ( $_SESSION['doa'] );
+unset ( $_SESSION['selectOptions'] );
+unset ( $_SESSION['start_doa'] );
+unset ( $_SESSION['end_doa'] );
+*/
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+
+				$form['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $defusermobile,
+				'#value' => $defusermobile,
+				'#disabled' => TRUE,
+				'#size' => 50,
+				'#description' => t('Your Mobile Number.'),
+				);
+
+				$form['userId'] = array(
+				'#title' => t('SMS User Id'),
+				'#type' => 'textfield',
+				'#default_value' => $defadminuserid,
+				'#size' => 50,
+				'#description' => t('Please Enter Your SMS User Id.'),
+				);
+				$form['pwdId'] = array(
+				'#title' => t('SMS Password Id'),
+				'#type' => 'password',
+				'#default_value' => $defadminpwd,
+				'#size' => 50,
+				'#description' => t('Please Enter Your SMS Password.'),
+				);
+/*				
+				 $form['smscategory'] = array (
+					  '#type' => 'radios', 
+					  '#title' => t('Category'), 
+					  '#options' => array ( '0' => t('Attendance Today'),
+                                            '1' => t('Attendance Summary Per Term'),
+                                         //   '2' =>  t('Overall Class Attendance Summary')
+),
+                                         	);
+ */
+			 $form['next_submit'] = array(
+				'#type' => 'submit',
+				'#value' => t('Next'),
+'#prefix' => '<br/><br/><br/><br/><br/><br/>',
+			  );
+		$form['next_submit']['#attributes']['class']  = $form['next_submit']['#attributes']['class'] . ' qbsubmit';
+
+			return $form;
+}
+
+
+
+function doe_staff_attd_first_page_submit($form, &$form_state) {
+		$_SESSION['user_mobile_number'] = $form_state['values']['mobileId'];
+		$_SESSION['admin_user_id'] = $form_state['values']['userId'];
+		$_SESSION['admin_pwd'] = $form_state['values']['pwdId'];
+//		$_SESSION['sms_category'] = $form_state['values']['smscategory'];
+	
+		$form_state['redirect'] = 'attdstaff';
+/*		
+		$category = $form_state['values']['smscategory'];
+		
+		switch ($category) {
+		case "0":
+			$form_state['redirect'] = 'v_fsc';
+			break;
+		case "1":
+			$form_state['redirect'] = 'v_attendsum';
+                       	break;
+		case "2":
+			$form_state['redirect'] = 'ver3_today_attd_det';
+			break;
+		}
+*/		
+			   return;
+
+}
+
+
+function doe_staff_attd_first_page_validate($form, &$form_state) {
+	$values = $form_state['values'];
+	$mobileId = $values[mobileId];
+	$userId = $values[userId];
+	$pwdId = $values[pwdId];
+//	$category = $values[smscategory];
+	
+	     
+
+
+         db_set_active('qtxt_db');	
+
+		$result = db_query("select admin_user_id from qtxt_sms_admin_mobile_sbc_v  where mobile_number = '$mobileId'");
+
+		$accountGradeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradeId[] =  $row->admin_user_id; 
+		  		}
+
+
+
+		db_set_active('default');		
+		if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( ",", $accountGradeId );
+		}
+		$duserId = "$accountArray";
+		
+		        
+                db_set_active('qtxt_db');	
+
+		$result = db_query("select admin_password from qtxt_sms_admin_mobile_sbc_v  where mobile_number = '$mobileId'");
+
+		$accountGradepass = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradepass[] =  $row->admin_password; 
+		  // This is the only line that changed from the code above.
+		}
+
+
+
+		db_set_active('default');		
+		if (  count( $accountGradepass ) > 0 ) {
+			$accountArray = join( ",", $accountGradepass );
+		}
+		$duserpass = "$accountArray";
+		
+		
+  if ( $mobileId == '') {
+    form_set_error('', t('Please Set Your Mobile Information In User Settings.'));
+  }
+  if ( $userId == '') {
+    form_set_error('', t('Please Enter Your SMS Admin User Id'));
+  }
+
+  if ( $pwdId == '') {
+    form_set_error('', t('Please Enter Your Sms Admin Pwd'));
+  }
+  if ( $userId != $duserId) {
+     form_set_error('', t('Please Enter Your Correct SMS UserId'));
+               
+	  }
+
+ if ( $pwdId != $duserpass) {
+		form_set_error('', t('Please Enter Your Correct Sms Password'));
+	  }
+/*	  
+  if  ( $category == '') {
+    form_set_error('', t('Please Select One Of The SMS Option.'));
+  }
+ */
+  
+	  
+}
+
+
+
+function doe_staff_attd_page() {
+	$output = t('This page contains our example form.');
+// Return the HTML generated from the $form data structure.
+	$output .= drupal_get_form('doe_staff_attd_main');
+	return $output;
+}
+
+function doe_filter_form($form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$defusermobile = $myMobileNumber;
+
+
+	$values = $form_state['values'];
+	$mobileId = $values[mobileId];
+	$userId = $values[userId];
+	$pwdId = $values[pwdId];
+ 
+
+	if(!empty($_SESSION['user_class_filter_value'])) {
+		$clVal = &$_SESSION['user_class_filter_value'];
+	} else {
+		$clVal = "";
+	}
+
+	if(!empty($_SESSION['user_section_filter_value'])) {
+		$c2Val = &$_SESSION['user_section_filter_value'];
+	} else {
+		$c2Val = "";
+	}
+if(!empty($_SESSION['user_mobile_number'])) {
+		$c3Val = &$_SESSION['user_mobile_number'];
+	} else {
+		$c3Val = "";
+	}
+
+
+
+$_SESSION['user_class_filter_value'] = $clVal;
+ $_SESSION['user_section_filter_value'] = $c2Val;
+$_SESSION['user_mobile_number'] =$c3Val;
+
+unset ($_SESSION['user_section_filter']);
+unset ($_SESSION['user_class_filter']);
+  
+		$test1 = &$_SESSION['user_mobile_number'] ;
+		$test2 = &$_SESSION['admin_user_id'];
+		$test3 = &$_SESSION['admin_pwd']; 
+//drupal_set_message(t("Mobile  - $test1"));
+//drupal_set_message(t("User Id  - $test2"));
+//drupal_set_message(t("pwd  - $test3"));
+				
+ $i = 0;
+ 
+  $form['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Show only Staff where'),
+//    '#theme' => 'user_filters',
+  );
+/*
+
+		$currdate = date("Y-m-d");
+$defdoa = $currdate;
+if ( !empty($_SESSION['doa'])) {
+$defdoa = &$_SESSION['doa'];
+} else {
+$defdoa = $currdate;
+}  
+	$form['doa'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date Of Absense'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $defdoa,
+	  '#date_year_range' => '-1:+1',
+         '#prefix' => '<br/>',
+	);					
+	 $i = 0;
+
+
+*/
+
+$currdate = date("Y-m-d");
+$defdoa = $currdate;
+if ( !empty($_SESSION['doa'])) {
+$defdoa = &$_SESSION['doa'];
+// drupal_set_message(t("doa  - $defdoa"));
+} else {
+$defdoa = $currdate;
+}
+  $form['filters']['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $defusermobile,
+				'#value' => $defusermobile,
+				'#disabled' => TRUE,
+				'#description' => t('Your Mobile Number.'),
+                                '#type' => 'hidden'
+				);
+
+
+	$form['filters']['doa'] = array(
+	  '#type' => 'date_popup',
+	  '#title' => t('Date of Absense'),
+	  '#date_format' => 'd-m-Y',
+	  '#default_value' => $defdoa,
+	  '#date_year_range' => '-1:+1',
+	);
+
+
+$key = 'class';
+
+db_set_active('qtxt_db');	
+// $result = db_query("SELECT distinct b.staff_type FROM {qtxt_sms_account_staff} b where upper(b.staff_type) != 'ALL'", $myMobileNumber);
+$result = db_query("SELECT distinct b.admin_type FROM {qtxt_sms_account_staff} b where upper(b.admin_type) != 'ALL'", $myMobileNumber );
+ $gradeOptions = array();
+
+  $gradeOptions = array('' => t('Select the Staff Type'));
+while ($row = db_fetch_object($result)) {
+  $gradeOptions[$row->admin_type] =  $row->admin_type; //This is the only line that changed from the code above.
+}
+db_set_active('default');	
+			
+$names[$key] = 'Title Department';
+      $form['filters']['class'] = array(
+      '#type' => 'select',
+      '#title' => 'Staff Type',
+      '#options' => $gradeOptions,
+    );
+
+
+/*	
+$key = 'section';				
+
+$names[$key] = 'Title Section';
+    $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+      '#title' => 'Session',
+
+      '#options' => array(
+                                  '' => 'Select..',
+				  'ForeNoon' => 'ForeNoon',
+				  'AfterNoon' => 'AfterNoon',
+					),
+    );
+*/
+  
+$form['filters']['class']['#default_value']	= $clVal;  
+$form['filters']['section']['#default_value']	= $c2Val;
+$form['filters']['mobileId']['#default_value']	= $c2Val;   
+ 
+ $form['filters']['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Filter'),
+  );
+
+return $form;
+
+}
+
+function doe_form($form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$test1 =  $myMobileNumber;
+
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+// unset ( $_SESSION['user_mobile_number'] );
+
+
+
+  $header = array(
+    array(),
+ //   array('data' => t('Designation'), 'field' => 'a.staff_cadre'),
+    array('data' => t('Designation'), 'field' => 'a.admin_role'),
+
+	array('data' => t('Staff Name'), 'field' => 'a.staff_name'),
+ //   array('data' => t('Staff Identifier'), 'field' => 'a.staff_identifier'),
+    array('data' => t('Staff Identifier'), 'field' => 'a.staff_id'),
+
+    array('data' => t('Staff Id'), 'field' => 'a.staff_id'),
+      );
+  $test1 = &$_SESSION['user_mobile_number'] ;
+// drupal_set_message(t("Mobile Number , $test1"));
+$defdoa = &$_SESSION['doa'];
+// drupal_set_message(t("Date , $defdoa"));
+$clVal = &$_SESSION['user_class_filter_value'] ;
+ $c2Val = &$_SESSION['user_section_filter_value'] ;
+$c3Val = &$_SESSION['user_mobile_number'] ;
+
+//  drupal_set_message(t("Class Filter 1 , $clVal"));	
+//  drupal_set_message(t("Section Filter 2 , $c2Val"));	
+
+$filterClass = "";
+    if ( $clVal != "" ) {
+			$filterClass = " and a.admin_type = '$clVal' ";
+	} else {
+			$filterClass = " and a.admin_type = a.admin_type ";
+	}
+
+  
+  /*
+$filterClass = "";
+	$filterClass = " and a.admin_type = '$clVal' ";
+
+  $filterSection = "";
+	$filterSection = " and Sesssion = '$c2Val' ";
+*/
+// drupal_set_message(t("Class Filter, $filterClass"));	
+// drupal_set_message(t("Section Filter, $filterSection"));
+$accountArray = "";
+  // drupal_set_message(t("log 2 c1Val Not Set ")); 
+  db_set_active('qtxt_db'); 
+
+//  $result = db_query("select a.account_id from {qtxt_sms_account_staff} a ");
+  $result = db_query("select a.account_id from {qtxt_sms_account_staff} a ");
+
+  $accountGradeId = array();
+
+  while ($row = db_fetch_object($result)) {
+
+    $accountGradeId[] =  $row->account_id; 
+    // This is the only line that changed from the code above.
+  }
+  db_set_active('default');
+  
+  if (  count( $accountGradeId ) > 0 ) {
+   $accountArray = join( ",", $accountGradeId );
+  }
+  $filterClass1 = " and b.account_id in (" . $accountArray . " ) ";
+// drupal_set_message(t("Account id, $filterClass1"));	
+ 	
+
+  db_set_active('qtxt_db');	
+ 
+
+// $sql = "select a.staff_type,a.staff_cadre,a.staff_name, a.staff_identifier, a.staff_id from {qtxt_sms_account_staff} a,{qtxt_sms_account} b where  a.account_id = b.account_id " . $filterClass . $filterClass1 . " order by 1 , 2 " ; 
+
+$sql = "select a.admin_type,a.admin_role,a.staff_name, a.staff_id , a.staff_id from {qtxt_sms_account_staff} a,{qtxt_sms_account} b where  a.account_id = b.account_id " . $filterClass . " order by 1 , 2 " ; 
+
+//    $query_count = "select COUNT(a.staff_id) from {qtxt_sms_account_staff} a, {qtxt_sms_account} b where  a.account_id = b.account_id " . $filterClass . $filterClass1 ;
+    $query_count = "select COUNT(a.staff_id) from {qtxt_sms_account_staff} a, {qtxt_sms_account} b where  a.account_id = b.account_id " . $filterClass  ;
+
+
+
+  $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 10000, 0, $query_count);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Submit Staff Attendance'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+$v = 1;
+ $y = 1;
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+	       '#type' => 'checkbox',
+// '#type' => 'hidden',
+
+		'#return_value' => $account->staff_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+	  	$form['access']['staffcadre'][$account->staff_id] = array('#value' => $account->admin_role);
+
+//	$form['access']['staffcadre'][$account->staff_id] = array('#value' => $account->staff_cadre);
+    $form['access']['staffname'][$account->staff_id] =  array('#value' => $account->staff_name);
+ //    $form['access']['staffidentifer'][$account->staff_id] =  array('#value' => $account->staff_identifier);
+    $form['access']['staffidentifer'][$account->staff_id] =  array('#value' => $account->staff_id );
+
+	
+$form['access']['status'][$v] = array(
+		'#type' => 'select',
+           '#options' => array(
+                                 // '' => 'Select..',
+                                  'Present' => 'Present',
+				  'Absent' => 'Absent',
+                                  'Leave' => 'Leave',
+				  'On Duty' => 'On Duty',
+                                  'Assigned Duty' => 'Assigned Duty',
+                                  'Permission' => 'Permission',
+					),
+'#tree' => TRUE,
+    );
+
+	
+ $form['access']['status1'][$y] = array(
+		'#type' => 'textfield',
+		//'#default_value' => 'PRESENT',
+		//'#disabled' => TRUE,
+		'#size' => 15,
+		'#tree' => TRUE,
+
+	  );
+
+
+    $form['access']['staffid'][$account->staff_id] =  array('#value' => $account->staff_id);
+    	$i = $i + 1;
+       
+$v = $v + 1;
+ $y = $y + 1;
+  }
+   
+db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 50, 0));
+  $form['#theme'] = 'doe_form_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  ); 
+
+$form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($v  -1 )
+  );  
+
+  return $form;
+}
+
+function doe_staff_attd_theme() {
+	return array(
+		'doe_form_theme' => array('arguments'=> array('form' => NULL),),
+		'doe_next_form_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+
+function theme_doe_form_theme($form)
+{
+$rows = array();
+$i = 1;
+$v = 1;
+ $y = 1;
+foreach(element_children($form['access']['staffid']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['access']['account'][$i]);
+//  $row[] =  drupal_render($form['access']['staffidentifer'][$key]);
+   $row[] =  drupal_render($form['access']['staffname'][$key]);
+  $row[] =  drupal_render($form['access']['staffcadre'][$key]);
+       	            $row[] =  drupal_render($form['access']['status'][$v]);
+           $row[] =  drupal_render($form['access']['status1'][$y]);
+     //  $row[] =  drupal_render($form['access']['staffid'][$key]);
+       	$rows[] = $row; 
+	$i = $i +1 ;
+        $v = $v +1 ;
+     $y = $y +1 ;
+}
+
+
+if(count($rows)){
+			$header = array(
+				theme('table_select_header_cell'), t('Name'),t('Designation'), t('Attendance'), t('Remarks'));
+  }
+  else{
+    $header = array(t('First Name'), t('Last Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+
+$output = theme('table', $header, $rows); 
+// return $output . drupal_render($form);
+$form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ;
+ 
+}  
+
+
+function doe_staff_attd_main_submit($form, &$form_state) {
+	// do nothing
+}
+
+
+function doe_filter_form_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Filter'): 
+
+		$_SESSION['doa'] = $form_state['values']['doa'];
+	 
+      if (isset($form_state['values']['class'])) {
+//drupal_set_message(t("In the Filter, Class  selected"));	  
+			$filter = $form_state['values']['class'];
+		 
+			$_SESSION['user_class_filter_value'] = $form_state['values']['class'];
+      } else  {
+//drupal_set_message(t("In the Filter, Class not selected"));	  
+		  $_SESSION['user_class_filter_value'] = "";	
+		  unset ( $_SESSION['user_class_filter_value'] );
+		  
+	  }
+	  
+	  if (isset($form_state['values']['section'])) {
+
+// drupal_set_message(t("In the Filter, Section  selected"));	  
+			$filter = $form_state['values']['section'];
+			  $_SESSION['user_section_filter_value'] = $form_state['values']['section'];
+      } else {
+// drupal_set_message(t("In the Filter, Section not selected"));	  
+
+		  $_SESSION['user_section_filter_value'] = "";	  
+		  unset ( $_SESSION['user_section_filter_value'] );
+	  }
+ 
+
+
+
+      break;
+    case t('Undo'):
+//      array_pop($_SESSION['user_overview_filter']);
+      break;
+    case t('Reset'):
+//      $_SESSION['user_overview_filter'] = array();
+      break;
+    case t('Update'):
+      return;
+  }
+
+  $form_state['redirect'] = 'attdstaff';
+  return;
+}
+
+function doe_filter_form_validate($form, &$form_state) {
+		$values = $form_state['values'];
+		$defdoa = $values['doa'];
+$c1Val = $values['class'];
+$c2Val = $values['section'];
+
+
+
+	  if ( $defdoa == '') {
+		form_set_error('', t('Please Select The Date of Absense.'));
+	  }
+/*
+if ( $c1Val == '') {
+		form_set_error('', t('Please Select The Staff Type.'));
+	  }
+
+if ( $c2Val == '') {
+		form_set_error('', t('Please Select The Session.'));
+	  }
+
+*/		
+}
+
+function doe_form_submit($form, &$form_state) {
+
+// dpm($form_state);
+
+
+$dt = &$_SESSION['doa'];
+
+$defdoa = &$_SESSION['doa'];
+$c2Val = &$_SESSION['user_section_filter_value'] ;
+$TotalCount = $form_state['values']['totalcount'];
+$selList = &$_SESSION['selectOptions'];
+$mobileId = &$_SESSION['user_mobile_number'] ;
+		$adminUserid = &$_SESSION['admin_user_id'];
+		$adminpwd = &$_SESSION['admin_pwd']; 
+
+
+
+// drupal_set_message(t("Date1 , $defdoa"));
+// drupal_set_message(t("period , $c2Val"));
+// drupal_set_message(t("Count , $TotalCount"));
+// drupal_set_message(t("SelectList , $selList"));
+// drupal_set_message(t("period , $mobileId"));
+// drupal_set_message(t("Count , $adminUserid"));
+// drupal_set_message(t("SelectList , $adminpwd"));
+ // drupal_set_message(t("myarray , $myArray"));
+
+$myArray = array();
+$myArray1 = array();
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['account']) ) {
+	$myArray = $form_state['clicked_button']['#post']['access']['account'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['status']) ) {
+	$leaveReason = $form_state['clicked_button']['#post']['access']['status'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['status1']) ) {
+	$leaveComments = $form_state['clicked_button']['#post']['access']['status1'];
+	}
+/*	
+	foreach ( $myArray as $key => $value ) {
+	
+		// drupal_set_message( t( "CLicked button Set"));
+		// drupal_set_message(t("Combo2 *** $i :  $value  ---  $leaveReason[$key] -- $leaveComments[$key]"));
+	
+	
+
+db_set_active('qtxt_db');
+
+		$myArray = db_query( "INSERT INTO`qtxt_sms_staff_attendance`(`staff_attendance_id`,`staff_id`,`attendance_date`, `period`,`attendance`,`remarks`,`absence_flag`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`)
+         VALUES(null,'$value','$defdoa','$c2Val','$leaveReason[$key]','$leaveComments[$key]',1,sysdate(),sysdate(),'admin','admin')");
+
+  db_set_active('default');
+
+
+}
+*/
+$sms= new Qtxt_Sms_Common;
+//	$outputString = $sms->sendMarksToUsers( $mobile, $userId,  $pwdId, $standard, $section, $testCode , $GLOBALS['base_path']);
+//	$outputString = $sms->sendStaffAbsenteeSMS( $mobileId, $adminUserid, $adminpwd, $selList, $absentDt,$leaveReason[$key],$leaveComments[$key], $GLOBALS['base_path']);
+	$outputString = $sms->sendStaffAbsenteeSMS( $mobileId, $adminUserid, $adminpwd, $myArray, $absentDt, $leaveReason ,$leaveComments , $GLOBALS['base_path']);
+
+	
+	
+	drupal_set_message(("Attendance sent to the users"));
+  
+
+
+
+$op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Submit'): 
+		$form_state['redirect'] =   'attdstaff/final';
+		break;
+	}
+
+  return;
+}
+
+
+
+
+function doe_final_form($form_state) {
+// drupal_set_message(t("Thanks for your input. Your Request has been Submitted. "));	
+$str = "<big>Your Request has been Submitted. </big> <BR> <BR>";
+$form['message'] = array(
+  '#type' => 'markup',
+  '#value' => $str,
+);
+ $form['submit1'] = array(
+    '#type' => 'submit',
+    '#value' => t('Back to Mark Attendance, Click Here'),
+  );
+  
+return $form;
+}
+function doe_final_form_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Back to Mark Attendance, Click Here'): 
+		$form_state['redirect'] =   'staffattinit';
+		break;
+}
+  return;	
+}

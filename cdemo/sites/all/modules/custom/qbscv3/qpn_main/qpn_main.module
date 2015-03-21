@@ -1,0 +1,15 @@
+<?php
+
+
+function qpn_main_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'qpn_main'),
+  );
+}
+
+
+
+
+
+

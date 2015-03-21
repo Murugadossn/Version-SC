@@ -1,0 +1,320 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+//require ( "cceClass.php");
+
+function v3_cce_optsubject_fileupload_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_optsubject_fileupload'),
+  );
+}
+
+
+function v3_cce_optsubject_fileupload_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'optupload':
+      return '<p>'. t('Please use this screen to upload.') .'</p>';
+	
+	}
+  
+}  
+
+function v3_cce_optsubject_fileupload_menu() {
+	$items['optupload'] = array(
+    'title' => 'CCE - Upload Optional Subjects Data',
+    'description' => 'CCE - Upload Optional Subjects Data.',
+    'page callback' => 'cce_optupload',
+    'page arguments' => array('upload'),
+ //   'access arguments' => array('administer users'),
+	'type' => MENU_CALLBACK,	
+'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+
+	);
+
+	$items['optupload/next'] = array(
+			'title' => t('CCE - Upload Optional Subjects Data -  Next Screen'),
+			'page callback' => 'v3_cce_opt_fileupload_next_form_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);  
+
+
+return $items;
+}
+
+
+
+function v3_cce_opt_fileupload_next_form_wrap() {
+			$output = drupal_get_form('v3_cce_opt_fileupload_next_form');
+			return $output ;
+}
+
+
+
+function cce_optupload($callback_arg = '') {
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+//    case 'upload':
+	case 'Process Attendance Data':
+      $output = drupal_get_form('optsubject_upload');
+      break;
+
+	default:
+      $output = drupal_get_form('optsubject_upload');
+  }
+  return $output;
+  
+}
+
+
+function optsubject_upload() {
+
+
+// get the list of active Year
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_id, account_name from {qtxt_sms_account} a where a.party_id = 5 ");
+		$yearOptions = array();
+		while ($row = db_fetch_object($result1)){
+		  $yearOptions[$row->account_id ] = $row->account_name; 
+		}
+		db_set_active('default');	
+		$form['institution'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Institution'),
+			'#options'=> $yearOptions,
+			'#title' => t('Institution'),
+			'#disabled' => FALSE,
+		);
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("select grade_name, account_grade_id  from {cce_qtxt_sms_account_grades_v} where group_id is not null ");
+		$groupOptions = array( '' => t('Select the Group Name') );
+		
+		while ($row = db_fetch_object($result1)){
+		  $groupOptions[$row->account_grade_id ] = $row->grade_name; 
+		}
+		db_set_active('default');
+		$form['standard'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+			'#options'=> $groupOptions,
+			'#title' => t('Class'),
+			'#disabled' => FALSE,
+			'#prefix' => '<div id = "ahah-wrapper-group">',
+			'#suffix' => '</div>',	
+		);
+
+
+
+	  $form['#attributes']['enctype'] = "multipart/form-data";
+		db_set_active('qtxt_db');		  
+	  $resultg1 = db_query("select template_id, template_name from {qtxt_sms_template_master} where tag = 'cce' and attribute1 = 'optionalsub' ");
+				  $igradeOptions2 = array();
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions2[$rowg1->template_id ] =  $rowg1->template_name; //This is the only line that changed from the code above.
+				  	}
+				db_set_active('default');				  
+				  
+				  $form['interfaceType'] = array('#type' => 'select',
+				  				  		'#title' => t('Interface Type'),
+										'#options' =>  $igradeOptions2,
+				  				  		'#description' => t('Please select the Template'),
+				  				  		'#disabled' => FALSE,
+				  );
+				  
+				  $form['tcsv'] = array('#type' => 'file',
+				  				  		'#title' => t('Upload File'),
+				  				  		'#description' => t('Pick a file to upload'),
+				  );
+				  
+
+		
+	 $form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Load Data'),                                                 
+	  );
+
+			
+	return $form;		
+
+}
+
+		
+function optsubject_upload_submit($form, &$form_state) {
+	$dir = file_directory_path();
+
+		if(isset($_FILES) && !empty($_FILES) && $_FILES['files']['size']['tcsv'] != 0){
+		
+			#this structure is kind of wacky
+			$name = $_FILES['files']['name']['tcsv'];
+			$size = $_FILES['files']['size']['tcsv'];
+			$type = $_FILES['files']['type']['tcsv'];
+
+			#this is the actual place where we store the file
+			$file = file_save_upload('tcsv', array() , $dir);
+
+		} 	
+	$_SESSION['ccefilename'] = $name;
+	$_SESSION['ccedir'] = $dir;		
+	$_SESSION['t_interface_type'] = $form_state['values']['interfaceType'];		
+	$_SESSION['class'] = $form_state['values']['standard'];
+	$_SESSION['cceaccount'] = $form_state['values']['institution'];
+	
+	$name = &$_SESSION['ccefilename'];
+	$dir = &$_SESSION['ccedir'];
+	$acc = &$_SESSION['cceaccount'];
+	$intType = &$_SESSION['t_interface_type'];	
+	$classId = &$_SESSION['class'];	
+
+	drupal_set_message( "filename -$name" ) ;
+	$filename = $dir . '/' .$name ;
+	$sms= new Qtxt_CCE_Common;
+	$rs5 = $sms->cceMainOptSubjectLoadDetails ( $filename, $acc, $intType,  $classId );
+
+	$countrows = count( $rs5[0]) ;
+	drupal_set_message( "countrows -$countrows" ) ;
+	$_SESSION['optionalresultarray'] = urlencode(serialize($rs5));		
+
+	
+	$form_state['redirect'] = 'optupload/next';
+
+     return;	
+}
+
+
+function v3_cce_opt_fileupload_next_form ($form_state) {
+
+	$name = &$_SESSION['ccefilename'];
+	$dir = &$_SESSION['ccedir'];
+	$acc = &$_SESSION['cceaccount'];
+	$intType = &$_SESSION['t_interface_type'];	
+	$classId = &$_SESSION['class'];	
+	$rs5 = unserialize(urldecode($_SESSION['optionalresultarray'])) ;
+	
+	// drupal_set_message("classId - $classId ");
+	 
+	$filename = $dir . '/' .$name ;
+/*	
+	  drupal_set_message("name - $name ");	
+	  drupal_set_message("dir - $dir ");	
+	  drupal_set_message("acc - $acc ");	
+	  drupal_set_message("intType - $intType ");	
+	  drupal_set_message("classId - $classId ");	
+	  drupal_set_message("termId - $termId ");	
+	  drupal_set_message("filename - $filename ");	
+*/
+	  $form['access'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Access log settings'),
+		'#tree' => TRUE,
+		'#visible' => false,	   
+		 );	
+
+	 $form['buttons']['submit1'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Upload More Files'),                                                 
+	  );
+
+	 $form['buttons']['submit2'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('CCE Dashboard'),                                                 
+	  );	  
+
+/*	  
+	$sms= new Qtxt_CCE_Common;
+	
+// ($fileName, $institutionId, $classId) {
+	
+	$rs5 = $sms->cceMainOptSubjectLoadDetails ( $filename, $acc, $intType,  $classId );
+*/
+	//array( $studentIdArray[] , $studentArray[], $processFlagArray[], $resultArray[] );
+	$i = 1 ;
+	$j = 1;
+	$rows = array();
+	$header = array("Student Id", "Student Name", "Process Flag", "Process Status");
+	$i = 1;
+	
+	$countrows = count( $rs5[0]) ;
+	
+	$y = 0;
+	
+	while( $y <  $countrows ) {	
+		$form['access']['studentid'][$i] =  array('#value' => $rs5[0][$y]);
+		$form['access']['studentname'][$i] =  array('#value' =>  $rs5[1][$y]);
+		$form['access']['processflag'][$i] =  array('#value' => $rs5[2][$y]);
+		$form['access']['processstatus'][$i] =  array('#value' =>  $rs5[3][$y]);
+		$form['access']['index'][$i] =  array('#value' => $i);
+		$i = $i + 1;	
+		$y = $y + 1;
+	}
+  $form['#theme'] = 'table_optionalsub_form_theme';   
+  
+  return $form;
+	
+}
+
+
+function v3_cce_optsubject_fileupload_theme() {
+	return array(
+		'table_optionalsub_form_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_table_optionalsub_form_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['index']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['access']['index'][$i]);
+       $row[] =  drupal_render($form['access']['studentid'][$key]);
+       $row[] =  drupal_render($form['access']['studentname'][$key]);
+       $row[] =  drupal_render($form['access']['processflag'][$key]);
+       $row[] =  drupal_render($form['access']['processstatus'][$key]);
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+if(count($rows)){
+			$header = array(
+				t('Serial Number'), t('Student Id'), t('Student Name'), t('Process Flag '), t('Process Status'), );
+  }
+  else{
+    $header = array(t('First Name'), t('Last Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+$form['access']['#access'] = false;
+return $output . drupal_render($form); 
+}  
+
+function v3_cce_opt_fileupload_next_form_submit($form, &$form_state) {
+   $op = $form_state['values']['op'];
+	if ( $op == "Upload More Files" ) {
+		$form_state['redirect'] = 'optupload';
+		return;	
+	}
+	else if ( $op == "CCE Dashboard" ) {
+		$form_state['redirect'] = 'ccedash';
+		return;	
+	}
+}

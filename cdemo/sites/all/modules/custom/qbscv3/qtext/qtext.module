@@ -1,0 +1,969 @@
+<?php
+// require ( "../cgi-bin/test_phpfile.php");
+
+//require ( "../quadroquest/SMSLibrary.php");
+// $Id: qtxt.module,v 1.25.2.5 2009/04/19 20:51:04 sun Exp $
+
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+function qtext_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'qtext'),
+  );
+}
+
+function qtext_invoke_all() {
+  $args = func_get_args();
+  $hook = $args[0];
+  unset($args[0]);
+  $return = array();
+  foreach (module_implements($hook) as $module) {
+    $function = $module .'_'. $hook;
+    $result = call_user_func_array($function, $args);
+    if (isset($result) && is_array($result)) {
+      $return = array_merge_recursive($return, $result);
+    }
+    else if (isset($result)) {
+      $return[] = $result;
+    }
+    if ($hook=='init') {
+       echo $module.':'.$GLOBALS['theme'].'<br />';
+    }
+  }
+
+  return $return;
+}
+
+
+function qtext_menu() {
+// $items = array();
+
+  
+	
+
+	$items['smsform1'] = array(
+			'title' => t('SMS BroadCast Screen'),
+//			'page callback' => 'qtext_page',
+			'page callback' => 'qtext_form',
+//			 'page arguments' => array('_smsform_add'),
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+  $items['smsform/ahahjs'] = array(
+    'page callback' => 'qtext_ahah_field_js',
+//    'access arguments' => array('administer ahahtestmodule'),
+    'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),	
+  );
+	
+  $items['smsform/admin/ahahjs'] = array(
+    'page callback' => 'qtext_ahah_field_js_for_sbc',
+//    'access arguments' => array('administer ahahtestmodule'),
+    'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),	
+  );
+	
+  $items['smsform/class/ahahjs'] = array(
+    'page callback' => 'qtext_ahah_field_js_for_cbc',
+//    'access arguments' => array('administer ahahtestmodule'),
+    'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),	
+  );	
+	
+return $items;
+}
+/*
+function _smsform_add($form_state) {
+  // If a file has already been uploaded, we know we need the confirmation form
+  if (isset($form_state['values']['msgId'])) {
+      if (! empty($form_state['values']['msgId'])) {
+		return _example_add_form_confirm($form_state);
+    }
+  }
+ // But the default is the main form
+  return _example_add_form($form_state);
+}
+
+function _example_add_form_confirm(&$form_state) {
+  $desc = 'The following new items will be created ... your code here';
+  // Tell the submit handler to process the form
+  $form['process'] = array('#type' => 'hidden', '#value' => 'true');
+  // Make sure the form redirects in the end
+  $form['destination'] = array('#type' => 'hidden', '#value' => 'example/todo');
+
+  return confirm_form($form,
+                      'Are you sure?',
+                      'example/add',
+                      $desc,
+                      'Continue',
+                      'Start again');
+}
+
+*/
+
+/**
+* Called when user goes to example.com/?q=formexample
+*/
+
+function qtext_form() {
+
+  // This form calls the form builder function via the
+  // drupal_get_form() function which takes the name of this form builder
+  // function as an argument. It returns the results to display the form.
+return drupal_get_form('qtext_smsform');
+
+}
+function qtext_page() {
+$output = t('This page contains our example form.');
+// Return the HTML generated from the $form data structure.
+$output .= drupal_get_form('qtext_smsform');
+return $output;
+}
+
+
+function theme_qtext($form) {
+  $rows = array(
+    array(
+      drupal_render($form['user_id'])
+    ),
+    array(
+      drupal_render($form['pwd_id'])
+    ),
+    array(
+      drupal_render($form['msg_id'])
+    ),
+    array(
+      drupal_render($form['keyword1'])
+    )
+  );
+ 
+  $header = array('', '');
+  return theme('table', $header, $rows);
+}
+
+function qtext_smsform($form_state) {
+
+  global $user;
+	$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+/*
+ // If confirmation has been done, process the file
+  if (isset($form_state['values']['process'])) {
+    $insert = _example_file_add($_SESSION['example_tmp_file']);
+    drupal_set_message('... created.');
+    return TRUE;
+  }
+
+  // Otherwise, accept the file and prepare the confirmation dialog
+  $_SESSION['example_tmp_file'] = _example_file_parse($file->filepath);
+
+  // This is vital so the values are there
+  $form_state['rebuild'] = TRUE;
+*/
+	  if (isset($form_state['storage']['confirm'])) {
+	  if (!isset($form_state['values']['process']))	  
+		return qtext_smsform_confirm_page($form_state);
+	  }
+
+//if(!isset($form_state['storage']['confirm']))
+// {
+				$form['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $myMobileNumber,
+				'#value' => $myMobileNumber,
+				'#disabled' => TRUE,
+				'#description' => t('Please enter your Mobile Id.'),
+				);
+
+				$form['msgId'] = array(
+					'#type' => 'select',
+					'#options' => array( '' => t('Select One'), 'SBC' => t('School BroadCast') , 'CBC' => t('Class BroadCast'), 'TBC' => t('Transport BroadCast')  ),
+					'#title' => t('SMS Message Type'),
+					'#default_value' => '',
+					'#description' => t('Please select the Message Type'),
+					'#ahah' => array(
+						  'path' => 'smsform/ahahjs',
+						  'wrapper' => 'ahah-wrapper',
+						  'method' => 'replace',
+						),
+						
+				  );  
+
+				  
+				$form['userId'] = array(
+				'#title' => t('SMS User Id'),
+				'#type' => 'textfield',
+				'#default_value' => "",
+				'#description' => t('Please enter your SMS User Id.'),
+				);
+				$form['pwdId'] = array(
+				'#title' => t('SMS Password Id'),
+				'#type' => 'password',
+				'#default_value' => "",
+				'#description' => t('Please enter your SMS Password.'),
+				);
+
+				  $form['adminOuter'] = array(
+					'#type' => 'fieldset',
+					'#title' => t(' Select Options...'),
+					'#collapsible' => TRUE, 
+					'#collapsed' => FALSE,
+					'#tree' => TRUE,
+					'#prefix' => '<div id = "ahah-wrapper">',
+					'#suffix' => '</div>'	
+				  );
+				  
+
+				  $form['adminOuter'] ['adminVar'] = array(
+					'#type' => 'fieldset',
+					'#title' => t(' Admin Message Actions'),
+					'#collapsible' => TRUE, 
+					'#collapsed' => TRUE,
+					'#tree' => TRUE
+				  );
+				  $form['adminOuter']['adminVar']['keywordType'] = array(
+					'#type' => 'select',
+					'#options' => array( '' => t('Select ..'), 'MSG' => t('Enter the Broadcast Message') , 'TEMPLATE' => t('Select one of the Templates')  ),
+					'#title' => t('SMS Message Type'),
+					'#description' => t('Please select the Message Type'),
+					'#disabled' => TRUE,
+					'#ahah' => array(
+						  'path' => 'smsform/admin/ahahjs',
+						  'wrapper' => 'ahah-wrapper-admin',
+						  'method' => 'replace',
+						)
+				  ); 
+				  $form['adminOuter']['adminVar']['adminMsgOuter'] = array(
+					'#type' => 'fieldset',
+					'#title' => t(' Select Message Options...'),
+					'#collapsible' => TRUE, 
+					'#collapsed' => FALSE,
+					'#tree' => TRUE,
+					'#prefix' => '<div id = "ahah-wrapper-admin">',
+					'#suffix' => '</div>'	
+				  );
+					
+					$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg'] = array(
+					'#title' => t('Message'),
+					'#type' => 'textfield',
+					'#disabled' => TRUE,
+					'#description' => t('Please enter Message'),
+					);
+
+				db_set_active('qtxt_db');	
+				$result = db_query("SELECT template_code, template_text FROM {qtxt_sms_templates} a , {qtxt_sms_account_staff} b   WHERE TEMPLATE_TYPE = 'ADMIN' and b.mobile_number =  '%s'  and a.account_id = b.account_id", $myMobileNumber);
+				$options = array('' => t('Select..'));
+				while ($row = db_fetch_object($result)) {
+				  $options[$row->template_code ] =  $row->template_text; //This is the only line that changed from the code above.
+				}
+				db_set_active('default');	
+				  $form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate'] = array(
+					'#type' => 'select',
+				//    '#options' => array( '' => t('Select..'),'T1' => t('Template 1') , 'T2' => t('Template 2')  ),
+					'#options' => $options,
+					'#title' => t('Template'),
+					'#disabled' => TRUE,
+					'#description' => t('Please select the Template'),
+				  ); 
+
+				  $form['adminOuter']['transportVar'] = array(
+					'#type' => 'fieldset',
+					'#title' => t(' Transport Message Actions'),
+					'#collapsible' => TRUE, 
+					'#collapsed' => TRUE,
+					'#tree' => TRUE	
+				  );
+				  
+				db_set_active('qtxt_db');	
+				$result = db_query("SELECT route_number, route_description FROM {qtxt_sms_account_routes} a, {qtxt_sms_account_staff} b where b.mobile_number =  '%s'  and a.account_id = b.account_id", $myMobileNumber);
+				$routeOptions = array('' => t('Select..'));
+				while ($row = db_fetch_object($result)) {
+				  $routeOptions[$row->route_number ] =  $row->route_description; //This is the only line that changed from the code above.
+				}
+				db_set_active('default');	
+				  
+				  $form['adminOuter']['transportVar']['transportRoute'] = array(
+					'#type' => 'select',
+				//    '#options' => array( '' => t('Select ..'), 'R1' => t('Route 1') , 'R2' => t('Route 2')  ),
+					'#options'=> $routeOptions,
+					'#title' => t('Route'),
+					'#disabled' => TRUE,
+					'#description' => t('Please select the Route'),
+				  ); 
+					$form ['adminOuter']['transportVar']['transportMsg'] = array(
+					'#title' => t('Message'),
+					'#type' => 'textfield',
+					'#disabled' => TRUE,
+					'#description' => t('Please enter Transport Message'),
+					);
+
+				  $form['adminOuter'] ['classVar'] = array(
+					'#type' => 'fieldset',
+					'#title' => t(' Class Message Actions'),
+					'#collapsible' => TRUE, 
+					'#collapsed' => TRUE,
+					'#tree' => TRUE
+				  );
+				  
+				db_set_active('qtxt_db');	
+				$result = db_query("SELECT grade_name FROM {qtxt_sms_account_grades} a, {qtxt_sms_account_staff} b where b.mobile_number =  '%s'  and a.account_id = b.account_id", $myMobileNumber);
+				$gradeOptions = array('' => t('Select..'));
+				while ($row = db_fetch_object($result)) {
+				  $gradeOptions[$row->grade_name ] =  $row->grade_name; //This is the only line that changed from the code above.
+				}
+				db_set_active('default');	
+
+
+				  $form['adminOuter']['classVar']['classGrade'] = array(
+					'#type' => 'select',
+				//    '#options' => array( '' => t( 'Select .. '), '5A' => t('5A') , '6A' => t('6A')  ),
+					'#options' => $gradeOptions,
+					'#title' => t('Select class'),
+					'#description' => t('Please select the Message Type'),
+				  ); 
+				  
+				  
+				  
+				  $form['adminOuter']['classVar']['classKeywordType'] = array(
+					'#type' => 'select',
+					'#options' => array( '' => t('Select ..'), 'MSG' => t('Enter the Broadcast Message') , 'TEMPLATE' => t('Select one of the Templates')  ),
+					'#title' => t('SMS Message Type'),
+					'#disabled' => TRUE,
+				   '#description' => t('Please select the Message Type'),
+					'#ahah' => array(
+						  'path' => 'smsform/class/ahahjs',
+						  'wrapper' => 'ahah-wrapper-class',
+						  'method' => 'replace',
+						)
+				  ); 
+				  $form['adminOuter']['classVar']['classMsgOuter'] = array(
+					'#type' => 'fieldset',
+					'#title' => t(' Select Message Options...'),
+					'#collapsible' => TRUE, 
+					'#collapsed' => FALSE,
+					'#tree' => TRUE,
+					'#prefix' => '<div id = "ahah-wrapper-class">',
+					'#suffix' => '</div>'	
+				  );
+					
+					$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg'] = array(
+					'#title' => t('Message'),
+					'#type' => 'textfield',
+					'#disabled' => TRUE,
+					'#description' => t('Please enter Message'),
+					);
+				db_set_active('qtxt_db');	
+				$result = db_query("SELECT template_code, template_text FROM {qtxt_sms_templates} a , {qtxt_sms_account_staff} b   WHERE TEMPLATE_TYPE = 'CLASS' and b.mobile_number =  '%s'  and a.account_id = b.account_id", $myMobileNumber);
+				$classTemplateOptions = array('' => t('Select..'));
+				while ($row = db_fetch_object($result)) {
+				  $classTemplateOptions[$row->template_code ] =  $row->template_text; //This is the only line that changed from the code above.
+				}
+				db_set_active('default');	
+
+					  $form['adminOuter']['classVar']['classMsgOuter']['classTemplate'] = array(
+						'#type' => 'select',
+				//	    '#options' => array( '' => t( 'Select ..'), 'T1' => t('Template 1') , 'T2' => t('Template 2')  ),
+						'#options' => $classTemplateOptions,
+						'#title' => t('Template'),
+						'#disabled' => TRUE,
+						'#description' => t('Please select the Template'),
+					  ); 
+
+				  
+				$form['submit'] = array(
+				'#type' => 'submit',
+				'#value' => t('Submit')
+				);
+
+		return $form;
+/*
+		}
+	 else
+	  {
+		// do your confirm form here
+		 $desc = 'The following new items will be created ... your code here';
+		return confirm_form($form, "Are you sure you want to send the SMS ?", 'smsform', $desc,  'Continue','Start again');
+	  }
+*/
+}
+
+ function qtext_smsform_confirm_page(&$form_state) {
+   $desc = 'The following new items will be created ... your code here';
+   $desc .= " Param 1 - " . $form_state['storage']['outparam1'];
+   $desc .= " Param 2 - " . $form_state['storage']['outparam2'];
+   $desc .= " Param 3 - " . $form_state['storage']['outparam3'];
+
+  $form['process'] = array('#type' => 'hidden', '#value' => 'true');
+  // Make sure the form redirects in the end
+  $form['destination'] = array('#type' => 'hidden', '#value' => 'smsform1');   
+   
+  return confirm_form($form,
+                      'Are you sure?',
+                      'smsform1',
+                      $desc,
+                      'Continue',
+                      'Start again');
+ }
+
+/*
+function confirm_form($form, $question, $path, $description = NULL, $yes = NULL, $no = NULL, $name = 'confirm') {
+  $description = isset($description) ? $description : t('This action cannot be undone.');
+
+  // Prepare cancel link
+  $query = $fragment = NULL;
+  if (is_array($path)) {
+    $query = isset($path['query']) ? $path['query'] : NULL;
+    $fragment = isset($path['fragment']) ? $path['fragment'] : NULL;
+    $path = isset($path['path']) ? $path['path'] : NULL;
+  }
+  $cancel = l($no ? $no : t('Cancel'), $path, array('query' => $query, 'fragment' => $fragment));
+
+  drupal_set_title($question);
+
+  // Confirm form fails duplication check, as the form values rarely change -- so skip it.
+  $form['#skip_duplicate_check'] = TRUE;
+
+  $form['#attributes'] = array('class' => 'confirmation');
+  $form['description'] = array('#value' => $description);
+  $form[$name] = array('#type' => 'hidden', '#value' => 1);
+
+  $form['actions'] = array('#prefix' => '<div class="container-inline">', '#suffix' => '</div>');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => $yes ? $yes : t('Confirm'));
+  $form['actions']['cancel'] = array('#value' => $cancel);
+  $form['#theme'] = 'confirm_form';
+  return $form;
+}
+*/
+
+function qtext_get_ahah_fields( $first_variable) {
+  $ahah_fields = array();
+drupal_set_message( "variable value selected  - $first_variable");  
+//watchdog('qtext_get_ahah_fields -log ', $first_variable);
+firep($first_variable," Variable in Switch Case 2");
+// print( "variable value selected  - $first_variable");  
+  switch( $first_variable) {
+	case 'CBC':
+		$ahah_fields['CBC'] = 'Option CBC was selected';
+		break;
+
+  
+	case 'SBC':
+		$ahah_fields['SBC'] = 'Option SBC was selected';
+		break;
+		
+	case 'TBC':
+		$ahah_fields['TBC'] = 'Option TBC was selected';
+		break;
+	
+	default:
+		$ahah_fields['none'] = 'Please Select';
+		
+  }
+  return $ahah_fields;
+}																									
+
+
+function qtext_ahah_field_js() {
+  // The AHAH callback function triggered by the user changing the first field, "ahahtestmodule_types"
+//firep("LOG 1"," Inside qtext_ahah_field_js");		
+		$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+		$msgId = $form['#post']['msgId'];
+		if ( $msgId == "SBC" ) {
+			$form['adminOuter']['adminVar']['#collapsed'] 	=   FALSE;	
+			$form['adminOuter']['adminVar']['keywordType']['#default_value'] = "";	
+			$form['adminOuter']['adminVar']['keywordType']['#disabled'] = FALSE;	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminMsg']['#disabled'] = TRUE;	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] = "";				
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] = TRUE;	
+			
+//			$form['adminVar']['#collapsed'] 	=   FALSE;	
+			#disabled
+			
+			$form['adminOuter']['transportVar']['#collapsed'] 	=   TRUE;	
+			$form['adminOuter']['transportVar']['transportRoute']['#default_value'] = "";	
+			$form['adminOuter']['transportVar']['transportRoute']['#disabled'] = TRUE;	
+			$form['adminOuter']['transportVar']['transportMsg']['#disabled'] = TRUE;	
+
+			$form['adminOuter']['classVar']['#collapsed'] 	=   TRUE;	
+			$form['adminOuter']['classVar']['classGrade']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar']['classKeywordType']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] = "";				
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] = TRUE;	
+
+			
+		} elseif ( $msgId == "TBC" ){
+			$form['adminOuter']['adminVar']['#collapsed'] 	=   TRUE;	
+			$form['adminOuter']['adminVar']['keywordType']['#disabled'] = TRUE;			
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminMsg']['#disabled'] = TRUE;	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] = TRUE;	
+
+			$form['adminOuter']['transportVar']['#collapsed'] 	=   FALSE;		
+			$form['adminOuter']['transportVar']['transportRoute']['#default_value'] = "";	
+			$form['adminOuter']['transportVar']['transportRoute']['#disabled'] = FALSE;	
+			$form['adminOuter']['transportVar']['transportMsg']['#disabled'] = FALSE;	
+
+			$form['adminOuter']['classVar']['#collapsed'] 	=   TRUE;	
+			$form['adminOuter']['classVar']['classGrade']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar']['classKeywordType']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] = TRUE;	
+
+
+			} elseif ( $msgId == "CBC" ){
+			$form['adminOuter']['adminVar']['#collapsed'] 	=   TRUE;	
+			$form['adminOuter']['adminVar']['keywordType']['#disabled'] = TRUE;			
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminMsg']['#disabled'] = TRUE;	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] = TRUE;	
+
+			$form['adminOuter']['transportVar']['#collapsed'] 	=   TRUE;
+			$form['adminOuter']['transportVar']['transportRoute']['#disabled'] = TRUE;	
+			$form['adminOuter']['transportVar']['transportMsg']['#disabled'] = TRUE;	
+
+			$form['adminOuter']['classVar']['#collapsed'] 	=   FALSE;	
+			$form['adminOuter']['classVar']['classGrade']['#default_value'] = "";	
+			$form['adminOuter']['classVar']['classGrade']['#disabled'] = FALSE;	
+			$form['adminOuter']['classVar']['classKeywordType']['#default_value'] = "";	
+			$form['adminOuter']['classVar']['classKeywordType']['#disabled'] = FALSE;	
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#disabled'] = FALSE;	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#default_value'] = "";	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] = FALSE;	
+			
+		} else {
+			$form['adminOuter']['adminVar']['#collapsed'] 	=   TRUE;		
+			$form['adminOuter']['adminVar']['keywordType']['#disabled'] = TRUE;			
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminMsg']['#disabled'] = TRUE;	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] = TRUE;	
+			
+			$form['adminOuter']['transportVar']['#collapsed'] 	=   TRUE;
+			$form['adminOuter']['transportVar']['transportRoute']['#disabled'] = TRUE;	
+			$form['adminOuter']['transportVar']['transportMsg']['#disabled'] = TRUE;	
+
+			$form['adminOuter']['classVar']['#collapsed'] 	=   TRUE;	
+			$form['adminOuter']['classVar']['classGrade']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar']['classKeywordType']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#disabled'] = TRUE;	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] =TRUE;	
+			
+			
+		}
+//		$form['keyword']['#options'] = qtext_get_ahah_fields($msgId);
+		form_set_cache($form_build_id, $form, $form_state);
+		$form += array(
+			'#post' => $_POST,
+			'#programmed' => FALSE,
+		  );
+		$form = form_builder('form_details', $form, $form_state);
+		
+		$output = $form['adminOuter'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out1 =  drupal_render($output);
+
+//		drupal_json(array('status' => TRUE, 'data' => $out1));
+/*		
+		$output = $form['transportVar'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out2 =  drupal_render($output);
+*/
+		drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function qtext_ahah_field_js_for_sbc () {
+		$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+
+		$keyWordType = $form['#post']['adminOuter']['adminVar']['keywordType'];
+		if ( $keyWordType == "MSG" ) {
+			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+			
+		} elseif ( $keyWordType == "TEMPLATE" ){
+			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   TRUE;	
+//			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   FALSE;	
+		}  else {
+		/*
+			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+			*/
+			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   TRUE;	
+//			$form['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   FALSE;				
+		}
+//		$form['keyword']['#options'] = qtext_get_ahah_fields($msgId);
+		form_set_cache($form_build_id, $form, $form_state);
+		$form += array(
+			'#post' => $_POST,
+			'#programmed' => FALSE,
+		  );
+		$form = form_builder('form_details', $form, $form_state);
+		
+		$output = $form['adminOuter']['adminVar']['adminMsgOuter'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out1 =  drupal_render($output);
+
+//		drupal_json(array('status' => TRUE, 'data' => $out1));
+/*		
+		$output = $form['transportVar'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out2 =  drupal_render($output);
+*/
+		drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+
+function qtext_ahah_field_js_for_cbc () {
+		$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+
+		$classKeywordType = $form['#post']['adminOuter']['classVar']['classKeywordType'];
+		if ( $classKeywordType == "MSG" ) {
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#disabled'] 	=   FALSE;	
+//			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] 	=   TRUE;	
+			
+		} elseif ( $classKeywordType == "TEMPLATE" ){
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#disabled'] 	=   TRUE;	
+//			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] 	=   FALSE;	
+		}  else {
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#default_value'] 	=    "";		
+			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#disabled'] 	=   FALSE;	
+//			$form['adminOuter']['classVar'] ['classMsgOuter']['classMsg']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#default_value'] 	=   "";	
+			$form['adminOuter']['classVar']['classMsgOuter']['classTemplate']['#disabled'] 	=   TRUE;	
+			
+		}
+//		$form['keyword']['#options'] = qtext_get_ahah_fields($msgId);
+		form_set_cache($form_build_id, $form, $form_state);
+		$form += array(
+			'#post' => $_POST,
+			'#programmed' => FALSE,
+		  );
+		$form = form_builder('form_details', $form, $form_state);
+		
+		$output = $form['adminOuter']['classVar']['classMsgOuter'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out1 =  drupal_render($output);
+
+//		drupal_json(array('status' => TRUE, 'data' => $out1));
+/*		
+		$output = $form['transportVar'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out2 =  drupal_render($output);
+*/
+		drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function qtext_smsform_validate($form, &$form_state) {
+if (!isset($form_state['values']['process'])) {
+	$values = $form_state['values'];
+	$mobileId = $values[mobileId];
+	$msgId = $values[msgId];
+	$userId = $values[userId];
+	$pwdId = $values[pwdId];
+	$keywordType = $values[adminOuter][adminVar][keywordType];
+
+	$adminMsg = $values[adminOuter][adminVar][adminMsgOuter][adminMsg];
+	$adminTemplate = $values[adminOuter][adminVar][adminMsgOuter][adminTemplate];
+
+	$transportRoute = $values[adminOuter][transportVar][transportRoute] ;
+	$transportMsg = $values[adminOuter][transportVar][transportMsg];
+	$classGrade = $values[adminOuter][classVar][classGrade];
+	$classKeywordType = $values[adminOuter][classVar][classKeywordType] ;
+	$classMsg = $values[adminOuter][classVar] [classMsgOuter][classMsg];
+	$classTemplate = $values[adminOuter][classVar][classMsgOuter][classTemplate] ;
+
+
+  if ( $mobileId == '') {
+    form_set_error('', t('Please set your Mobile information in User Settings.'));
+  }
+
+  if ( $msgId == '') {
+    form_set_error('', t('Please select the SMS Message Type'));
+  }  
+  if ( $userId == '') {
+    form_set_error('', t('Please enter your SMS admin user id'));
+  }
+
+  if ( $pwdId == '') {
+    form_set_error('', t('Please enter your SMS admin pwd'));
+  }
+
+if(  ($msgId == "SBC") &&( $keywordType == '') ) {
+    form_set_error('', t('Please select the Message Type to be sent-  Template or Message'));
+  }
+  
+if(  ($msgId == "SBC") &&( $keywordType == "MSG" ) && ( trim($adminMsg) == '') ) {
+    form_set_error('', t('Please enter Message to be sent as SMS'));
+
+}
+
+if(  ($msgId == "SBC") &&( $keywordType == "TEMPLATE" ) && ( $adminTemplate == '') ){
+    form_set_error('', t('Please select a Template to be sent as SMS'));
+
+}
+
+if(  ($msgId == "TBC") &&( $transportRoute == '') ) {
+    form_set_error('', t('Please select the Route'));
+  }
+
+if(  ($msgId == "TBC") &&( trim($transportMsg) == '') ) {
+    form_set_error('', t('Please enter Message to be sent as SMS'));
+  }  
+  
+
+
+
+  if (($msgId == "CBC") &&( $classGrade == '') ) {
+    form_set_error('', t('Please select the Class Grade'));
+  }
+
+  if ( ($msgId == "CBC") &&( $classKeywordType == '') ) {
+    form_set_error('', t('Please select the Message Type to be sent-  Template or Message'));
+  }
+
+if(  ($msgId == "CBC") &&( $classKeywordType == "MSG" ) && ( trim($classMsg) == '') ) {
+    form_set_error('', t('Please enter Message to be sent as SMS'));
+
+}
+
+if(  ($msgId == "CBC") &&( $classKeywordType == "TEMPLATE" ) && ( $classTemplate == '') ){
+    form_set_error('', t('Please select a Template to be sent as SMS'));
+
+}
+}  
+}
+
+
+function qtext_smsform_submit($form, &$form_state) {
+
+
+/*
+    if(!isset($form_state['storage']['confirm']))
+    {
+      $form_state['storage']['confirm'] = TRUE; // this will cause the form to be rebuilt, entering the confirm part of the form
+	  $form_state['rebuild'] = TRUE;
+    }
+    else
+    {
+*/    
+				if (!isset($form_state['values']['process']))
+				{
+	// this is where you do your processing after they have pressed the confirm button
+				$id = 1;
+				$keyword = "";
+				$values = $form_state['values'];
+				/*
+				$mobileId = $values['mobileId'];
+				$msgId = $values['msgId'];
+				$userId = $values['userId'];
+				$pwdId = $values['pwdId'];
+				$keywordType = $values[adminOuter][adminVar][keywordType];
+
+				$adminMsg = $values['adminOuter']['adminVar'] ['adminMsgOuter']['adminMsg'];
+				$adminTemplate = $values['adminOuter']['adminVar']['adminMsgOuter']['adminTemplate'];
+
+				$transportRoute = $values['adminOuter']['transportVar']['transportRoute'] ;
+				$transportMsg = $values['adminOuter']['transportVar']['transportMsg'];
+				$classGrade = $values['adminOuter']['classVar']['classGrade'];
+				$classKeywordType = $values['adminOuter']['classVar']['classKeywordType'] ;
+				$classMsg = $values['adminOuter']['classVar'] ['classMsgOuter']['classMsg'];
+				$classTemplate = $values['adminOuter']['classVar']['classMsgOuter']['classTemplate'] ;
+
+				*/
+
+
+				$mobileId = $values[mobileId];
+				$msgId = $values[msgId];
+				$userId = $values[userId];
+				$pwdId = $values[pwdId];
+				$keywordType = $values[adminOuter][adminVar][keywordType];
+
+				$adminMsg = $values[adminOuter][adminVar][adminMsgOuter][adminMsg];
+				$adminTemplate = $values[adminOuter][adminVar][adminMsgOuter][adminTemplate];
+
+				$transportRoute = $values[adminOuter][transportVar][transportRoute] ;
+				$transportMsg = $values[adminOuter][transportVar][transportMsg];
+				$classGrade = $values[adminOuter][classVar][classGrade];
+				$classKeywordType = $values[adminOuter][classVar][classKeywordType] ;
+				$classMsg = $values[adminOuter][classVar] [classMsgOuter][classMsg];
+				$classTemplate = $values[adminOuter][classVar][classMsgOuter][classTemplate] ;
+
+
+				firep( $mobileId , " Form Submission  mobileId - ");
+				firep( $msgId , " Form Submission  msgId - ");
+				firep( $userId , " Form Submission  userId - ");
+				firep( $pwdId , " Form Submission  pwdId - ");
+				firep( $keywordType , " Form Submission  keywordType - ");
+				firep( $adminMsg , " Form Submission  adminMsg - ");
+				firep( $adminTemplate , " Form Submission  adminTemplate - ");
+				firep( $transportRoute , " Form Submission  transportRoute - ");
+				firep( $transportMsg , " Form Submission  transportMsg - ");
+				firep( $classGrade , " Form Submission  classGrade - ");
+				firep( $classKeywordType , " Form Submission  classKeywordType - ");
+				firep( $classMsg , " Form Submission  classMsg - ");
+				firep( $classTemplate , " Form Submission  classTemplate - ");
+
+				/*
+				$name = $form_state['values']['user_id'];
+				$pwd_id= $form_state['values']['pwd_id'];
+				$msg_id= $form_state['values']['msg_id'];
+				$keyword1= $form_state['values']['keyword1'];
+				$keyword2= $form_state['values']['keyword2'];
+				$keyword3= $form_state['values']['keyword3'];
+
+				$sms= new Qtxt_Sms;
+				$idValue = $sms->logMsg($name, "MSG-PWD",$keyword1, $keyword2,$keyword3, "KEYWORD4" );
+				drupal_set_message( "Name - $mobileId");
+				drupal_set_message( "msg_id- $msgId");
+				drupal_set_message( "Check Keyword Type- $key1");
+				drupal_set_message( "keywordType - $keywordType");
+				*/
+				/*
+				drupal_set_message(  " Form Submission $mobileId - ");
+				drupal_set_message( " Form Submission  $msgId - ");
+				drupal_set_message(  " Form Submission $userId - ");
+				drupal_set_message(  " Form Submission $pwdId - ");
+				drupal_set_message(  " Form Submission $keywordType - ");
+				drupal_set_message( " Form Submission  $adminMsg - ");
+				drupal_set_message(  " Form Submission $adminTemplate - ");
+				drupal_set_message(  " Form Submission $transportRoute - ");
+				drupal_set_message(  " Form Submission $transportMsg - ");
+				drupal_set_message( " Form Submission  $classGrade - ");
+				drupal_set_message(  " Form Submission $classKeywordType - ");
+				drupal_set_message( " Form Submission  $classMsg - ");
+				drupal_set_message(  " Form Submission $classTemplate - ");
+				*/
+				if ( $msgId == "SBC" ) {
+					$keyword = "";
+					$keyword .= $userId . " ";
+					$keyword .= $pwdId . " ";
+					if ( $keywordType == "MSG" ) {
+						$keyword .= $keywordType . " " . $adminMsg ;
+					} else {
+						$keyword .= $adminTemplate ;
+					}
+
+				} elseif ($msgId == "TBC") {
+					$keyword = "";
+					$keyword .= $userId . " ";
+					$keyword .= $pwdId . " ";
+				//	if ( $keywordType == "MSG" ) {
+						$keyword .= $transportRoute . " MSG " . $transportMsg ;
+				//	} else {
+				//		$keyword .= $adminTemplate ;
+				//	}
+
+				} elseif ( $msgId == "CBC" ) {
+					$keyword = "";
+					$keyword .= $userId . " ";
+					$keyword .= $pwdId . " ";
+					$keyword .= $classGrade . " ";
+					if ( $classKeywordType == "MSG" ) {
+						$keyword .= $classKeywordType . " " . $classMsg ;
+					} else {
+						$keyword .= $classTemplate ;
+						}
+				}
+
+				drupal_set_message(  " Mobile Id  -  $mobileId ");
+				drupal_set_message(  " Message Id -  $msgId ");
+				drupal_set_message(  " SMS Message -  $keyword ");
+//				if(!isset($form_state['storage']['confirm']))
+
+					$form_state['storage']['confirm'] = TRUE; // this will cause the form to be rebuilt, entering the confirm part of the form
+					$form_state['storage']['outparam1'] = $mobileId;
+					$form_state['storage']['outparam2'] = $msgId;
+					$form_state['storage']['outparam3'] = $keyword;				  
+					$form_state['rebuild'] = TRUE;
+				}
+				else
+				{				
+				$msgId = $form_state['storage']['outparam2'] ;
+				$mobileId = $form_state['storage']['outparam1'] ;
+				$keyword = $form_state['storage']['outparam3'];
+				
+				drupal_set_message(  " Mobile Id  -  $mobileId ");
+				drupal_set_message(  " Message Id -  $msgId ");
+				drupal_set_message(  " SMS Message -  $keyword ");
+
+/*				
+				$form_state['storage']['outparam1'] = $mobileId;
+					$form_state['storage']['outparam2'] = $msgId;
+					$form_state['storage']['outparam3'] = $keyword;						
+*/
+
+					$sms= new Qtxt_Sms_Common;
+//				$idValue = $sms->logMsg($mobileId, $msgId,$keyword,$keywordType,$adminMsg, $adminTemplate );
+				$outputString = $sms->sendSMS($mobileId, $msgId,$keyword , $GLOBALS['base_path']);
+//				drupal_set_message(  " SMS Sent Successfully ");	
+				drupal_set_message(  " SMS Status :  $outputString ");	
+				
+				unset ($form_state['storage']);				
+/*
+				$form_state['outparam1'] = $mobileId;
+				$form_state['outparam2'] = $msgId;
+				$form_state['outparam3'] = $keyword;
+*/				
+//				$form_state['rebuild'] = TRUE;
+				}
+//    }
+}

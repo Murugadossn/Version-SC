@@ -1,0 +1,2113 @@
+<?php
+
+function v3_sms_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_sms'),
+  );
+}
+
+function v3_sms_init() {
+             drupal_add_js(drupal_get_path('module', 'v3_sms') . "/showSubject.js");
+}
+
+function v3_sms_menu() {
+	$items['smsinit'] = array(
+			'title' => t('SMS Flow - Welcome Screen'),
+			'page callback' => 'v3_sms_first_page_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+
+	$items['smsinit/m2p'] = array(
+			'title' => t('Messages To Parents Main Page'),
+			'page callback' => 'v3_sms_message_2_parent_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+	
+	$items['smsinit/marks'] = array(
+			'title' => t('Marks Main Page'),
+			'page callback' => 'v3_sms_marks_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+    $items['smsinit/marks/finalscreen'] = array(
+			'title' => t('Marks Main Page'),
+			'page callback' => 'v3_sms_marks_finalscreen_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+	$items['smsinit/transport'] = array(
+			'title' => t('Transport Main Page'),
+			'page callback' => 'v3_sms_transport_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	
+//Testing process for redirect:
+
+	$items['smsinit/m2p/ssform'] = array(
+			'title' => t('Select Students'),
+			'page callback' => 'v3_msg_by_student_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+    
+  //Testing ahah:
+ /* 
+	$items['smsinit/m2p/ssform/ind/ahahjs2'] = array(
+        'page callback' => 'v3_parent_ahah_field_js_for_ind2',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+   
+*/
+      $items['smsinit/m2p/section'] = array(
+			'title' => t('Select Students'),
+			'page callback' => 'v3_msg_by_section_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+      
+      $items['smsinit/m2p/class'] = array(
+			//'title' => t('Select Studentss'),
+			'page callback' => 'v3_msg_by_class_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+
+     $items['smsinit/m2p/school'] = array(
+			//'title' => t('Select Students'),
+			'page callback' => 'v3_msg_by_school_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+   $items['smsinit/staffmsg'] = array(
+			'title' => t('Staff Messages Main Page'),
+			'page callback' => 'v3_sms_staff_message_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+
+//Testing process for finalscreen:
+
+   $items['smsinit/staffmsg/finalscreen'] = array(
+			'title' => t('Select Students'),
+			'page callback' => 'v3_msg_finalscreen_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+	
+	
+//'smsform/admin/ahahjs'	
+  $items['smsinit/admin/ahahjs'] = array(
+    'page callback' => 'v3_qtext_ahah_field_js_for_sbc1',
+    'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),	
+  );
+	
+	
+  	 $items['smsinit/transport/ahahjs2'] = array(
+        'page callback' => 'v3_routes_ahah_field_js2',
+    //    'access arguments' => array('administer ahahtestmodule'),
+        'type' => MENU_CALLBACK,
+    			'access callback' => 'user_access',
+    			'access arguments' => array('access content'),	
+  );
+	
+return $items;
+}
+
+function v3_sms_first_page_cb() {
+			$output = drupal_get_form('v3_sms_first_page');
+			return $output ;
+}
+
+
+function v3_sms_message_2_parent_cb() {
+			$output = drupal_get_form('v3_sms_message_2_parent');
+			return $output ;
+}
+
+function v3_sms_staff_message_cb() {
+			$output = drupal_get_form('v3_sms_staff_message');
+                    	return $output ;
+}
+function v3_msg_finalscreen_cb() {
+			$output = drupal_get_form('v3_msg_finalscreen');
+			return $output ;
+}
+
+
+function v3_sms_marks_cb() {
+			$output = drupal_get_form('v3_sms_marks');
+			return $output ;
+
+}
+
+function v3_sms_marks_finalscreen_cb()
+{
+$output = drupal_get_form('v3_sms_marks_finalscreen');
+			return $output ;
+
+}
+
+
+function v3_sms_transport_cb() {
+			$output = drupal_get_form('v3_sms_transport');
+			return $output ;
+}
+
+
+
+
+
+//Testing one or more students:
+
+function v3_msg_by_student_cb() {
+			 $output = drupal_get_form('vvv_msbc_filter_form1');
+			 $output .= drupal_get_form('vvv_msbc_my_form1');
+
+			return $output ;
+}
+
+function v3_msg_by_section_cb() {
+			
+                          $output = drupal_get_form('vvv_msbc_filter_form2');
+			  //$output = drupal_get_form('vvv_msbc_my_form2');
+			return $output ;
+}
+
+function v3_msg_by_class_cb() {
+			$output = drupal_get_form('v3_msg_by_class');
+			return $output ;
+}
+
+function v3_msg_by_school_cb() {
+			$output = drupal_get_form('v3_msg_finalscreen');
+			return $output ;
+}
+
+
+
+
+
+
+
+function v3_sms_first_page( $form_state) {
+
+				// get the mobile number of the logged in user
+				//  First get the user profile
+				//  From the User Profile get the Mobile Number
+
+				global $user;
+				$profile =  profile_load_profile($user);
+				$myMobileNumber =  $user->profile_mobile;  
+
+				/*
+				unset ( $_SESSION['user_section_filter_value'] );
+				unset ( $_SESSION['user_class_filter'] );
+				unset ( $_SESSION['user_mobile_number'] );
+				unset ( $_SESSION['admin_user_id'] );
+				unset ( $_SESSION['admin_pwd'] );
+				unset ( $_SESSION['doa'] );
+				unset ( $_SESSION['selectOptions'] );
+				*/
+
+				$defusermobile = $myMobileNumber;
+				$defadminuserid = "";
+				$defadminpwd = "";
+
+					// Define the Form
+
+
+				$form['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $defusermobile,
+				'#value' => $defusermobile,
+				'#disabled' => TRUE,
+				//'#description' => t('Your Mobile Number.'),
+				);
+
+				$form['userId'] = array(
+				'#title' => t('SMS User Id'),
+				'#type' => 'textfield',
+				'#default_value' => $defadminuserid,
+				//'#description' => t('Please enter your SMS User Id.'),
+				);
+				$form['pwdId'] = array(
+				'#title' => t('SMS Password Id'),
+				'#type' => 'password',
+				'#default_value' => $defadminpwd,
+				//'#description' => t('Please enter your SMS Password.'),
+				);
+				
+				 $form['smscategory'] = array (
+					  '#type' => 'radios', 
+					  '#title' => t('Category'), 
+					  '#options' => array ( '0' => t('Messages To Parents'),
+                                            '1' => t('Staff Messages'),
+                                            '2' =>  t('Marks'),
+                                            '3' => t('Transport')),
+					);
+
+	
+
+			    $form['next_submit'] = array(
+				   '#type' => 'submit',
+				   '#value' => t('Send Message'),
+'#prefix' => '<br/><br/><br/><br/><br/><br/>',
+			    );
+$form['next_submit']['#attributes']['class']  = $form['next_submit']['#attributes']['class'] . ' qbsubmit20';
+
+
+			    return $form;
+}
+
+
+function v3_sms_first_page_validate($form, &$form_state) {
+// if (!isset($form_state['values'])) {
+	$values = $form_state['values'];
+	$mobileId = $values[mobileId];
+	$userId = $values[userId];
+	$pwdId = $values[pwdId];
+	$category = $values[smscategory];
+
+       
+
+
+         db_set_active('qtxt_db');	
+
+		$result = db_query("select admin_user_id from qtxt_sms_admin_mobile_sbc_v  where mobile_number = '$mobileId'");
+
+		$accountGradeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradeId[] =  $row->admin_user_id; 
+		  // This is the only line that changed from the code above.
+		}
+
+
+
+		db_set_active('default');		
+		if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( ",", $accountGradeId );
+		}
+		$duserId = "$accountArray";
+		
+		//drupal_set_message(t("DUser id  $duserId"));
+		//drupal_set_message(t("User id  $userId"));
+
+        
+                db_set_active('qtxt_db');	
+
+		$result = db_query("select admin_password from qtxt_sms_admin_mobile_sbc_v  where mobile_number = '$mobileId'");
+
+		$accountGradepass = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradepass[] =  $row->admin_password; 
+		  // This is the only line that changed from the code above.
+		}
+
+
+
+		db_set_active('default');		
+		if (  count( $accountGradepass ) > 0 ) {
+			$accountArray = join( ",", $accountGradepass );
+		}
+		$duserpass = "$accountArray";
+		
+		//drupal_set_message(t("DUser pass  $duserpass"));
+		//drupal_set_message(t("password  $pwdId"));
+
+
+        
+      
+
+	  if ( $mobileId == '') {
+		form_set_error('', t('Please set your Mobile information in User Settings.'));
+	  }
+	 if ( $userId != $duserId) {
+           // if (( $userId == '$duserId')&&( $userId == '$userId')) {
+		form_set_error('', t('Please Enter Correct UserId'));
+               
+	  }
+
+	  if ( $pwdId != $duserpass) {
+		form_set_error('', t('Please Enter Correct Password'));
+	  }
+	  
+	  if  ( $category == '') {
+		form_set_error('', t('Please Select one of the SMS Option.'));
+	  }
+  
+}
+
+
+
+function v3_sms_first_page_submit($form, &$form_state) {
+		$_SESSION['user_mobile_number'] = $form_state['values']['mobileId'];
+		$_SESSION['admin_user_id'] = $form_state['values']['userId'];
+		$_SESSION['admin_pwd'] = $form_state['values']['pwdId'];
+		$_SESSION['sms_category'] = $form_state['values']['smscategory'];
+		
+		
+		$category = $form_state['values']['smscategory'];
+		
+		switch ($category) {
+		case "0":
+			$form_state['redirect'] = 'smsinit/m2p';
+			break;
+		case "1":
+			$form_state['redirect'] = 'smsinit/staffmsg';
+                       	break;
+		case "2":
+			$form_state['redirect'] = 'smsinit/marks';
+			break;
+		case "3":
+			$form_state['redirect'] = 'smsinit/transport';
+			break;
+		}
+
+// 	$form_state['redirect'] = 'smsinit/transport';
+  return;
+
+}
+
+//  Function for Messages to Parent
+
+
+
+function v3_sms_message_2_parent( $form_state) {
+
+// read the values from the session
+
+	$mobileId = &$_SESSION['user_mobile_number'] ;
+	$adminUserid = &$_SESSION['admin_user_id'];
+	$adminpwd = &$_SESSION['admin_pwd']; 
+	$category = &$_SESSION['sms_category'];
+
+	 $form['msgcategory'] = array (
+		  '#type' => 'radios', 
+		  '#title' => t('Category'), 
+		  '#options' => array ( '4' => t('One Or More Students'), '5' => t('Section Of A Class'), '6' =>  t('Class'), '7' => t('School')),
+		);
+	 $form['next_submit-1'] = array(
+		'#type' => 'submit',
+		'#value' => t('Apply'),
+'#prefix' => '<br/><br/>',
+	  );
+$form['next_submit-1']['#attributes']['class']  = $form['next_submit-1']['#attributes']['class'] . ' qbsubmit20';
+
+	return $form;
+  
+  
+}
+
+
+
+// Testing staff Message screen:
+
+function v3_sms_staff_message( $form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+  $header = array(
+    array(),
+    array('data' => t('Teacher Name'), 'field' => 'b.staff_name'),
+    array('data' => t('Student Name'), 'field' => 'b.mobile_number'),
+ array('data' => t('staff_id'), 'field' => 'b.staff_id'),
+
+
+
+      );
+
+
+  db_set_active('qtxt_db');	
+       
+ 	$sql = "select b.staff_name,b.mobile_number,b.staff_id from {qtxt_sms_account_staff} b  where b.account_id = 5 order by SUBSTRING(b.staff_name, LOCATE('.', b.staff_name)+1)"; 
+
+  
+       $query_count = "select count(b.staff_id) from  {qtxt_sms_account_staff} b where b.account_id = 5 " ; 
+
+	 $sql .= tablesort_sql($header);
+
+   $result = pager_query($sql, 100, 0, $query_count);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Confirm to send the Message'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+'#prefix' => '<br/>',
+  );
+$form['options']['submit']['#attributes']['class']  = $form['options']['submit']['#attributes']['class'] . ' qbsubmit20';
+
+
+    
+      $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );  
+
+
+
+  $account = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->staff_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+    $form['access']['teachername'][$account->staff_id] = array('#value' => $account->staff_name);
+    $form['access']['mobilenumber'][$account->staff_id] =  array('#value' => $account->mobile_number);
+     $form['access']['staffid'][$account->staff_id] =  array('#type' => 'hidden','#value' => $account->staff_id);
+	
+	$i = $i + 1;
+  }
+db_set_active('default');
+
+  // $form['pager'] = array('#value' => theme('pager', NULL, 100, 0));
+  $form['#theme'] = 'v3_sms_staff_message_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+
+
+function theme_v3_sms_staff_message_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['staffid']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['access']['account'][$i]);
+	$row[] =  drupal_render($form['access']['teachername'][$key]);
+       $row[] =  drupal_render($form['access']['mobilenumber'][$key]);
+       $row[] =  drupal_render($form['access']['staffid'][$key]);
+       $rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+			$header = array(
+				theme('table_select_header_cell'), t('Teacher Name'), t('Mobile Number'));
+  }
+  else{
+    $header = array(t(''), t('')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t(''),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+ $form['access']['#access'] = false;
+return $output . drupal_render($form); 
+return $output;
+}  
+
+function v3_sms_staff_message_submit($form, &$form_state) {
+
+	
+	$TotalCount = $form_state['values']['totalcount'];
+   // drupal_set_message(t("Total Count : $TotalCount"));
+	
+	$myArray = array();
+	
+	if ( isset( $form_state['clicked_button']['#post']['access']['account'] ) ) 
+	{
+	$myArray = $form_state['clicked_button']['#post']['access']['account'];
+	 //  drupal_set_message(t("Array $myArray"));
+	
+	}
+	
+	$_SESSION['user_total_count'] =  $TotalCount;
+	$_SESSION['selectOptions'] =  $myArray;
+	$_SESSION['levelName'] = "STAFF";
+	$_SESSION['levelValue'] = $myArray;
+	
+	$selList = &$_SESSION['selectOptions'];
+	$keyvalues = " ( ";
+
+	foreach ($myArray as $key => $value) {
+//    	drupal_set_message(t("Key Value Pair : $key  -- $value"));
+		$keyvalues .= $value . ',' ;
+	}
+	$keyvalues = substr($keyvalues,0,-1);
+	$keyvalues .= " ) ";	
+
+	$filterClass = " and a.staff_id in $keyvalues "; 
+
+	$studentArray= array();
+	  db_set_active('qtxt_db');	
+	  $sql = "select a.staff_id, a.staff_name from {qtxt_sms_account_staff} a where a.account_id = 5 " . $filterClass   ; 
+
+			$resultg2 = db_query($sql);	  
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$studentArray[] =  $rowg2->staff_name ; 
+			}
+			db_set_active('default');	  
+	
+	$_SESSION['studentArray'] = $studentArray;  
+
+	/*
+	foreach ($myArray as $key => $value) {
+    	 drupal_set_message(t("Key Value Pair : $key  -- $value"));
+	}
+//	drupal_set_message(t("Submit Clicked Form Submit"));	  
+	$_SESSION['user_total_count'] =  $TotalCount;
+	$_SESSION['selectOptions'] =  $myArray;
+//	drupal_set_message(t("Submit Clicked Form Submit - $TotalCount"));	
+	// drupal_set_message(  " Submit ClickeD Continue with the next step $TotalCount");
+// drupal_set_message(  " Submit ClickeD Continue with the next step $myArray ");
+
+$c2Val = &$_SESSION['user_section_filter_value'] ;
+// drupal_set_message(t("Class Filter 1 , $c2Val"));
+
+*/	
+  
+  $form_state['redirect'] =   'smsinit/staffmsg/finalscreen';
+  return;
+  
+  
+}
+function v3_sms_staff_message_validate($form, &$form_state) {
+	if ( !isset( $form_state['clicked_button']['#post']['access']['account'] ) ) {
+		 form_set_error('', t('Please selet at least one option'));
+	}
+}
+
+/*
+function v3_sms_staff_message_submit($form, &$form_state)
+{
+$staffId = $form_state['values']['adminOuter']['teacher'];
+//$staffId = $form_state['values']['adminOuter']['teacher']['teacher1'];
+
+	$_SESSION['levelName'] = "STAFF";
+//	$_SESSION['levelValue'] = $myArray;
+//	$values = $form_state['values'];
+//		$keywordType = $values[adminOuter][adminVar][keywordType];
+		
+//	$staffId = $values[adminOuter][teacher];
+	$_SESSION['levelValue'] = $staffId;
+    $staffDesc = "(" . join(',', $staffId ) . ")" ;
+	db_set_active('qtxt_db');	
+	$result = db_query("select concat ( staff_name, '-', mobile_number ) staff_name from {qtxt_sms_admin_mobile} a, {qtxt_sms_account_staff} b where b.staff_id = a.staff_id and b.staff_id in %s", $staffDesc );
+	$sectionDesc = array();
+	while ($row = db_fetch_object($result)) {
+	  $sectionDesc[] =  $row->staff_name; 
+	}
+	db_set_active('default');	
+
+	$_SESSION['staffDesc'] = $sectionDesc;  
+	
+	$form_state['redirect'] ='smsinit/staffmsg/finalscreen';
+ return;
+}
+*/
+
+// Transport Message code start
+
+
+function v3_sms_transport( $form_state) {
+
+// read the values from the session
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+$mobileId = &$_SESSION['user_mobile_number'] ;
+$adminUserid = &$_SESSION['admin_user_id'];
+$adminpwd = &$_SESSION['admin_pwd']; 
+
+
+
+				db_set_active('qtxt_db');	
+				
+							
+				$result1 = db_query("SELECT distinct account_route_id, route_description FROM {qtxt_sms_route_details_v} a, {qtxt_sms_account_staff} b where
+                b.mobile_number =  '%s'  and a.account_id = b.account_id", $myMobileNumber);
+				
+				
+				$routeOptions = array('' => t('Select..'));
+				while ($row = db_fetch_object($result1)){
+				  $routeOptions[$row->account_route_id ] = $row->route_description; //This is the only line that changed from the code above.
+				}
+				db_set_active('default');	
+				  $form['transportroutes'] = array(
+					'#type' => 'select',
+					'#description' => t('Please Select The Route'),
+					'#options'=> $routeOptions,
+					'#title' => t('Route'),
+					'#disabled' => FALSE,
+					'#default_value' => '',
+					'#ahah' => array(
+				  	'path' => 'smsinit/transport/ahahjs2',
+				  	'wrapper' => 'ahah-wrapper-transportroutes',
+				  	'method' => 'replace',
+				  			)
+				
+					); 
+									  
+				 $form['transportstops'] = array('#type' => 'select',
+				 		'#title' => t('Stop'),
+                        '#options' =>  array( '' => t('Select ..') ),
+    					'#description' => t('Please Select The Stop'),
+				  		'#disabled' => FALSE,
+	    				 '#prefix' => '<div id = "ahah-wrapper-transportroutes">',
+                        '#suffix' => '</div>',
+  			
+				  );
+					
+					$form['transportMsg'] = array(
+					'#title' => t('Message'),
+					'#type' => 'textarea',
+					'#rows'=> 2,
+                    '#resizable' => FALSE, 
+					'#cols'=> 40, 
+                    '#maxwidth'=>400,
+				  	'#disabled' => FALSE,
+					'#description' => t('Please Enter Transport Message'),
+					);
+
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+				
+
+ $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm'),
+'#prefix' => '<br/>',
+  );
+  
+ $form['submit']['#attributes']['class']  = $form['submit']['#attributes']['class'] . ' qbsubmit20';
+ 
+ return $form;
+  
+  
+}
+
+
+function v3_sms_transport_submit($form, &$form_state) {
+$mobileId= &$_SESSION['user_mobile_number'] ;
+$adminUser = &$_SESSION['admin_user_id'];
+$adminpwd = &$_SESSION['admin_pwd']; 
+		
+
+$routeId = $form_state['values']['transportroutes'];
+$stopId = $form_state['values']['transportstops'];
+$message = $form_state['values']['transportMsg'];
+//drupal_set_message(  " User Mobile :  $mobileId ");
+//drupal_set_message(  " Sms Id :  $adminUser ");
+//drupal_set_message(  "  Sms Password :  $adminpwd ");
+//drupal_set_message(  " Route Id :  $routeId ");
+//drupal_set_message(  " Stop Id :  $stopId ");
+//drupal_set_message(  " Msg :  $message ");
+  
+             $sms= new Qtxt_Sms_Common;
+		 $outputString = $sms->v3sendTransportSMS(
+				$mobileId, 
+                            $adminUser, 
+                            $adminpwd,
+                            $routeId, 
+                            $stopId,
+                            $message,
+                            $GLOBALS['base_path']); 
+
+		drupal_set_message(  " SMS Status :  $outputString ");
+		unset ($form_state['storage']);		
+
+$form_state['redirect'] =   'smsinit';
+
+
+  return;
+
+}
+
+
+
+function v3_routes_ahah_field_js2() {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+		$gid = $form['#post']['transportroutes'];
+		db_set_active('qtxt_db');
+
+
+$sqlg = "select route_stop_id,stop_name from {qtxt_sms_route_details_v} where account_route_id = $gid";
+
+		
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->route_stop_id] = $datag->stop_name;
+		}
+		db_set_active('default');
+
+		$form['transportstops']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('v3_sms_transport', $form, $form_state);			
+				$output = $form['transportstops'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+// End of transport screen
+
+
+//Testing process for redirect:
+
+function v3_msg_by_section( $form_state) {
+
+// read the values from the session
+
+$mobileId = &$_SESSION['user_mobile_number'] ;
+$adminUserid = &$_SESSION['admin_user_id'];
+$adminpwd = &$_SESSION['admin_pwd']; 
+$category = &$_SESSION['msgcategory'];
+
+drupal_set_message(t("Category = " . $category . " Inside Section of the class"));	
+
+ $form['next_section'] = array(
+	'#type' => 'submit',
+	'#value' => t('Submit'),
+  );
+
+ return $form;
+  
+  
+}
+
+
+
+
+
+
+
+function v3_sms_message_2_parent_submit($form, &$form_state) {
+		
+		$category = $form_state['values']['msgcategory'];
+		
+		switch ($category) {
+		case "4":
+			unset ( $_SESSION['user_section_filter_value'] ) ;
+			unset ( $_SESSION['user_class_filter_value'] );
+		
+			$form_state['redirect'] = 'smsinit/m2p/ssform';
+			break;
+		case "5":
+			$form_state['redirect'] = 'smsinit/m2p/section';
+			break;
+		case "6":
+			$form_state['redirect'] = 'smsinit/m2p/class';
+			break;
+		case "7":
+			$_SESSION['levelName'] = "SCHOOL";
+			$form_state['redirect'] = 'smsinit/m2p/school';
+			break;
+		}
+// 	$form_state['redirect'] = 'smsinit/transport';
+  return;
+
+}
+
+                                                             
+
+
+                                         //Testing one or more students form:
+
+
+
+function vvv_msbc_filter_form1($form_state) {
+
+	global $user;
+	$profile =  profile_load_profile($user);
+	$myMobileNumber =  $user->profile_mobile;  
+
+//	if(!empty($_SESSION['user_class_filter'])) {
+//		$c1 = &$_SESSION['user_class_filter'];
+		if(!empty($_SESSION['user_class_filter_value'])) {
+			$clVal = &$_SESSION['user_class_filter_value'];
+		} else {
+			$clVal = "";
+		}
+//	} else {
+//		$c1 = "";
+//		$clVal = "";
+//	}
+
+	// drupal_set_message(t("Class Value  selected"));
+
+//	if(!empty($_SESSION['user_section_filter'])) {
+//		$c2 = &$_SESSION['user_section_filter'];
+		if(!empty($_SESSION['user_section_filter_value'])) {
+			$c2Val = &$_SESSION['user_section_filter_value'];
+		} else {
+			$c2Val = "";
+		}
+//	} else {
+//		$c2 = "";
+//		$c2Val = "";
+//	}
+
+	$_SESSION['user_class_filter_value'] = $clVal;
+	$_SESSION['user_section_filter_value'] = $c2Val;
+
+//	unset ($_SESSION['user_section_filter']);
+//	unset ($_SESSION['user_class_filter']);
+  
+	$test1 = &$_SESSION['user_mobile_number'] ;
+	$test2 = &$_SESSION['admin_user_id'];
+	$test3 = &$_SESSION['admin_pwd']; 
+
+	//drupal_set_message(t("Mobile  - $test1"));
+	//drupal_set_message(t("User Id  - $test2"));
+	//drupal_set_message(t("pwd  - $test3"));
+
+/*
+$currdate = date("d-m-Y");
+$defdoa = "";
+if ( !empty($_SESSION['doa'])) {
+$defdoa = &$_SESSION['doa'];
+// drupal_set_message(t("doa  - $defdoa"));
+} else {
+$defdoa = "";
+}
+*/
+			
+	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show Only Students Where'),
+	//	'#theme' => 'user_filters',
+	  );
+
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select distinct standard from {qtxt_sms_account_grades} a , {qtxt_sms_account_staff} b where b.mobile_number =  '%s'  and a.account_id = b.account_id  and standard != 'ALL' ", $myMobileNumber );
+
+		$options = array('' => t('Select..'));
+
+		while ($row = db_fetch_object($result)) {
+				$options[$row->standard ] =  $row->standard; //This is the only line that changed from the code above.
+		}
+
+		db_set_active('default');	 
+		
+
+		$key = 'class';				
+		$names[$key] = 'Title Class';
+//		$form['filters']['status'][$key] = array(
+		$form['filters']['class'] = array(
+		  '#title' => 'Class',
+		  '#type' => 'select',
+		  '#options' => $options,
+			  				  						
+		);
+
+		db_set_active('qtxt_db');	
+		$result = db_query("select distinct section from {qtxt_sms_account_grades}  a , {qtxt_sms_account_staff} b where b.mobile_number =  '%s'  and a.account_id = b.account_id  and standard != 'ALL' and section != '' and section != 'ALL' ", $myMobileNumber);
+		
+		$sectionoptions = array('' => t('Select..'));
+		while ($row = db_fetch_object($result)) {
+		  $sectionoptions[$row->section ] =  $row->section; //This is the only line that changed from the code above.
+		}
+		db_set_active('default');	
+  
+ 
+	
+$key = 'section';				
+
+$names[$key] = 'Title Section';
+//    $form['filters']['status'][$key] = array(
+    $form['filters']['section'] = array(
+	  '#title' => 'Section',
+      '#type' => 'select',
+      '#options' => $sectionoptions,
+	 // '#options' =>  array( '' => t('Select ..') ),
+	  //TEsting ahah:
+	 // '#prefix' => '<div id = "ahah-wrapper-class">',
+    //                                    '#suffix' => '</div>',
+    );
+
+/*
+$form['filters']['filter'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $names,
+	'#default_value' => array($c1, $c2),
+  );
+*/
+  
+$form['filters']['class']['#default_value']	= $clVal;  
+$form['filters']['section']['#default_value']	= $c2Val;  
+ 
+ $form['filters']['buttons']['submit'] = array(                                                          
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+'#prefix' => '<br/>',
+  );
+$form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+return $form;
+
+}
+
+
+
+function vvv_msbc_filter_form1_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Apply'): 
+
+		$_SESSION['doa'] = $form_state['values']['doa'];
+	 
+//      if (isset($form_state['values']['filter']['class'])) {
+      if (isset($form_state['values']['class'])) {
+//drupal_set_message(t("In the Filter, Class  selected"));	  
+			$filter = $form_state['values']['class'];
+		//	$options = $filters[$filter]['options'];
+		//    $_SESSION['user_class_filter'] = "";
+		 
+			$_SESSION['user_class_filter_value'] = $form_state['values']['class'];
+/*			
+			if ( $form_state['values'][$filter] != "") {
+				$_SESSION['user_class_filter'] = "class";
+			}
+*/			
+      } else  {
+//drupal_set_message(t("In the Filter, Class not selected"));	  
+		//  $_SESSION['user_class_filter'] = "";
+		  $_SESSION['user_class_filter_value'] = "";	
+		//  unset ( $_SESSION['user_class_filter'] );
+		  unset ( $_SESSION['user_class_filter_value'] );
+		  
+	  }
+	  
+	  if (isset($form_state['values']['section'])) {
+			$filter = $form_state['values']['section'];
+			//$options = $filters[$filter]['options'];
+			//  $_SESSION['user_section_filter'] = "";
+			  $_SESSION['user_section_filter_value'] = $form_state['values']['section'];
+	//	  if ( $form_state['values']['section'] != "") {
+	//	   $_SESSION['user_section_filter'] = "section";
+	//	   }
+      } else {
+	//	  $_SESSION['user_section_filter'] = "";
+		  $_SESSION['user_section_filter_value'] = "";	  
+	//	  unset ( $_SESSION['user_section_filter'] );
+		  unset ( $_SESSION['user_section_filter_value'] );
+	  }
+	  
+      break;
+    case t('Undo'):
+//      array_pop($_SESSION['user_overview_filter']);
+      break;
+    case t('Reset'):
+//      $_SESSION['user_overview_filter'] = array();
+      break;
+    case t('Update'):
+      return;
+  }
+
+  $form_state['redirect'] = 'smsinit/m2p/ssform';
+  return;
+}
+
+function vvv_msbc_my_form1($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+    array('data' => t('Standard'), 'field' => 'b.standard'),
+    array('data' => t('Section'), 'field' => 'b.section'),
+    array('data' => t('Student Name'), 'field' => 'a.student_name'),
+    array('data' => t('Student Id'), 'field' => 'a.student_identifier'),
+    array('data' => t('Account Student Id'), 'field' => 'a.account_student_map_id'),
+  );
+
+$clVal = &$_SESSION['user_class_filter_value'] ;
+$c2Val = &$_SESSION['user_section_filter_value'] ;
+//drupal_set_message(t("Class Filter 1 , $clVal"));	
+//drupal_set_message(t("Section Filter 2 , $c2Val"));	
+  
+$filterClass = "";
+    if ( $clVal != "" ) {
+			$filterClass = " and b.standard = '$clVal' ";
+	} else {
+			$filterClass = " and b.standard = b.standard ";
+	}
+	
+
+  $filterSection = "";
+    if ( $c2Val != "" ) {
+		$filterSection = " and b.section = '$c2Val' ";
+	} else {
+			$filterSection = " and b.section = b.section ";
+	} 
+
+//drupal_set_message(t("Class Filter, $filterClass"));	
+//drupal_set_message(t("Section Filter, $filterSection"));	
+
+  db_set_active('qtxt_db');	
+  $sql = "select b.standard, b.section, a.student_name, a.student_identifier, a.account_student_map_id from {qtxt_sms_account_student_map} a, {qtxt_sms_account_grades} b , {qtxt_sms_account_staff} c where c.mobile_number = '" . $myMobileNumber ."'  and b.account_id = c.account_id  and a.account_grade_id = b.account_grade_id  " . $filterClass . $filterSection ." order by 1 , 2 " ; 
+    $query_count = "select COUNT(account_student_map_id) from {qtxt_sms_account_student_map} a, {qtxt_sms_account_grades} b , {qtxt_sms_account_staff} c where c.mobile_number =  '" . $myMobileNumber ."'  and b.account_id = c.account_id and  a.account_grade_id = b.account_grade_id " . $filterClass . $filterSection ;
+
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Update Student Attendance'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+//    $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+
+  );
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->account_student_map_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+    $form['access']['standard'][$account->account_student_map_id] = array('#value' => $account->standard);
+    $form['access']['section'][$account->account_student_map_id] =  array('#value' => $account->section);
+    $form['access']['studentname'][$account->account_student_map_id] =  array('#value' => $account->student_name);
+    $form['access']['studentid'][$account->account_student_map_id] =  array('#value' => $account->student_identifier);
+    $form['access']['accountstudentid'][$account->account_student_map_id] =  array('#value' => $account->account_student_map_id);
+	$i = $i + 1;
+  }
+db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'vvv_msbc_my_form1_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+function v3_sms_theme() {
+	return array(
+		'vvv_msbc_my_form1_theme' => array('arguments'=> array('form' => NULL),),
+		'v3_sms_staff_message_theme' => array('arguments'=> array('form' => NULL),),
+		
+	);
+}
+function theme_vvv_msbc_my_form1_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['studentid']) as $key) {
+	$row = array(); 
+       $row[] =  drupal_render($form['access']['account'][$i]);
+       $row[] =  drupal_render($form['access']['standard'][$key]);
+       $row[] =  drupal_render($form['access']['section'][$key]);
+       $row[] =  drupal_render($form['access']['studentname'][$key]);
+       $row[] =  drupal_render($form['access']['studentid'][$key]);
+       $row[] =  drupal_render($form['access']['accountstudentid'][$key]);
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+			$header = array(
+				theme('table_select_header_cell'), t('Class'), t('Section'), t('Student Name'), t('Student Id'), t('Account Student Id') );
+  }
+  else{
+    $header = array(t('First Name'), t('Last Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No users were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//$output .= drupal_render($form['options']); 
+// $output .= drupal_render($form['options']['submit']); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+
+
+/* vvv_msbc_my_form1   function vvv_msg_by_student_main_submit($form, &$form_state) {
+	// do nothing
+} */
+
+
+//Testing final screen:
+
+function v3_msg_finalscreen( $form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+$uid = $user->uid;
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+$displayvalue = "";
+
+
+$levelname = &$_SESSION['levelName'];
+$levelvalue= &$_SESSION['levelValue']; 
+
+if ( $levelname == "STUDENT" ){
+	$students = &$_SESSION['studentArray'];
+	$displayvalue =  $levelname . "\n" ;
+	$displayvalue .= join( "\n ", $students);
+} elseif (  $levelname == "SECTION" ){
+    $sectionDesc = &$_SESSION['sectionDesc'];
+	$displayvalue =  $levelname . "\n" ;
+	$displayvalue .= join( "\n", $sectionDesc);
+} elseif (  $levelname == "CLASS" ){
+	$displayvalue =  $levelname . "\n" ;
+	$displayvalue .= join( "\n", $levelvalue);
+} elseif (  $levelname == "SCHOOL" ){
+	$displayvalue =  $levelname . "\n" ;
+} elseif (  $levelname == "STAFF" ){
+	$students = &$_SESSION['studentArray'];
+	$displayvalue =  $levelname . "\n" ;
+	$displayvalue .= join( "- ", $students);
+
+}
+
+/*
+	$_SESSION['selectOptions'] =  array($sectionValue);
+	$_SESSION['levelName'] = "SECTIONS";
+	$_SESSION['levelValue'] = array($sectionValue);
+*/
+
+
+	  $form['v3AdminOuter'] = array(
+						'#type' => 'fieldset',
+						'#title' => t('Testing Message'),
+						'#collapsible' => TRUE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+	  );
+
+
+	   db_set_active('qtxt_db');	
+
+	  
+	  $resultg1 = db_query("select concat ( staff_name, '-', mobile_number ) staff_name,  b.staff_id from {qtxt_sms_admin_mobile} a, {qtxt_sms_account_staff} b where b.staff_id = a.staff_id ");
+	  
+	  
+	 /* select concat ( staff_name, '-', xx.grade_name ) staff_name,  staff_id FROM {qtxt_sms_staff_mobile_v} a , {qtxt_sms_mobile_students_v} xx where xx.drupal_uid = $uid and xx.account_grade_id = a.account_grade_id "); */
+	  
+				  $igradeOptions = array('' => t('Select..'));
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+				  	$igradeOptions[$rowg1->staff_id ] =  $rowg1->staff_name; //This is the only line that changed from the code above.
+				  	} 
+					
+	db_set_active('default'); 
+//	drupal_set_message (t("Filter Criteria : $displayvalue "));	
+
+	
+					$form['v3AdminOuter']['senditem'] =  array(
+													'#value' => $displayvalue,
+													'#prefix' => '<div class="messages status">',
+													'#suffix' => '</div>',
+											);
+				
+
+					
+
+             /*      $form['v3AdminOuter']['type'] = array(
+				  		'#title' => t('Message category'),
+				  		'#type' => 'select',
+						'#options' => array(
+										'Generic' => 'Generic',
+										'Homework' => 'Homework',
+										'Others' => 'Others',
+										),
+						 
+					); 
+*/
+
+                  $form['v3AdminOuter'] ['adminVar'] = array(
+                            '#type' => 'fieldset',
+						 '#title' => t(' Message Type'),
+						 '#collapsible' => TRUE, 
+						 '#collapsed' => FALSE,
+						 '#tree' => TRUE
+						  );  
+
+
+
+
+						  
+	$form['v3AdminOuter']['adminVar']['keywordType'] = array(
+     '#type' => 'select',
+     '#options' => array( '' => t('Select ..'), 'MSG' => t('Enter the Broadcast Message') , 'TEMPLATE' => t('Select one of the Templates')  ),
+     '#title' => t('SMS Message Type'),
+     '#description' => t('Please Select The Message Type'),
+     '#disabled' => FALSE,
+     '#ahah' => array(
+        'path' => 'smsinit/admin/ahahjs',
+        'wrapper' => 'ahah-wrapper-admin',
+        'method' => 'replace',
+      )
+      ); 
+      $form['v3AdminOuter']['adminVar']['adminMsgOuter'] = array(
+     '#type' => 'fieldset',
+     '#title' => t(' Select Message Options...'),
+     '#collapsible' => TRUE, 
+     '#collapsed' => FALSE,
+     '#tree' => TRUE,
+     '#prefix' => '<div id = "ahah-wrapper-admin">',
+     '#suffix' => '</div>' 
+      );
+     
+     $form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg'] = array(
+     '#title' => t('Message'),
+     '#type' => 'textfield',
+     '#disabled' => TRUE,
+     '#description' => t('Please Enter Message'),
+     );
+
+				db_set_active('qtxt_db');	
+				$result = db_query("SELECT template_code, template_text FROM {qtxt_sms_templates} a , {qtxt_sms_account_staff} b   WHERE a.TEMPLATE_TYPE = 'ADMIN' and b.mobile_number =  '%s'  and a.account_id = b.account_id and a.language_id = 1 ", $myMobileNumber);
+				$options = array('' => t('Select..'));
+				while ($row = db_fetch_object($result)) {
+				  $options[$row->template_code ] =  $row->template_text; //This is the only line that changed from the code above.
+				}
+				db_set_active('default');	
+				
+				  $form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate'] = array(
+					'#type' => 'select',
+				   // '#options' => array( '' => t('Select..'),'T1' => t('Template 1') , 'T2' => t('Template 2')  ),
+					'#options' => $options,
+					'#title' => t('Template'),
+					'#disabled' => TRUE,
+					'#description' => t('Please Select The Template'),
+				  ); 
+				                                  
+                               
+
+/*
+				  
+				  
+				 $form['adminOuter']['Msg'] = array(
+                                                '#title' => t('Message'),
+				  		'#type' => 'textarea',
+						  '#rows'=> 2,
+                                                   '#resizable' => FALSE, 
+						  '#cols'=> 23, 
+                                               //   '#maxwidth'=>300,
+				  		'#disabled' => FALSE,
+			         		//'#description' => t('Send as email'),
+   					);
+*/					
+$form['v3AdminOuter']['check'] = array(
+  '#type' => 'checkbox',
+  '#title' => t('Send As Email'),
+  '#attributes' => array('checked' => 'checked','onclick' => "showSubject(this.checked)"),
+);
+
+
+$form['v3AdminOuter']['subject'] = array(
+				  		'#title' => t('Subject'),
+				  		'#type' => 'textfield',
+						 '#size' => 30, 
+						  '#maxlength' => 100, 
+                                               //   '#maxbreadth'=>100,
+				  		'#disabled' => false,
+					); 
+
+/*
+  $form['new']['upload'] = array(
+  '#type' => 'file',
+  '#title' => t('Attach new file'),
+  '#size' => 40,
+);
+if (!isset($element['value']['#pre_render'])) {
+  $element['value']['#pre_render'] = array();
+}
+*/
+/*array_unshift($element['value']['#pre_render'], 'filter_form_access_denied');
+
+...*/
+/*
+function filter_form_access_denied($element) {
+  $element['#value'] = t('This field has been disabled because you do not have sufficient permissions to edit it.');
+  return $element;
+}
+*/					
+
+					
+ 
+$form['submit'] = array('#type' => 'submit', 
+'#value' => t('Submit'));
+
+return $form;
+  
+  
+}
+
+
+function v3_msg_finalscreen_submit($form, &$form_state) {
+
+		$userMobile = &$_SESSION['user_mobile_number'] ;
+		$userId = &$_SESSION['admin_user_id'];
+		$userPwd = &$_SESSION['admin_pwd']; 
+		$levelName = &$_SESSION['levelName'];
+		$levelValue = &$_SESSION['levelValue'];		
+		
+		$values = $form_state['values'];
+//		$keywordType = $values[adminOuter][adminVar][keywordType];
+		
+		$messageCategory = $values[v3AdminOuter][type];
+		$messageType = $values[v3AdminOuter][adminVar][keywordType];
+		$message = $values[v3AdminOuter][adminVar] [adminMsgOuter][adminMsg];
+		$templateCode = $values[v3AdminOuter][adminVar][adminMsgOuter][adminTemplate];
+		$mailFlag =  $values[v3AdminOuter][check];
+
+		
+		$sms= new Qtxt_Sms_Common;
+		$outputString = $sms->v3sendSMS(
+										$userMobile, 
+										$userId,
+										$userPwd,
+										$levelName,
+										$levelValue,
+										$messageType,
+										$templateCode,
+										$message,
+										"",
+										$mailFlag,
+										$GLOBALS['base_path']);
+
+		drupal_set_message(  " SMS Status :  $outputString ");
+		unset ($form_state['storage']);		
+
+$form_state['redirect'] = 'smsinit';
+
+		return;
+
+}
+
+
+
+function v3_msg_by_class($form_state) {
+
+  global $user;
+	$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $form['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Filter Students Where'),
+   // '#theme' => 'user_filters',
+  );
+/*
+			  $form['adminOuter'] ['classVar'] = array(
+					'#type' => 'fieldset',
+					'#title' => t(' Select the class'),
+					'#collapsible' => TRUE, 
+					'#collapsed' => TRUE,
+					'#tree' => TRUE
+				  );
+				  */
+				db_set_active('qtxt_db');	
+				$result = db_query("SELECT distinct standard FROM {qtxt_sms_account_grades} a, {qtxt_sms_account_staff} b where b.mobile_number =  '%s'  and a.account_id = b.account_id and upper(a.standard) != 'ALL'  ", $myMobileNumber);
+				$gradeOptions = array('' => t('Select..'));
+				while ($row = db_fetch_object($result)) {
+				  $gradeOptions[$row->standard ] =  $row->standard; //This is the only line that changed from the code above.
+				}
+				db_set_active('default');	
+
+							
+				$form['filters']['classvalue'] = array(
+				 '#title' => t('Class'),
+				  '#type' => 'select',
+				  '#options' => $gradeOptions,
+				);
+								
+				 $form['filters']['submit'] = array(
+					'#type' => 'submit',
+					'#value' => t('Next'),
+				  );				  
+		return $form;
+}
+
+function v3_msg_by_class_submit ($form, &$form_state) {
+
+  $values = $form_state['values'];
+  $sectionValue = $values[classvalue];  
+
+	$mobile =  &$_SESSION['user_mobile_number'];
+	$userId =  &$_SESSION['admin_user_id'];
+	$pwdId =  &$_SESSION['admin_pwd'];
+
+	$_SESSION['selectOptions'] =  array($sectionValue);
+	$_SESSION['levelName'] = "CLASS";
+	$_SESSION['levelValue'] = array($sectionValue);
+
+$form_state['redirect'] = 'smsinit/staffmsg/finalscreen';
+return;
+}
+
+
+
+//Testing Markscreen:
+
+function v3_sms_marks( $form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+unset ($_SESSION['user_mobile_number'] );
+unset ($_SESSION['admin_user_id'] );
+unset ($_SESSION['admin_pwd'] );
+unset ($_SESSION['standard'] );
+unset ($_SESSION['section'] );
+unset ($_SESSION['testCode'] );
+
+
+$defusermobile = $myMobileNumber;
+$defadminuserid = "";
+$defadminpwd = "";
+
+
+			
+			db_set_active('qtxt_db');	
+			$resultg2 = db_query("select distinct standard from  {qtxt_sms_account_grades} where standard != 'ALL' ");
+			$studentOptions = array('' => t('Select..'));
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$studentOptions[$rowg2->standard ] =  $rowg2->standard; 
+			}
+			db_set_active('default');
+
+			  $form['standard'] = array('#type' => 'select',
+									'#options' => $studentOptions,
+									'#title' => t('Class Name'),
+									//'#description' => t('Please select the Class'),
+									'#disabled' => FALSE,
+			  );
+				
+			db_set_active('qtxt_db');	
+			$resultg2 = db_query("select distinct section from  {qtxt_sms_account_grades} where section != 'ALL' ");
+       	              $sectionOptions = array('' => t('Select...'));
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$sectionOptions[$rowg2->section ] =  $rowg2->section; 
+			}
+			db_set_active('default');
+
+			  $form['section'] = array('#type' => 'select',
+								     '#options' => $sectionOptions,
+									'#title' => t('Section'),
+									//'#description' => t('Please select the Section'),
+									'#disabled' => FALSE,
+			  );
+
+  
+
+
+
+			db_set_active('qtxt_db');	
+			$resultg2 = db_query("select distinct test_code from  {qtxt_sms_account_test_map}  ");
+			$testOptions = array('' => t('Select..'));
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$testOptions[$rowg2->test_code ] =  $rowg2->test_code; 
+			}
+			db_set_active('default');
+
+			  $form['testcode'] = array('#type' => 'select',
+									'#options' => $testOptions,
+									'#title' => t('Test/Exam Name'),
+									//'#description' => t('Please select the Test / Exam results to be sent through SMS'),
+									'#disabled' => FALSE,
+			  );
+			  
+
+ $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+  );
+
+return $form;
+  
+}
+
+
+function v3_sms_marks_submit($form, &$form_state)
+{
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+$mobile = $form_state['values']['mobileId'];
+$userId = $form_state['values']['userId'];
+$pwdId = $form_state['values']['pwdId'];
+$standard = $form_state['values']['standard'];
+$section  = $form_state['values']['section'];
+$testCode = $form_state['values']['testcode'];
+/*
+drupal_set_message(t("Standard : $standard "));	
+drupal_set_message(t("Standard : $section "));	
+drupal_set_message(t("Standard : $testCode "));	
+*/
+$_SESSION['user_mobile_number'] = $mobile;
+$_SESSION['admin_user_id'] = $userId;
+$_SESSION['admin_pwd'] = $pwdId;
+$_SESSION['standard'] = $standard;
+$_SESSION['section'] = $section;
+$_SESSION['testCode'] = $testCode;
+$mobile =  &$_SESSION['user_mobile_number'];
+$userId =  &$_SESSION['admin_user_id'];
+$pwdId =  &$_SESSION['admin_pwd'];
+$standard =  &$_SESSION['standard'];
+$section =  &$_SESSION['section'];
+$testCode =  &$_SESSION['testCode'];
+//drupal_set_message(t("Standard : $standard "));	
+//drupal_set_message(t("Section : $section "));	
+//drupal_set_message(t("TestCode : $testCode "));
+
+$sms= new Qtxt_Sms_Common;
+	$outputString = $sms->sendMarksToUsers( $mobile, $userId,  $pwdId, $standard, $section, $testCode , $GLOBALS['base_path']);
+//	drupal_set_message(t("message sent to the users"));
+
+	drupal_set_message(  " SMS Status :  $outputString ");
+		unset ($form_state['storage']);		
+
+	
+	$form_state['redirect'] =   'smsinit/marks/finalscreen';
+  return;	
+
+
+
+}
+
+function v3_sms_marks_finalscreen($form_state )
+{
+$mobile =  &$_SESSION['user_mobile_number'];
+$userId =  &$_SESSION['admin_user_id'];
+$pwdId =  &$_SESSION['admin_pwd'];
+$standard =  &$_SESSION['standard'];
+$section =  &$_SESSION['section'];
+$testCode =  &$_SESSION['testCode'];
+
+
+drupal_set_message(t("Standard : $standard "));	
+drupal_set_message(t("Section : $section "));	
+drupal_set_message(t("TestCode : $testCode "));	
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Confirm'),
+  );
+
+
+}
+function v3_sms_marks_finalscreen_submit($form, &$form_state)  
+{
+$mobile =  &$_SESSION['user_mobile_number'];
+$userId =  &$_SESSION['admin_user_id'];
+$pwdId =  &$_SESSION['admin_pwd'];
+$standard =  &$_SESSION['standard'];
+$section =  &$_SESSION['section'];
+$testCode =  &$_SESSION['testCode'];
+
+	$sms= new Qtxt_Sms_Common;
+	$outputString = $sms->sendMarksToUsers( $mobile, $userId,  $pwdId, $standard, $section, $testCode , $GLOBALS['base_path']);
+
+	$form_state['redirect'] = 'smsinit/marks';
+	drupal_set_message(("Marks has sent to the users"));
+  return;	
+}
+
+
+function vvv_msbc_filter_form1_validate($form, &$form_state) {
+//	if (!isset($form_state['values'])) {
+		$values = $form_state['values'];
+		$doa = $values['doa'];
+
+	  if ( $doa == '') {
+	//	form_set_error('', t('Please select the date of absense.'));
+	  }
+		
+//	}
+}
+
+function vvv_msbc_my_form1_submit($form, &$form_state) {  
+//	dpm($form_state);
+	
+	$TotalCount = $form_state['values']['totalcount'];
+	
+	$myArray = array();
+	
+	if ( isset( $form_state['clicked_button']['#post']['access']['account'] ) ) {
+	$myArray = $form_state['clicked_button']['#post']['access']['account'];
+	}
+//	foreach ($myArray as $key => $value) {
+//    	drupal_set_message(t("Key Value Pair : $key  -- $value"));
+//	}
+//	drupal_set_message(t("Submit Clicked Form Submit"));	  
+	$_SESSION['user_total_count'] =  $TotalCount;
+	$_SESSION['selectOptions'] =  $myArray;
+	$_SESSION['levelName'] = "STUDENT";
+	$_SESSION['levelValue'] = $myArray;
+	
+	$selList = &$_SESSION['selectOptions'];
+	$keyvalues = " ( ";
+
+	foreach ($myArray as $key => $value) {
+//    	drupal_set_message(t("Key Value Pair : $key  -- $value"));
+		$keyvalues .= $value . ',' ;
+	}
+	$keyvalues = substr($keyvalues,0,-1);
+	$keyvalues .= " ) ";	
+
+	$filterClass = " and a.account_student_map_id in $keyvalues "; 
+
+	$studentArray= array();
+	  db_set_active('qtxt_db');	
+	  $sql = "select b.standard, b.section, a.student_name, a.student_identifier, a.account_student_map_id from {qtxt_sms_account_student_map} a, {qtxt_sms_account_grades} b where a.account_grade_id = b.account_grade_id  " . $filterClass   ; 
+
+			$resultg2 = db_query($sql);	  
+			while ($rowg2 = db_fetch_object($resultg2)) {
+				  	$studentArray[] =  $rowg2->student_name .  ' - ' . $rowg2->standard . ' - ' . $rowg2->section; 
+			}
+			db_set_active('default');	  
+	
+	$_SESSION['studentArray'] = $studentArray;  
+
+  $form_state['redirect'] =   'smsinit/staffmsg/finalscreen';
+  return;
+}
+
+function vvv_msbc_my_form1_validate($form, &$form_state) {
+//dpm($form_state);
+	if ( !isset( $form_state['clicked_button']['#post']['access']['account'] ) ) {
+//	if ( !isset( $form_state['clicked_button']['#post']['account'] ) ) {
+		 form_set_error('', t('Please selet at least one option'));
+	}
+}
+
+
+
+/*
+//Testing:
+function vvv_msbc_my_form1_final_submit($form, &$form_state)
+{
+ $form_state['redirect'] ='smsinit/staffmsg/finalscreen';
+ return;
+}
+
+*/
+
+
+
+
+
+
+/*  -----------------------------------------------Testing Section of class---------------------*/
+
+
+function vvv_msbc_filter_form2($form_state) {
+
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+
+
+/*
+if(!empty($_SESSION['user_class_filter'])) {
+	$c1 = &$_SESSION['user_class_filter'];
+	if(!empty($_SESSION['user_class_filter_value'])) {
+		$clVal = &$_SESSION['user_class_filter_value'];
+	} else {
+		$clVal = "";
+	}
+} else {
+	$c1 = "";
+	$clVal = "";
+}
+
+if(!empty($_SESSION['user_section_filter'])) {
+	$c2 = &$_SESSION['user_section_filter'];
+	if(!empty($_SESSION['user_section_filter_value'])) {
+		$c2Val = &$_SESSION['user_section_filter_value'];
+	} else {
+		$c2Val = "";
+	}
+} else {
+	$c2 = "";
+	$c2Val = "";
+}
+$_SESSION['user_class_filter_value'] = $clVal;
+$_SESSION['user_section_filter_value'] = $c2Val;
+*/
+// unset ($_SESSION['user_section_filter']);
+// unset ($_SESSION['user_class_filter']);
+
+
+
+ // drupal_set_message(t("Class Value  selected"));
+ $i = 0;
+  $form['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Filter Students Where'),
+   // '#theme' => 'user_filters',
+  );
+
+db_set_active('qtxt_db');	
+$result = db_query("select account_grade_id , standard , section from {qtxt_sms_account_grades} a , {qtxt_sms_account_staff} b where b.mobile_number =  '%s'  and a.account_id = b.account_id  and standard != 'ALL' ", $myMobileNumber );
+$options = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $options[$row->account_grade_id ] =  $row->standard . ' - ' . $row->section; //This is the only line that changed from the code above.
+}
+db_set_active('default');	
+  
+  
+  
+$key = 'section';				
+ // $names[$key] = 'Title Class - Section';
+    $form['filters']['section'] = array(
+	 '#title' => t('Section'),
+      '#type' => 'select',
+      '#options' => $options,
+    );
+	
+/*	
+db_set_active('qtxt_db');	
+$result = db_query("select distinct section from {qtxt_sms_account_grades}  a , {qtxt_sms_account_staff} b where b.mobile_number =  '%s'  and a.account_id = b.account_id  and standard != 'ALL' ", $myMobileNumber);
+$sectionoptions = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $sectionoptions[$row->section ] =  $row->section; //This is the only line that changed from the code above.
+}
+db_set_active('default');	
+  
+  
+	
+$key = 'section';				
+
+$names[$key] = 'Title Section';
+    $form['filters']['status'][$key] = array(
+      '#type' => 'select',
+      '#options' => $sectionoptions,
+    );
+
+
+$form['filters']['filter'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $names,
+	'#default_value' => array($c1, $c2),
+  );
+ $form['filters']['status']['class']['#default_value']	= $clVal;
+$form['filters']['status']['section']['#default_value']	= $c2Val;  
+  
+*/
+ $form['filters']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+  );
+return $form;
+
+}
+
+
+
+function vvv_msbc_filter_form2_submit($form, &$form_state) {
+  // $op = $form_state['values']['op'];
+  $values = $form_state['values'];
+  $sectionValue = $values[section];   //$form_state['values']['filters']['section'];
+  /*
+  switch ($op) {
+    case t('Next'): 
+
+		// $_SESSION['doa'] = $form_state['values']['doa'];
+	 
+      if (isset($form_state['values']['filter']['class'])) {
+//drupal_set_message(t("In the Filter, Class  selected"));	  
+			$filter = $form_state['values']['filter']['class'];
+			$options = $filters[$filter]['options'];
+		  $_SESSION['user_class_filter'] = "";
+		 
+		  $_SESSION['user_class_filter_value'] = $form_state['values'][$filter];
+		  if ( $form_state['values'][$filter] != "") {
+		   $_SESSION['user_class_filter'] = "class";
+		   }
+      } else  {
+//drupal_set_message(t("In the Filter, Class not selected"));	  
+		  $_SESSION['user_class_filter'] = "";
+		  $_SESSION['user_class_filter_value'] = "";	
+		  unset ( $_SESSION['user_class_filter'] );
+		  unset ( $_SESSION['user_class_filter_value'] );
+		  
+	  }
+	  
+	  if (isset($form_state['values']['filter']['section'])) {
+			$filter = $form_state['values']['filter']['section'];
+			$options = $filters[$filter]['options'];
+			  $_SESSION['user_section_filter'] = "";
+			  $_SESSION['user_section_filter_value'] = $form_state['values'][$filter];
+		  if ( $form_state['values'][$filter] != "") {
+		   $_SESSION['user_section_filter'] = "section";
+		   }
+      } else {
+		  $_SESSION['user_section_filter'] = "";
+		  $_SESSION['user_section_filter_value'] = "";	  
+		  unset ( $_SESSION['user_section_filter'] );
+		  unset ( $_SESSION['user_section_filter_value'] );
+	  }
+	  
+      break;
+    case t('Undo'):
+//      array_pop($_SESSION['user_overview_filter']);
+      break;
+    case t('Reset'):
+//      $_SESSION['user_overview_filter'] = array();
+      break;
+    case t('Update'):
+      return;
+  }
+  */
+$mobile =  &$_SESSION['user_mobile_number'];
+$userId =  &$_SESSION['admin_user_id'];
+$pwdId =  &$_SESSION['admin_pwd'];
+
+	$_SESSION['selectOptions'] =  array($sectionValue);
+	$_SESSION['levelName'] = "SECTION";
+	$_SESSION['levelValue'] = array($sectionValue);
+
+
+//$c1Val=   &$_SESSION['user_class_filter_value'];
+//$c2Val =  &$_SESSION['user_class_filter_value'];
+
+
+db_set_active('qtxt_db');	
+$result = db_query("select  standard , section from {qtxt_sms_account_grades} a where a.account_grade_id  =  '%s'  ", $sectionValue );
+$sectionDesc = "";
+while ($row = db_fetch_object($result)) {
+  $sectionDesc =  $row->standard . ' - ' . $row->section; 
+}
+db_set_active('default');	
+
+	$_SESSION['sectionDesc'] = array($sectionDesc);  
+
+/*	
+drupal_set_message(t("mobile : $mobile "));	
+drupal_set_message(t("userid : $userId "));	
+drupal_set_message(t("pwd : $pwdId "));
+drupal_set_message(t("Standard : $sectionValue "));	
+drupal_set_message(t("Standard : $sectionDesc "));	
+*/
+// drupal_set_message(t("Section : $c2Val "));	
+$form_state['redirect'] = 'smsinit/staffmsg/finalscreen';
+return;
+}
+
+
+function v3_qtext_ahah_field_js_for_sbc1 () {
+		$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+
+	 
+		$keyWordType = $form['#post']['v3AdminOuter']['adminVar']['keywordType'];
+		if ( $keyWordType == "MSG" ) {
+		
+		
+		
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+			
+		} elseif ( $keyWordType == "TEMPLATE" ){
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   TRUE;	
+//			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   FALSE;	
+		}  else {
+		/*
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+			*/
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   FALSE;				
+		}
+		$form['v3AdminOuter']['adminVar']['adminMsgOuter']['#collapsed'] = FALSE;
+		
+//		$form['keyword']['#options'] = qtext_get_ahah_fields($msgId);
+		form_set_cache($form_build_id, $form, $form_state);
+		$form += array(
+			'#post' => $_POST,
+			'#programmed' => FALSE,
+		  );
+		$form = form_builder('form_details', $form, $form_state);
+		
+		$output = $form['v3AdminOuter']['adminVar']['adminMsgOuter'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out1 =  drupal_render($output);
+
+//		drupal_json(array('status' => TRUE, 'data' => $out1));
+/*		
+		$output = $form['transportVar'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out2 =  drupal_render($output);
+*/
+		drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+/*
+//Testing ahah:
+
+function v3_parent_ahah_field_js_for_ind2 () {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+		$gid = $form['#post']['class'];
+		db_set_active('qtxt_db');
+//		$sqlg = " select distinct staff_id, concat ( staff_name, '-', xx.grade_name , '-',a.staff_subject) staff_name FROM {qtxt_sms_staff_mobile_v1} a , {qtxt_sms_mobile_students_v} xx where xx.account_grade_id = a.account_grade_id and  xx.account_student_map_id = $gid ";
+
+
+//Testing ahah:
+$sqlg = "select distinct section,account_grade_id from  {qtxt_sms_account_grades} where standard = '$gid' ";
+
+//$sqlg = db_query("select distinct account_grade_id,standard from  {qtxt_sms_account_grades} where standard != 'ALL' ");
+
+              $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a value';
+		while($datag = db_fetch_object($resultg))
+		{
+		//$valueg[$datag->staff_id] = $datag->staff_name;
+		$valueg[$datag->account_grade_id] = $datag->section;
+		}
+		db_set_active('default');
+		//$valueg1 = drupal_map_assoc($valueg);
+		$form['filters']['section']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+$form = form_builder('vvv_msbc_filter_form1', $form, $form_state);	
+				//$form = form_builder('qtext1_smsform', $form, $form_state);		
+				$output = $form['filters']['section'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+}
+
+*/

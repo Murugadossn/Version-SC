@@ -1,0 +1,26 @@
+
+#content-qbtaskpage .form-item {
+margin-bottom: 1em;
+float: none;
+width: 90%;
+}
+
+#content-qbtaskpage .description {
+display:compact;
+}
+
+#content-qbtaskpage .teaser-button-wrapper {
+  float: left; /* LTR */ /* LTR */
+  margin: 10px;
+}
+
+
+#page-contact .form-item, .form-item-textarea {
+margin-bottom: 1em;
+float: none;
+width: 500px
+}
+
+#page-contact .form-item-textarea {
+width: 490px;
+}

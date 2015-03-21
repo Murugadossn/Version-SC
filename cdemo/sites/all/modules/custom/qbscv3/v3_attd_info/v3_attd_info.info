@@ -1,0 +1,5 @@
+name = Attendance Report For Teacher User[qbscv3]
+description = "To View attd Percentage"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

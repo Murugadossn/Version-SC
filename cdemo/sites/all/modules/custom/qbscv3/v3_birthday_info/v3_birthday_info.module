@@ -1,0 +1,658 @@
+<?php
+
+
+
+
+
+
+
+/**
+
+
+
+
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+
+
+
+
+ *
+
+
+
+
+
+
+
+ */
+
+
+
+
+
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function v3_birthday_info_views_api() {
+
+
+
+
+
+
+
+  return array(
+
+
+
+
+
+
+
+    'api' => 2,
+
+
+
+
+
+
+
+    'path' => drupal_get_path('module', 'v3_birthday_info'),
+
+
+
+
+
+
+
+  );
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function v3_birthday_info_menu() {
+
+
+
+
+
+
+
+	$items['bday'] = array(
+
+
+
+
+
+
+
+			'title' => t('Students Celebrating Birthdays in this Month'),
+
+
+
+
+
+
+
+			'page callback' => 'v3_birthday_info_form',
+
+
+
+
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+
+
+
+
+			'access callback' => 'user_access',
+
+
+
+
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+
+
+
+
+	);
+
+
+	return $items;
+
+	}
+
+
+ function v3_birthday_info_form() {
+
+
+
+
+
+
+
+			
+
+
+
+
+
+			 $output = drupal_get_form('v3_birthday_my_form');
+
+
+
+
+
+
+
+			return $output ;
+
+
+
+
+
+
+
+} 
+
+
+
+
+
+function v3_birthday_my_form($form_state) {
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile; 
+
+
+
+$uid = $user->uid;
+
+
+
+  $header = array(
+
+
+
+    array(),
+
+
+
+    array('data' => t('Student Name'), 'field' => 'b.student_name,'),
+
+
+
+    array('data' => t('Standard'), 'field' => 'b.grade_name'),
+
+
+
+    array('data' => t('DOB'), 'field' => 'b.str_dob'),
+
+
+
+    array('data' => t('Account Student id'), 'field' => 'b.account_student_map_id'),
+
+
+
+	
+
+  );
+
+  db_set_active('qtxt_db');	
+
+
+
+
+
+
+
+		$result = db_query("select distinct(account_grade_id) from {qtxt_sms_staff_mobile_v} where drupal_uid = $uid ");
+
+
+
+
+
+
+
+		$accountGradeId = array();
+
+
+
+
+
+
+
+		while ($row = db_fetch_object($result)) {
+
+
+
+
+
+
+
+		  $accountGradeId[] =  $row->account_grade_id; 
+
+
+
+		  // This is the only line that changed from the code above.
+
+
+
+		}
+
+
+
+		db_set_active('default');
+
+
+
+		
+
+
+
+		if (  count( $accountGradeId ) > 0 ) {
+
+
+
+			$accountArray = join( ",", $accountGradeId );
+
+
+
+		}
+
+
+
+		$filterClass = " and account_grade_id in (" . $accountArray . " ) ";
+
+
+
+		$filterClass1 = "account_grade_id in (" . $accountArray . " ) ";
+
+
+
+  db_set_active('qtxt_db');	
+
+
+
+   
+
+
+
+ 	$sql = "select a.student_name, a.grade_name, a.str_dob
+
+                               from {qtxt_sms_mobile_students_v3} a
+
+                               where  day(a.dob) >= day(sysdate()) and month(a.dob) = month(sysdate())" . $filterClass   ;
+
+
+
+
+
+
+
+     $query_count = "select count(account_student_map_id) from {qtxt_sms_mobile_students_v} b where  " . $filterClass1 ;
+
+
+	 $sql .= tablesort_sql($header);
+
+
+
+
+
+
+
+   $result = pager_query($sql, 20, 0, $query_count);
+
+
+  $account = array();
+
+
+
+
+
+
+
+$i = 1;  
+
+
+
+  while ($account = db_fetch_object($result)) {
+
+
+
+	$form['access']['account'][$i] = array(
+
+
+
+	//	'#type' => 'checkbox',
+
+
+
+		'#return_value' => $account->account_student_map_id,
+
+
+
+		'#default_value' => 0,
+
+
+
+		'#tree' => TRUE,
+
+
+
+		'#disabled'=>True,
+
+
+	  );
+
+
+
+	$form['access']['studentname'][$account->account_student_map_id] = array('#value' => $account->student_name);
+
+
+
+    $form['access']['standard'][$account->account_student_map_id] =  array('#value' => $account->grade_name);
+
+
+
+    $form['access']['dob'][$account->account_student_map_id] =  array('#value' => $account->str_dob);
+
+
+
+
+
+	 $form['access']['studentid'][$account->account_student_map_id] =  array('#type' => 'hidden','#value' => $account->account_student_map_id);
+
+
+
+
+
+
+
+	
+
+
+
+	$i = $i + 1;
+
+
+
+  }
+
+
+
+db_set_active('default');
+
+
+
+
+
+
+
+ // $form['pager'] = array('#value' => theme('pager', NULL, 10, 0));
+
+
+
+  $form['#theme'] = 'v3_birthday_my_form_theme';   
+
+
+
+  $form['totalcount'] = array(
+
+
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+
+
+  );  
+
+
+
+  return $form;
+
+
+
+
+
+
+
+}  
+
+
+
+
+
+
+
+  function v3_birthday_info_theme() {
+
+
+
+	return array(
+
+
+
+		'v3_birthday_my_form_theme' => array('arguments'=> array('form' => NULL),),
+
+
+	);
+
+
+
+}
+
+
+
+
+
+
+
+function theme_v3_birthday_my_form_theme($form)
+
+
+
+{
+
+
+
+$rows = array();
+
+
+
+$i = 1;
+
+
+
+foreach(element_children($form['access']['studentid']) as $key) {
+
+
+
+	$row = array(); 
+
+
+
+ //      $row[] =  drupal_render($form['access']['account'][$i]);
+
+
+
+	   $row[] =  drupal_render($form['access']['studentname'][$key]);
+
+
+
+       $row[] =  drupal_render($form['access']['standard'][$key]);
+
+
+
+       $row[] =  drupal_render($form['access']['dob'][$key]);
+
+
+	   $rows[] = $row; 
+
+
+
+	$i = $i +1 ;
+
+
+
+}
+
+
+
+
+
+
+
+if(count($rows)){
+
+
+
+		//	 $header = array( theme ('table_select_header_cell'), t('Student Name'), t('Standard'),  t('Birthday Date'));
+
+	$header = array( t('Student Name'), t('Standard'),  t('Birthday Date'));
+	/*$sms= new Qtxt_Sms_Common;
+	$outputString = $sms->sendBirthdaywishSMS($GLOBALS['base_path']);*/
+	
+
+
+  }
+
+
+
+  else{
+
+
+
+    $header = array(t(''), t('')); 
+
+
+
+    $row = array();
+
+
+
+    $row[] = array
+
+
+
+    (
+
+
+
+      'data' => t('No kids were celebrating birthday in this month'),
+
+
+
+      'colspan' => 2,
+
+
+
+      'style' => 'text-align:center'
+
+
+
+    );
+
+
+
+    $rows[] = $row;
+
+
+
+  }
+
+
+
+$output = theme('table', $header, $rows); 
+
+
+
+return $output . drupal_render($form); 
+
+
+
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

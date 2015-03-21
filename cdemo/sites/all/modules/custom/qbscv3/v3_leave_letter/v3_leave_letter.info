@@ -1,0 +1,5 @@
+name = Leave Letter[qbscv3]
+description = "To View Leave Letter"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

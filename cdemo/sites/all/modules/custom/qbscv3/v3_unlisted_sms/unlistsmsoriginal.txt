@@ -1,0 +1,381 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+//require ( "cceClass.php");
+
+function v3_unlisted_sms_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_unlisted_sms'),
+  );
+}
+
+
+function v3_unlisted_sms_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'unlistsms':
+     //  return '<p>'. t('Drupal allows users to register, login, log out, maintain user profiles, etc. Users of the site may not use their own names to post content until they have signed up for a user account.') .'</p>';
+	
+	}
+  
+}  
+
+function v3_unlisted_sms_menu() {
+	$items['unlistsms'] = array(
+			'title' => t('Screen to send SMS for Unregistered Numbers'),
+			'page callback' => 'v3_unlistsms_first_page_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	$items['unlistsms/next'] = array(
+			'title' => t('Confirmation Screen to send SMS for Unregistered Numbers'),
+			'page callback' => 'v3_unlistsms_next_page_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+	
+	
+	$items['unlistsms/adminvar/ahahjs'] = array(
+			'page callback' => 'v3_unlistsms_ahah_field_js_for_template',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),	
+  );
+	    
+		
+		
+return $items;
+}
+
+function v3_unlistsms_ahah_field_js_for_template () {
+		$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+
+		$keyWordType = $form['#post']['keywordType'];
+		if ( $keyWordType == "MSG" ) {
+		
+			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+			
+		} elseif ( $keyWordType == "TEMPLATE" ){
+			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   TRUE;	
+//			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   FALSE;	
+		}  else {
+		/*
+			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+			*/
+			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+//			$form['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   FALSE;				
+		}
+		$form['adminVar']['adminMsgOuter']['#collapsed'] = FALSE;
+		
+		form_set_cache($form_build_id, $form, $form_state);
+		$form += array(
+			'#post' => $_POST,
+			'#programmed' => FALSE,
+		  );
+		$form = form_builder('form_details', $form, $form_state);
+		
+		$output = $form['adminVar']['adminMsgOuter'];
+		unset($output['#prefix'],$output['#suffix']);
+		$out1 =  drupal_render($output);
+		drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+
+function v3_unlistsms_first_page_wrap() {
+			$output = drupal_get_form('v3_unlistsms_first_page');
+			return $output ;
+}
+function v3_unlistsms_next_page_wrap() {
+			$output = drupal_get_form('v3_unlistsms_next_page');
+			return $output ;
+}
+
+
+
+function v3_unlistsms_first_page( $form_state) {
+
+				// get the mobile number of the logged in user
+				//  First get the user profile
+				//  From the User Profile get the Mobile Number
+
+				global $user;
+				$profile =  profile_load_profile($user);
+				$myMobileNumber =  $user->profile_mobile;  
+
+				/*
+				unset ( $_SESSION['user_section_filter_value'] );
+				unset ( $_SESSION['user_class_filter'] );
+				unset ( $_SESSION['user_mobile_number'] );
+				unset ( $_SESSION['admin_user_id'] );
+				unset ( $_SESSION['admin_pwd'] );
+				unset ( $_SESSION['doa'] );
+				unset ( $_SESSION['selectOptions'] );
+				*/
+
+				$defusermobile = $myMobileNumber;
+				$defadminuserid = "";
+				$defadminpwd = "";
+
+					// Define the Form
+
+
+				$form['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $defusermobile,
+				'#value' => $defusermobile,
+				'#disabled' => TRUE,
+				//'#description' => t('Your Mobile Number.'),
+				);
+
+				$form['userId'] = array(
+				'#title' => t('SMS User Id'),
+				'#type' => 'textfield',
+				'#default_value' => $defadminuserid,
+				//'#description' => t('Please enter your SMS User Id.'),
+				);
+				$form['pwdId'] = array(
+				'#title' => t('SMS Password Id'),
+				'#type' => 'password',
+				'#default_value' => $defadminpwd,
+				//'#description' => t('Please enter your SMS Password.'),
+				);
+				
+	
+
+			  $form['adminVar'] = array(
+					'#type' => 'fieldset',
+				 '#title' => t(' Message Type'),
+				 '#collapsible' => TRUE, 
+				 '#collapsed' => FALSE,
+				 '#tree' => TRUE
+				  );  
+
+
+
+
+						  
+					$form['adminVar']['keywordType'] = array(
+					 '#type' => 'select',
+					 '#options' => array( '' => t('Select ..'), 'MSG' => t('Enter the Broadcast Message') , 'TEMPLATE' => t('Select one of the Templates')  ),
+					 '#title' => t('SMS Message Type'),
+					 '#description' => t('Please Select The Message Type'),
+					 '#disabled' => FALSE,
+					 '#ahah' => array(
+						'path' => 'unlistsms/adminvar/ahahjs',
+						'wrapper' => 'ahah-wrapper-admin',
+						'method' => 'replace',
+					  )
+					  ); 
+
+					  $form['adminVar']['adminMsgOuter'] = array(
+					 '#type' => 'fieldset',
+					 '#title' => t(' Select Message Options...'),
+					 '#collapsible' => TRUE, 
+					 '#collapsed' => FALSE,
+					 '#tree' => TRUE,
+					 '#prefix' => '<div id = "ahah-wrapper-admin">',
+					 '#suffix' => '</div>' 
+					  );
+					 
+					 $form['adminVar'] ['adminMsgOuter']['adminMsg'] = array(
+					 '#title' => t('Message'),
+					 '#type' => 'textfield',
+					 '#disabled' => TRUE,
+					 '#description' => t('Please Enter Message'),
+					 );
+					 
+					db_set_active('qtxt_db');	
+//					$result = db_query("SELECT template_code, template_text FROM {qtxt_sms_templates} a , {qtxt_sms_account_staff} b   WHERE  b.mobile_number =  '%s'  and a.account_id = b.account_id and a.language_id = 1 ", $myMobileNumber);
+					// $result = db_query("SELECT template_code, template_text FROM {qtxt_sms_templates} a ");
+					$options = array('' => t('Select..'));
+					while ($row = db_fetch_object($result)) {
+					  $options[$row->template_code ] =  $row->template_text; //This is the only line that changed from the code above.
+					}
+					db_set_active('default');	
+				
+				  $form['adminVar']['adminMsgOuter']['adminTemplate'] = array(
+					'#type' => 'select',
+				   // '#options' => array( '' => t('Select..'),'T1' => t('Template 1') , 'T2' => t('Template 2')  ),
+					'#options' => $options,
+					'#title' => t('Template'),
+					'#disabled' => TRUE,
+					'#description' => t('Please Select The Template'),
+				  ); 
+				                                  
+                               
+				  $form['tcsv'] = array('#type' => 'file',
+				  				  		'#title' => t('Upload File'),
+				  				  		'#description' => t('Pick a file to upload'),
+				  );
+				  
+	
+	
+			    $form['next_submit'] = array(
+				   '#type' => 'submit',
+				   '#value' => t('Confirm'),
+			    );
+
+			    return $form;
+}
+
+function v3_unlistsms_first_page_submit($form, &$form_state) {
+$op = $form_state['values']['op'];
+ // drupal_set_message(t("$op"));  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'unlistsms';
+		  return;	
+	} 
+	
+ 
+
+	$dir = file_directory_path();
+
+		if(isset($_FILES) && !empty($_FILES) && $_FILES['files']['size']['tcsv'] != 0){
+		
+			#this structure is kind of wacky
+			$name = $_FILES['files']['name']['tcsv'];
+			$size = $_FILES['files']['size']['tcsv'];
+			$type = $_FILES['files']['type']['tcsv'];
+
+			#this is the actual place where we store the file
+			$file = file_save_upload('tcsv', array() , $dir);
+
+		} 	
+		$_SESSION['ccefilename'] = $name;
+		$_SESSION['ccedir'] = $dir;	
+		
+		$_SESSION['user_mobile_number'] = $form_state['values']['mobileId'];
+		$_SESSION['admin_user_id'] = $form_state['values']['userId'];
+		$_SESSION['admin_pwd'] = $form_state['values']['pwdId'];
+		$_SESSION['sms_category'] = $form_state['values']['smscategory'];
+		
+		$values = $form_state['values'];
+		$messageType = $values[adminVar][keywordType];
+		$message = $values[adminVar] [adminMsgOuter][adminMsg];
+		$templateCode = $values[adminVar][adminMsgOuter][adminTemplate];	
+		$_SESSION['messageType']= $messageType;
+		$_SESSION['message']= $message;
+		$_SESSION['templateCode']= $templateCode;
+	// drupal_set_message( "MessageType -$messageType" ) ;
+if($message == '')	
+{
+drupal_set_message( "templateCode -$templateCode" ) ;	
+drupal_set_message( "ccefilename -$name" ) ;	
+}
+else	
+{
+	drupal_set_message( "Message -$message" ) ;		
+	
+	// drupal_set_message( "ccedir -$dir" ) ;		
+	drupal_set_message( "File Name -$name" ) ;
+}		
+	/*
+
+	$filename = $dir . '/' .$name ;
+	drupal_set_message( "filename -$filename" ) ;
+//	$rs5 = array();
+	$sms= new Qtxt_CCE_Common;
+	$rs5 = $sms->cceMainLoadDetails( $filename, $acc, $intType, $groupId, $classId , $termId , $assessDate  );	
+	$countrows = count( $rs5[0]) ;
+	
+	drupal_set_message( "countrows -$countrows" ) ;
+	$_SESSION['resultarray'] = urlencode(serialize($rs5));	
+	
+*/	
+	
+	$form_state['redirect'] = 'unlistsms/next';
+
+		  return;
+}
+
+function v3_unlistsms_next_page( $form_state) {
+
+				// get the mobile number of the logged in user
+				//  First get the user profile
+				//  From the User Profile get the Mobile Number
+
+				global $user;
+				$profile =  profile_load_profile($user);
+				$myMobileNumber =  $user->profile_mobile;  
+
+				
+
+			    $form['next_submit'] = array(
+				   '#type' => 'submit',
+				   '#value' => t('Send Message'),
+			    );
+				
+			    return $form;				
+				 
+
+}
+function v3_unlistsms_next_page_submit($form, &$form_state) {
+$op = $form_state['values']['op'];
+ // drupal_set_message(t("$op"));  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'unlistsms';
+		  return;	
+	} 
+	
+		$mobileId= &$_SESSION['user_mobile_number'] ;
+		$adminUser = &$_SESSION['admin_user_id'];
+		$adminpwd = &$_SESSION['admin_pwd']; 
+		$messageType = &$_SESSION['messageType'];
+		$message = &$_SESSION['message'];
+		$templateCode = &$_SESSION['templateCode'];
+
+		$name = &$_SESSION['ccefilename'];
+		$dir = &$_SESSION['ccedir'];	
+		$filename = $dir . '/' .$name ;
+		
+		$sms= new Qtxt_Sms_Common;
+
+	
+		$outputString = $sms->v3sendUnlistedSMS(
+										$mobileId, 
+										$userId,
+										$userPwd,
+										$messageType,
+										$templateCode,
+										$message,
+										$filename,
+										$GLOBALS['base_path']);
+
+		drupal_set_message(  " SMS Status :  $outputString ");
+		unset ($form_state['storage']);		
+
+$form_state['redirect'] = 'unlistsms';
+
+		return;		
+}

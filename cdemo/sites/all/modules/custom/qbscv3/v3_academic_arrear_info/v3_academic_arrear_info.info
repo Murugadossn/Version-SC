@@ -1,0 +1,5 @@
+name 		= Arrear Reports[qbscv3]
+description 	= "To view the Arrear Reports of the students"
+package 	= School Connect Version 3.0
+core 		= 6.x
+version 	= 3.0

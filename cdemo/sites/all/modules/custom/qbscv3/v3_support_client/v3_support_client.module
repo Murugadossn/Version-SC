@@ -1,0 +1,1810 @@
+<?php
+
+function v3_support_client_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', 'v3_support_client'),
+
+
+
+  );
+
+
+
+}
+
+
+function v3_support_client_help($path, $arg) {
+
+
+
+  global $user;
+
+
+
+
+
+
+
+  switch ($path) {
+
+
+
+    case 'sclient':
+
+
+
+      return '<p>'. t('.') .'</p>';
+
+
+
+	
+
+
+
+	}
+
+
+
+  
+
+
+
+}  
+
+
+
+function v3_support_client_menu() {
+
+
+
+	$items['sclient'] = array(
+
+
+
+    'title' => 'College Connect Support',
+
+
+
+    'description' => 'List, add, and edit Student Data.',
+
+
+
+    'page callback' => 'v3_client_cb',
+
+
+
+    'page arguments' => array('list'),
+
+
+
+    // 'access arguments' => array('administer users'),
+
+
+
+	'type' => MENU_CALLBACK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+	
+
+
+
+	);
+
+
+
+
+
+
+
+  $items['sclient/list'] = array(
+
+
+
+    'title' => 'List',
+
+
+
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+
+
+
+
+    'weight' => -10,
+
+
+
+  );
+
+
+
+  $items['sclient/create'] = array(
+
+
+
+    'title' => 'Send An Email',
+
+
+
+    'page arguments' => array('create'),
+
+
+
+    // 'access arguments' => array('administer users'),
+
+
+
+    'type' => MENU_LOCAL_TASK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+
+
+
+
+  );	
+
+
+
+  
+
+
+
+ 
+
+$items['sclient/delete'] = array(
+
+
+
+    'title' => 'Are You Sure To Delete The Message',
+
+
+
+    'page callback' => 'drupal_get_form',
+
+
+
+    'page arguments' => array('sclient_delete'),
+
+
+
+ //   'access arguments' => array('administer users'),
+
+
+
+    'type' => MENU_CALLBACK,
+
+
+
+'access callback' => 'user_access',
+
+
+
+'access arguments' => array('access content'),
+
+
+
+
+
+
+
+  );
+
+ 
+
+
+
+	
+
+
+
+ 
+
+
+
+  
+
+
+
+return $items;
+
+
+
+}
+
+
+
+function sclient_delete(&$form_state, $fid) {
+
+
+
+global $user;
+
+
+
+
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+
+
+
+ $myMobileNumber =  $user->profile_mobile;  
+
+
+
+
+
+
+
+$uid = $user->uid;
+
+
+
+		
+
+
+
+		
+
+
+
+
+
+
+
+		db_set_active('qtxt_db');	
+
+
+
+		$field = db_fetch_object(db_query("select id,from_email,status_report from v3_issues_report where id = $fid"));
+
+		
+
+
+
+         
+
+
+
+db_set_active('default');
+
+
+
+
+
+
+
+		if (!$field) {
+
+
+
+			drupal_not_found();
+
+
+
+			return;
+
+
+
+		  }
+
+
+
+		  $form['account_student_map_id'] = array('#type' => 'value',
+
+
+
+			'#value' => $fid,
+
+
+
+		  );		  
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+	/*	$form['fname'] = array(
+
+
+
+		  '#title' => 'Email Id ',
+
+
+
+		  '#type' => 'textfield',
+
+
+
+		  '#size' => 60,
+
+
+
+		  '#maxlength' => 100,
+
+
+
+		//  '#required' => true,
+
+		'#disabled' => true,
+
+
+
+		  '#default_value' => $field->from_email,
+
+		  
+
+
+
+		);
+
+
+
+*/
+
+
+
+		$form['lname'] = array(
+
+        '#prefix' =>'<br/><br/><br/><br/><br/>',
+
+//		  '#title' => 'Status',
+
+
+
+		  '#type' => 'textarea',
+
+
+
+		  '#size' => 60,
+
+
+
+		  '#maxlength' => 100,
+
+		  
+
+
+
+		  '#default_value' => $field->status_report,
+
+		  '#disabled' => true,
+
+
+
+		);
+
+
+
+		
+
+
+
+
+
+		
+
+
+
+		
+
+
+
+		
+
+
+
+	 $form['buttons']['submit'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+    
+
+'#prefix' => '<br/>',
+
+ 
+
+
+
+		'#value' => t('Confirm'),                                                 
+
+
+
+	  );
+
+
+
+$form['edit']['buttons']['cancel'] = array(                                                          
+
+
+
+		'#type' => 'submit',
+
+
+
+		'#value' => t('Cancel'),                                                 
+
+
+
+	  );
+
+
+
+
+
+
+
+  $form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+
+
+
+
+
+
+	return $form;
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+function sclient_delete_submit ($form, &$form_state) {
+
+
+
+ $op = $form_state['values']['op'];
+
+
+
+
+
+
+
+if ( $op == "Cancel" ) {
+
+
+
+		  $form_state['redirect'] = 'sclient/list';
+
+
+
+		  return;	
+
+
+
+	} 
+
+
+
+
+
+
+
+db_set_active('default');
+
+
+
+
+
+
+
+	$id = $form_state['values']['account_student_map_id'];	
+
+
+
+	
+
+
+
+	$fname = $form_state['values']['fname'];
+
+
+
+	$lname = $form_state['values']['lname'];
+
+
+
+	
+
+db_set_active('qtxt_db');
+
+		db_query("update {v3_issues_report} set  active_flag ='N' where id = $id ");
+
+			
+
+		db_set_active('default');
+
+
+
+		drupal_set_message(t("Message has been Deleted Sucessfully")); 
+
+
+
+		$form_state['redirect'] = 'sclient/list';
+
+
+
+		return;
+
+
+
+}
+
+
+
+function v3_client_cb($callback_arg = '') {
+
+
+
+
+
+
+
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+
+
+
+
+
+
+//  drupal_set_message("Operamd - $op ");	
+
+
+
+  
+
+
+
+  switch ($op) {
+
+
+
+    case t('Send'):
+
+
+
+    case 'create':
+
+
+
+case 'Cancel':
+
+
+
+      $output = drupal_get_form('sclient_create');
+
+
+
+      break;
+
+
+
+
+
+
+
+	  default:
+
+
+
+      if (!empty($_POST['assess']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+
+
+
+        $output = drupal_get_form('group_multiple_delete_confirm');
+
+
+
+      }
+
+
+
+      else {
+
+
+
+        $output = drupal_get_form('sclient_filter_form');
+
+
+
+        $output .= drupal_get_form('sclient_details');
+
+
+
+      }
+
+
+
+  }
+
+
+
+  return $output;
+
+
+
+  
+
+
+
+}
+
+
+
+
+
+function v3_support_client_mail($key, &$message, $params) {
+
+      $message['subject'] = t('Query From Cdemo Instance');
+
+    //  $message['body'][] = t("Dear Sundar\n\nThere is new content available on the " ) ;
+
+	  $message['body'][] =  $params['myVar'] ;
+
+	 
+
+}
+
+/**
+
+
+
+ * Form builder; Return form for user administration filters.
+
+
+
+ *
+
+
+
+ * @ingroup forms
+
+
+
+ * @see user_filter_form_submit()
+
+
+
+ */
+
+
+
+function sclient_filter_form() {
+
+
+
+
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;
+
+$uid = $user->uid;
+
+$defusermobile = $myMobileNumber;
+
+$defadminuserid = "";
+
+$defadminpwd = "";
+
+ 
+
+$form['adminOuter'] = array(
+
+	'#type' => 'fieldset',
+
+
+
+						'#title' => t('Filter the Queries by Date'),
+
+
+						'#collapsible' => TRUE, 
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+						'#tree' => TRUE,
+
+
+
+
+
+
+
+	  );
+
+
+
+$date = &$_SESSION['t_student'];
+
+
+
+
+
+
+
+	  $form['adminOuter']['dob'] = array(
+
+
+
+	  '#type' => 'date_popup',
+
+
+
+	  '#title' => t('Date'),
+
+
+
+	  '#date_format' => 'Y-m-d',
+
+
+
+	  '#default_value' => $date,
+
+
+
+	 // '#required' => true,
+
+
+
+
+
+      	  '#date_year_range' => '-1:+1',
+
+	
+
+
+
+
+
+
+
+	  );
+
+
+
+
+
+
+
+
+
+
+
+$form['adminOuter']['submit'] = array(
+
+    '#type' => 'submit',
+
+    '#value' => t('Apply'),
+
+
+
+
+
+'#prefix' => '<br/>',
+
+
+
+
+
+  );
+
+return $form;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function sclient_filter_form_submit($form, &$form_state) {
+
+
+
+$op = $form_state['values']['op'];
+
+
+
+
+
+	global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile; 
+
+
+
+
+
+
+
+	$uid = $user->uid;
+
+
+
+
+
+
+
+	$_SESSION['t_student'] = $form_state['values']['adminOuter']['dob'];
+
+
+
+
+
+
+
+	
+
+
+
+	if(!empty($_SESSION['t_student'])) {
+
+
+
+
+
+
+
+		$date = &$_SESSION['t_student'];
+
+
+
+
+
+
+
+	} else {
+
+
+
+
+
+
+
+		$date = 'null';
+
+
+
+
+
+
+
+	}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function sclient_details($form_state) {
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+$myMobileNumber =  $user->profile_mobile;
+
+$uid = $user->uid;
+
+
+
+ $date = &$_SESSION['t_student'];
+
+
+
+	
+
+
+
+//	drupal_set_message("listValues Id : $date ");
+
+
+
+	
+
+
+
+		$form['access'] = array(
+
+
+
+		'#type' => 'fieldset',
+
+
+
+		'#title' => t('Access log settings'),
+
+
+
+		'#tree' => TRUE,
+
+
+
+		'#visible' => false,	   
+
+
+
+		 );	
+
+
+
+		 if($date!= "")
+
+
+
+		 {
+
+
+
+		 $datefilter = " and b.created_on = '$date' " ;
+
+
+
+		 }
+
+
+
+		 else
+
+
+
+		 {
+
+
+
+		  $datefilter = " and b.created_on = b.created_on " ;
+
+
+
+		 }
+
+
+
+	
+
+
+
+
+
+
+
+  db_set_active('qtxt_db');	
+
+
+
+   $sql = "select id,from_email,msg,status_report,created_on,active_flag,created_on_str,Comments,v3_mobile_number from {v3_issues_report_v3} b where active_flag ='Y' and drupal_uid = $uid" .$datefilter . "order by 1 desc"  ;
+
+
+
+
+
+
+
+   $query_count = "select count(id) from {v3_issues_report_v3} b where active_flag ='Y' and drupal_uid = $uid " . $datefilter ;
+
+
+
+   
+
+
+
+	//$sql .= tablesort_sql($header);
+
+
+
+
+
+
+
+   $result = pager_query($sql, 1000, 0, $query_count);
+
+
+
+	db_set_active('default');
+
+
+
+
+
+
+
+	
+
+
+
+  $account = array();
+
+
+
+
+
+
+
+$i = 1;  
+
+
+
+
+
+
+
+  while ($account = db_fetch_object($result)) {
+
+
+
+  $form['access']['account'] = array(
+
+		 '#type' => 'checkbox',
+
+
+
+		'#return_value' => $account->id,
+
+
+
+	      '#default_value' => 0,
+
+		'#tree' => TRUE,
+
+
+
+	  );  
+
+
+
+  
+
+
+
+
+
+
+
+	$form['access']['femail'][$account->id] = array('#value' => $account->from_email);
+$form['access']['number'][$account->id] = array('#value' => $account->v3_mobile_number);
+
+
+
+
+    $form['access']['msg'][$account->id] =  array('#value' => $account->msg);
+
+
+
+    $form['access']['createdon'][$account->id] =  array('#value' => $account->created_on_str);
+
+
+
+    $form['access']['status'][$account->id] =  array('#value' => $account->status_report);
+ $form['access']['comments'][$account->id] =  array('#value' => $account->Comments);
+
+
+
+
+
+   // $form['access']['operations'][$account->id] = array('#value' => l(t('Update the Status'), "support/edit/$account->id", array('query' => $destination)));	
+
+    $form['access']['operations1'][$account->id] = array('#value' => l(t('Delete'), "sclient/delete/$account->id", array('query' => $destination)));
+
+   $form['access']['id'][$account->id] =  array('#type' => 'hidden','#value' => $account->id);
+
+	
+
+
+
+     
+
+
+
+
+
+	$i = $i + 1;
+
+
+
+	
+
+
+
+	}
+
+
+
+	
+
+
+
+// db_set_active('default');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  $form['#theme'] = 'sclient_description_theme';   
+
+
+
+
+
+
+
+  $form['totalcount'] = array(
+
+
+
+
+
+
+
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+
+
+
+
+
+
+
+  );   
+
+
+
+
+
+	return $form;
+
+
+
+}
+
+
+
+
+
+
+
+function v3_support_client_theme() {
+
+
+
+	return array(
+
+
+
+		'sclient_description_theme' => array('arguments'=> array('form' => NULL),),
+
+
+
+	);
+
+
+
+}
+
+
+
+
+
+
+
+function theme_sclient_description_theme($form)
+
+
+
+{
+
+
+
+$rows = array();
+
+
+
+	$i = 1;
+
+
+
+	foreach(element_children($form['access']['id']) as $key) {
+
+
+
+		$row = array(); 
+
+
+
+	//  $row[] =  drupal_render($form['access']['account'][$i]);
+
+
+
+		   $row[] =  drupal_render($form['access']['femail'][$key]);
+ $row[] =  drupal_render($form['access']['number'][$key]);
+
+
+
+
+
+		   $row[] =  drupal_render($form['access']['msg'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['createdon'][$key]);
+
+
+
+		   $row[] =  drupal_render($form['access']['status'][$key]);
+$row[] =  drupal_render($form['access']['comments'][$key]);
+
+
+		   $row[] =  drupal_render($form['access']['operations1'][$key]);
+
+ 		  // 	  $row[] =  drupal_render($form['access']['operations'][$key]);
+
+
+
+		   $rows[] = $row; 
+
+
+
+		$i = $i +1 ;
+
+
+
+	}
+
+
+
+  if(count($rows)){
+
+
+
+				$header = array(
+
+
+
+					t('Email From'),t('Mobile Number'), t('Message'), t('Message sent on'), t('Message From Support'),t('Status') );
+
+
+
+					 $header[] = array('data' => t('Action'), 'colspan' => 2);
+
+
+
+	  }
+
+
+
+  else{
+
+
+
+    $header = array(t(''), t('')); 
+
+
+
+    $row = array();
+
+
+
+    $row[] = array
+
+
+
+    (
+
+
+
+      'data' => t('Select the date to filter'),
+
+
+
+      'colspan' => 2,
+
+
+
+      'style' => 'text-align:center'
+
+
+
+    );
+
+
+
+    $rows[] = $row;
+
+
+
+  }
+
+
+
+$output = theme('table', $header, $rows , array(id=>"myid")); 
+
+
+
+ $form['access']['#access'] = false;
+
+
+
+return $output . drupal_render($form); 
+
+
+
+}
+
+
+
+
+
+
+
+function sclient_create( $form_state) {
+
+
+
+
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+
+
+$defusermobile = $myMobileNumber;
+
+
+
+$defadminuserid = "";
+
+
+
+$defadminpwd = "";
+
+
+
+
+
+
+
+
+
+
+
+	  $form['adminOuter'] = array(
+
+
+
+						'#type' => 'fieldset',
+
+
+
+						'#title' => t('Post Your Queries To Our Support'),
+
+
+
+						'#collapsible' => TRUE, 
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+						'#tree' => TRUE
+
+
+
+	  );
+
+
+
+	 $field1 = db_fetch_object(db_query("select name,mail from users where uid = $uid"));
+
+
+
+	 $name = $field1->name;
+	$dmail	= $field1->mail;
+
+
+
+
+	 
+
+				  $form['adminOuter']['email'] = array(
+
+
+
+				  		'#title' => t('Enter Your Email Id'),
+
+
+
+				  		'#type' => 'textfield',
+
+
+
+						  '#size' => 40, 
+
+
+
+						  '#maxlength' => 500, 
+
+
+
+				  		'#disabled' => FALSE,
+
+						'#required' => TRUE,
+                                          '#default_value' => $dmail,
+				  		
+
+					);
+db_set_active('qtxt_db');
+ $field2 = db_fetch_object(db_query("select mobile_number from qtxt_sms_mobile_numbers where drupal_uid = $uid"));
+	 $mnumber = $field2->mobile_number;
+db_set_active('default');
+        $form['adminOuter']['number'] = array(
+	'#title' => t('Mobile Number'),
+	'#type' => 'textfield',
+       '#size' => 40, 
+       '#maxlength' => 500, 
+	'#disabled' => FALSE,
+	'#required' => TRUE,
+	'#default_value' => $mnumber,
+	);
+
+
+
+
+	  
+
+
+
+				  $form['adminOuter']['inMsg'] = array(
+
+'#prefix' =>'<br/><br/><br/><br/><br/>',
+
+
+
+
+
+'#type' => 'textarea',
+
+'#title' => t('Write your Query'),
+
+	  		
+
+				  		
+
+						  '#size' => 40, 
+
+
+
+						  '#maxlength' => 1000, 
+
+
+
+				  		'#disabled' => FALSE,
+
+						'#required' => TRUE,
+
+
+
+				  		
+
+					);
+
+
+
+  $form['adminOuter']['submit'] = array(
+
+
+
+    '#type' => 'submit',
+
+
+
+    '#value' => t('Send'),
+
+
+
+  );
+
+
+
+return $form;
+
+
+
+  
+
+
+
+  
+
+
+
+}
+
+
+
+function sclient_create_validate($form, &$form_state) {
+
+$email = $form_state['values']['adminOuter']['email'];
+$mnumber = $form_state['values']['adminOuter']['number'];
+
+
+$values = $form_state['values'];
+
+if (!valid_email_address($email)) {
+
+
+
+   form_set_error(' ', t('The Email Id  %email is Invalid.', array('%email' => $values['email'])));
+
+
+
+
+
+
+
+}
+
+
+
+
+
+}
+
+
+
+
+
+function sclient_create_submit($form, &$form_state) {
+
+
+
+global $user;
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile;  
+
+
+
+$uid = $user->uid;
+
+		
+
+
+
+$msg = $form_state['values']['adminOuter']['inMsg'];
+
+$email = $form_state['values']['adminOuter']['email'];
+$mnumber = $form_state['values']['adminOuter']['number'];
+
+
+
+
+
+$msg = str_replace("'", "''", $msg);
+
+// $msg1 = "Reply to: $email ............ $msg";				
+$msg1 = "Reply to: <$email> Mobile Number <$mnumber> ............ $msg"; 
+
+
+
+ $path = "cdemo" ;
+
+
+
+$params = array(
+
+
+
+'EmailFrom' => $path,
+
+
+
+  'myVar' => $msg1,
+
+
+
+);
+
+
+ $emailTo = 'support@quadrobay.com';
+// $emailTo = 'vinothkp@quadrobay.com';
+
+
+
+ drupal_mail('v3_support_client', 'invitation', $emailTo, language_default(), $params, "Customer Queries ");
+
+
+
+
+
+  db_set_active('qtxt_db');
+
+  db_query("insert into v3_issues_report (id,from_email,email_to,status_report,drupal_uid,Comments,active_flag,admin_active_flag,createdon,created_by,msg,v3_mobile_number)
+
+  values (null,'$email','support@quadrobay.com','$msg','$uid','New','Y','Y',sysdate(),'client','$msg','$mnumber')");
+
+
+
+db_set_active('default');
+
+ drupal_set_message(t("Your Email has been Submitted."));	
+
+ $form_state['redirect'] = 'sclient/list';
+
+
+
+
+  return;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,653 @@
+<?php
+
+
+
+function v3_cce_subjects_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_subjects'),
+  );
+}
+
+
+function v3_cce_subjects_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'subjects':
+      return '<p>'. t('Please define Subjects in this screen') .'</p>';
+	
+	}
+  
+}  
+function v3_cce_subjects_menu() {
+	$items['subjects'] = array(
+    'title' => 'CCE - Define subjects',
+    'description' => 'List, add, and edit Subjects.',
+    'page callback' => 'cce_subject',
+    'page arguments' => array('list'),
+   //  'access arguments' => array('administer users'),
+
+	'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	
+	);
+
+  $items['subjects/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+
+    'weight' => -10,
+  );
+  $items['subjects/create'] = array(
+    'title' => 'Add Subject',
+    'page arguments' => array('create'),
+  //  'access arguments' => array('administer users'),
+    'type' => MENU_LOCAL_TASK,
+'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+
+  );	
+  
+  $items['subjects/edit'] = array(
+    'title' => 'Edit field',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('subject_edit'),
+   //  'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+
+  );
+  
+  $items['subjects/delete'] = array(
+    'title' => 'Delete subjects',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('subject_delete'),
+    // 'access arguments' => array('administer users'),
+    'type' => MENU_CALLBACK,
+	'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+
+  );  
+  
+return $items;
+}
+
+function subject_edit(&$form_state, $fid) {
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT subject_name, sequence, sequence_num FROM {qtxt_sms_subjects} WHERE subject_id = %d and attribute1 = 'cce' ", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+		  $form['subjectid'] = array('#type' => 'value',
+			'#value' => $fid,
+		  );		  
+		$form['edit']['subjectname'] = array(
+		  '#title' => 'subject Name ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 200,
+		  '#required' => true,
+		  '#default_value' => $field->subject_name,
+		);
+
+
+		$form['edit']['sequence'] = array(
+		  '#title' => 'Ordering Sequence ',
+		  '#type' => 'textfield',
+		  '#size' => 20,
+		  '#maxlength' => 20,
+		  '#required' => true,
+		  '#description' => t('Please enter a number to sort the subjects in the same order as it should appear in Report Card'),
+		   '#default_value' => $field->sequence,
+		);
+
+		$form['edit']['sequencenum'] = array(
+		  '#title' => 'Display Sequence in Report Card',
+		  '#type' => 'textfield',
+		  '#size' => 20,
+		  '#maxlength' => 20,
+		  '#required' => true,
+		  '#description' => t('Please enter a Character like 01 that will be displayed as the sequence # in Report Card'),
+		   '#default_value' => $field->sequence_num,
+		);
+		
+	
+
+	 $form['edit']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Edit subject'), 
+                                                                
+	  );
+         
+          
+
+	return $form;
+
+}
+
+
+function subject_edit_validate ($form, &$form_state) {
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  return;	
+	} 
+	$subject = $form_state['values']['subjectname'];
+	$seq = $form_state['values']['sequence'];
+	$seqnum = $form_state['values']['sequencenum'];
+	$subjectid = $form_state['values']['subjectid'];	
+
+	if ( $subject == "") {
+		form_set_error('', t('Subject field is required.'));
+	}		
+	
+	$subject = trim(strtoupper($subject));	
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT subject_name FROM qtxt_sms_subjects where upper(subject_name) = '%s' and subject_id != '%d'",$subject, $subjectid));
+	db_set_active('default');
+		if ($field) {
+				form_set_error('', t('Subject already exists'));
+		}	
+
+	if ( $seq == "") {
+		form_set_error('', t('Ordering Sequence field is required.'));
+	}		
+	
+	$seq = trim($seq);	
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT subject_name FROM qtxt_sms_subjects where sequence = '%d' and attribute1 = 'cce' and subject_id != '%d' ",$seq,$subjectid));
+	db_set_active('default');
+		if ($field) {
+				form_set_error('', t('Ordering Sequence already exists'));
+		}	
+
+	if ( $seqnum == "") {
+		form_set_error('', t(' Report Card display sequence field is required. Sample values are 01,02,03 etc'));
+	}		
+	
+	$seqnum = trim($seqnum);	
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT subject_name FROM qtxt_sms_subjects where sequence = '%d' and attribute1 = 'cce' and subject_id != '%d' ",$seq, $subjectid));
+	db_set_active('default');
+		if ($field) {
+				form_set_error('', t('Ordering Sequence already exists'));
+		}	
+
+
+}
+
+function subject_edit_submit ($form, &$form_state) {
+
+		
+	$subjectId = $form_state['values']['subjectid'];
+	$subjectName = $form_state['values']['subjectname'];
+	$sequence = $form_state['values']['sequence'];
+	$sequencenum = $form_state['values']['sequencenum'];
+
+		db_set_active('qtxt_db');
+
+			$subjectName = str_replace("'", "''", $subjectName);
+			
+		db_query("update {qtxt_sms_subjects} set subject_name = '%s', sequence = '%d', sequence_num = '%s' WHERE subject_id = %d ", $subjectName, $sequence, $sequencenum, $subjectId);
+		
+		db_set_active('default');
+
+		drupal_set_message(t('Subject %field has been updated.', array('%field' => $form_state['values']['subjectname'])));
+
+		cache_clear_all();
+  		unset ( $_SESSION['subject_filter_value'] );
+
+		$form_state['redirect'] = 'subjects/list';
+		return;
+}
+
+function subject_delete(&$form_state, $fid) {
+
+  
+		db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT subject_id,subject_name FROM {qtxt_sms_subjects} WHERE subject_id = %d", $fid));
+		db_set_active('default');
+
+		if (!$field) {
+			drupal_not_found();
+			return;
+		  }
+
+		  $form['subjectid'] = array('#type' => 'value', '#value' => $fid);
+		  $form['subjecttitle'] = array('#type' => 'value', '#value' => $field->subject_name);
+		  $form['subjectdesc'] = array('#type' => 'value', '#value' => $field->subject_description);
+
+		  return confirm_form($form,
+			t('Are you sure you want to delete the subject Name %field?', array('%field' => $field->subject_name)), 'subjects',
+			t('This action cannot be undone.  If you want to keep the user-entered data, instead of deleting the field you may wish to <a href="@edit-field">edit this field</a> .', array('@edit-field' => url('subjects/delete/'. $fid))),
+			t('Delete'), t('Cancel'));
+		}
+
+
+function subject_delete_submit($form, &$form_state) {
+
+$subjectid = $form_state['values']['subjectid'];
+		db_set_active('qtxt_db');
+		db_query('DELETE FROM {qtxt_sms_subjects} WHERE subject_id = %d', $form_state['values']['subjectid']);
+		db_set_active('default');
+		cache_clear_all();
+
+		drupal_set_message(t('The subject Name  %field has been deleted.', array('%field' => $form_state['values']['subjecttitle'])));
+  		unset ( $_SESSION['subject_filter_value'] );
+		$form_state['redirect'] = 'subjects/list';
+		return;
+}
+function subject_delete_validate($form, &$form_state) {
+$subjectid = $form_state['values']['subjectid'];
+db_set_active('qtxt_db');
+		$field = db_fetch_object(db_query("SELECT subject_id FROM {cce_student_optional_subjects} WHERE subject_id = %d", $subjectid));
+		db_set_active('default');
+
+		if ($field) {
+			form_set_error('', t('You dont have access to delete this subject since it has been defined to the student'));
+			return;
+		  }
+
+}
+function cce_subject($callback_arg = '') {
+/*
+        $output = drupal_get_form('subject_filter_form');
+        $output .= drupal_get_form('subject_details');
+  return $output;
+  */
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+    case t('Create Subject'):
+    case 'create':
+      $output = drupal_get_form('subject_create');
+      break;
+
+	  default:
+      if (!empty($_POST['subjects']) && isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+        $output = drupal_get_form('subject_multiple_delete_confirm');
+      }
+      else {
+        $output = drupal_get_form('subject_filter_form');
+        $output .= drupal_get_form('subject_details');
+      }
+  }
+  return $output;
+  
+}
+
+function subject_create() {
+
+		$form['create']['subjectname'] = array(
+		  '#title' => 'Subject Name ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 200,
+		  '#required' => true,
+		  '#description' => t('Please enter the Subject Name'),
+		);
+
+		$form['create']['sequence'] = array(
+		  '#title' => 'Ordering Sequence ',
+		  '#type' => 'textfield',
+		  '#size' => 20,
+		  '#maxlength' => 20,
+		  '#required' => true,
+		  '#description' => t('Please enter a number to sort the subjects in the same order as it should appear in Report Card'),
+		);
+
+		$form['create']['sequencenum'] = array(
+		  '#title' => 'Display Sequence in Report Card',
+		  '#type' => 'textfield',
+		  '#size' => 20,
+		  '#maxlength' => 20,
+		  '#required' => true,
+		  '#description' => t('Please enter a Character like 01 that will be displayed as the sequence # in Report Card'),
+		);
+
+
+
+	 $form['create']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Create Subject'),
+                '#prefix' => '<br/>',                                                 
+	  );
+        
+        $form['create']['buttons']['submit']['#attributes']['class']  = $form['create']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+	return $form;
+
+}
+
+
+
+function subject_create_validate ($form, &$form_state) {
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  return;	
+	} 
+	$subject = $form_state['values']['subjectname'];
+	$seq = $form_state['values']['sequence'];
+	$seqnum = $form_state['values']['sequencenum'];
+
+	if ( $subject == "") {
+		form_set_error('', t('Subject field is required.'));
+	}		
+	
+	$subject = trim(strtoupper($subject));	
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT subject_name FROM qtxt_sms_subjects where upper(subject_name) = '%s' ",$subject));
+	db_set_active('default');
+		if ($field) {
+				form_set_error('', t('Subject already exists'));
+		}	
+
+	if ( $seq == "") {
+		form_set_error('', t('Ordering Sequence field is required.'));
+	}		
+	
+	$seq = trim($seq);	
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT subject_name FROM qtxt_sms_subjects where sequence = '%d' and attribute1 = 'cce' ",$seq));
+	db_set_active('default');
+		if ($field) {
+				form_set_error('', t('Ordering Sequence already exists'));
+		}	
+
+	if ( $seqnum == "") {
+		form_set_error('', t(' Report Card display sequence field is required. Sample values are 01,02,03 etc'));
+	}		
+	
+	$seqnum = trim($seqnum);	
+	
+	db_set_active('qtxt_db');
+	$field = db_fetch_object(db_query("SELECT subject_name FROM qtxt_sms_subjects where sequence = '%d' and attribute1 = 'cce' ",$seq));
+	db_set_active('default');
+		if ($field) {
+				form_set_error('', t('Ordering Sequence already exists'));
+		}	
+
+
+}
+
+
+function subject_create_submit($form, &$form_state) {
+
+
+		  
+   $op = $form_state['values']['op'];
+  
+
+	$subjectName = $form_state['values']['subjectname'];
+	$sequence = $form_state['values']['sequence'];
+	$sequence_num = $form_state['values']['sequencenum'];
+
+//	drupal_set_message("subject Name - $subjectName ");	
+
+
+/*global $user;
+   $uid=$user->uid; 
+                 $sql = "select account_id from {cce_account_admin} where drupal_uid=$uid "   ; 
+
+   $resultg2 = db_query($sql);   
+   while ($rowg2 = db_fetch_object($resultg2)) {
+       $cceArray =  $rowg2->account_id ; 
+   }
+   db_set_active('default');*/
+
+		db_set_active('qtxt_db');
+
+			$subjectName = str_replace("'", "''", $subjectName);
+		
+			$result = db_query( "INSERT INTO `qtxt_sms_subjects` (`subject_id`, `subject_name`, `creation_date`, `last_update_date`, `created_by`, `last_updated_by`, `grade_name`, `sequence`, `sequence_num`, `attribute1`,`account_grade_id`,`account_id`) VALUES  (  null, '$subjectName',   sysdate(),  sysdate(),  'admin',  'admin',  null, $sequence, '$sequence_num', 'cce',null,null )");
+			db_set_active('default');
+			drupal_set_message(t("Subject inserted successfully."));	
+
+			unset ( $_SESSION['subject_filter_value'] );
+			
+		  $form_state['redirect'] = 'subjects/list';
+		  return;
+
+} 
+
+
+
+/**
+ * Form builder; Return form for user administration filters.
+ *
+ * @insubject forms
+ * @see user_filter_form_submit()
+ */
+function subject_filter_form() {
+
+			
+	 $i = 0;
+	  $form['filters'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Show only subjects where'),
+
+	  );
+
+		db_set_active('qtxt_db');	
+
+		$result = db_query("select subject_name , subject_id,  sequence, sequence_num  from {qtxt_sms_subjects} a where attribute1 = 'cce' " );
+
+		$options = array('' => t('Select..'));
+
+		$c2Val = "";
+		if(!empty($_SESSION['subject_filter_value'])) {
+			$c2Val = &$_SESSION['subject_filter_value'];
+		} else {
+			$c2Val = "";
+		}
+		
+		while ($row = db_fetch_object($result)) {
+				$options[$row->subject_id ] =  $row->subject_name; 
+		}
+
+		db_set_active('default');	 
+		
+
+		$form['filters']['subject'] = array(
+		  '#title' => 'subjects  like ',
+		  '#type' => 'textfield',
+		  '#size' => 60,
+		  '#maxlength' => 128,
+		  '#default_value' => $c2Val,
+		);
+
+
+
+	 $form['filters']['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Filter'), 
+                '#prefix' => '<br/>',                                                
+	  );
+$form['filters']['buttons']['submit']['#attributes']['class']  = $form['filters']['buttons']['submit']['#attributes']['class'] . ' qbsubmit';
+
+	return $form;
+
+}
+
+
+
+function subject_filter_form_submit($form, &$form_state) {
+  $op = $form_state['values']['op'];
+//  drupal_set_message("Filter Form Submit Operamd - $op ");	  
+  switch ($op) {
+    case t('Filter'): 
+
+
+      if (isset($form_state['values']['subject'])) {
+		//	drupal_set_message(t("In the Filter, Class  selected"));	 	  
+			$filter = $form_state['values']['subject'];
+			$_SESSION['subject_filter_value'] = $form_state['values']['subject'];
+	  }
+	  
+      break;
+  }
+  
+  $form_state['redirect'] = 'subjects';
+  return;
+}
+
+
+
+function subject_details($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile;  
+
+  $header = array(
+    array(),
+    array('data' => t('subject Name'), 'field' => 'b.standard'),
+    array('data' => t('subject Description'), 'field' => 'b.section'),
+	t('Operations'),
+  );
+
+$clVal = &$_SESSION['subject_filter_value'] ;
+// drupal_set_message(t("Class Filter 1 - $clVal"));	
+
+  
+$filterClass = "";
+    if ( $clVal != "" ) {
+		$clVal = strtoupper($clVal);
+			$filterClass = " and upper(b.subject_name) like '%$clVal%' ";
+	} else {
+			$filterClass = " and b.subject_name = b.subject_name ";
+	}
+
+  db_set_active('qtxt_db');	
+  $sql = "select b.subject_name, b.sequence, b.sequence_num, b.subject_id  from  {qtxt_sms_subjects} b  where 1 = 1 and attribute1 = 'cce'  " . $filterClass  ." order by  2 " ; 
+    $query_count = "select COUNT(subject_id) from  {qtxt_sms_subjects} b  where 1 = 1 and attribute1 = 'cce' " . $filterClass  ;
+
+  
+   $sql .= tablesort_sql($header);
+
+  $result = pager_query($sql, 1000, 0, $query_count);
+  db_set_active('default');
+
+/*  
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('subject Information'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+//    $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+
+  );
+*/
+
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );
+
+
+  $accounts = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+
+  $form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->subject_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+
+	  );
+    $form['access']['subjectname'][$account->subject_id] = array('#value' => $account->subject_name);
+    $form['access']['sequence'][$account->subject_id] =  array('#value' => $account->sequence);
+    $form['access']['sequencenum'][$account->subject_id] =  array('#value' => $account->sequence_num);
+    $form['access']['subjectid'][$account->subject_id] =  array('#type' =>hidden,'#value' => $account->subject_id);
+	$form['access']['operations'][$account->subject_id] = array('#value' => l(t('edit'), "subjects/edit/$account->subject_id", array('query' => $destination)));	
+	// $form['access']['operations2'][$account->subject_id] = array('#value' => l(t('delete'), "subjects/delete/$account->subject_id", array('query' => $destination)));	
+	$i = $i + 1;
+  }
+// db_set_active('default');
+
+  $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'subject_description_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function v3_cce_subjects_theme() {
+	return array(
+		'subject_description_theme' => array('arguments'=> array('form' => NULL),),
+	);
+}
+
+function theme_subject_description_theme($form)
+{
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['subjectid']) as $key) {
+	$row = array(); 
+//       $row[] =  drupal_render($form['access']['account'][$i]);
+      
+       $row[] =  drupal_render($form['access']['sequence'][$key]);
+       $row[] =  drupal_render($form['access']['sequencenum'][$key]);
+ $row[] =  drupal_render($form['access']['subjectname'][$key]);
+     //  $row[] =  drupal_render($form['access']['subjectid'][$key]);
+       $row[] =  drupal_render($form['access']['operations'][$key]);	   
+     //  $row[] =  drupal_render($form['access']['operations2'][$key]);	   
+	$rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+//			$header = array( theme('table_select_header_cell'), t('subject Name'), t('subject Desc'), t('subject Id') );
+				$header = array(  t('Order Sequnce'), t('Sequence # displayed in Report Card'), t('Subject Name'), );
+				
+				  $header[] = array('data' => t('Operations'), 'colspan' => 2);
+  }
+  else{
+    $header = array(t('Subject Name')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('No subjects were found'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//$output .= drupal_render($form['options']); 
+// $output .= drupal_render($form['options']['submit']); 
+  $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ; 
+}  
+
+
+
+

@@ -1,0 +1,127 @@
+<?php
+
+function v3_usefullinks_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_usefullinks'),
+  );
+}
+
+
+function v3_usefullinks_menu() {
+	$items['uselink'] = array(
+			'title' => t('Events'),
+			'page callback' => 'v3_usefullinks_first_page_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+
+
+	return $items ;
+}
+
+function v3_usefullinks_first_page_cb() {
+			$output = drupal_get_form('v3_usefullinks_first_page');
+			return $output ;
+}
+
+
+
+
+
+
+
+function v3_usefullinks_first_page( $form_state) {
+
+				// get the mobile number of the logged in user
+				//  First get the user profile
+				//  From the User Profile get the Mobile Number
+
+				global $user;
+				$profile =  profile_load_profile($user);
+				$myMobileNumber =  $user->profile_mobile;  
+
+
+				$defusermobile = $myMobileNumber;
+				$defadminuserid = "";
+				$defadminpwd = "";
+
+					// Define the Form
+
+	  $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+
+						'#title' => t('Filter'),
+
+						'#collapsible' => FALSE, 
+
+						'#collapsed' => FALSE,
+
+						'#tree' => TRUE
+
+	  );
+
+$clVal = &$_SESSION['usefullinks_category'] ;
+
+				
+				 $form['adminOuter']['usefullinkscategory'] = array (
+					  '#type' => 'select', 
+					  '#title' => t('Categories'), 
+                                     '#default_value' => $clVal,
+					  '#options' => array (
+                                            ' ' => t('Select..'),
+                                            '0' => t('Sites For Students'),
+                                            '1' => t('Sites For Teachers'),
+                                            '2' => t('Sites For Maths')),
+					);
+
+					
+					
+
+			    $form['adminOuter']['next_submit'] = array(
+				   '#type' => 'submit',
+				   '#value' => t('Apply'),
+                                   '#prefix' => '<br/>',
+			    );
+$form['adminOuter']['next_submit']['#attributes']['class']  = $form['adminOuter']['next_submit']['#attributes']['class'] . ' qbsubmit';
+
+			    return $form;
+}
+
+
+
+function v3_usefullinks_first_page_submit($form, &$form_state) {
+		
+		$_SESSION['usefullinks_category'] = $form_state['values']['adminOuter']['usefullinkscategory'];
+		
+		
+		$category = $form_state['values']['adminOuter']['usefullinkscategory'];
+	$clVal = &$_SESSION['usefullinks_category'] ;
+
+		
+		switch ($category) {
+                case " ":
+			$form_state['redirect'] = 'uselink';
+			break;
+		case "0":
+			$form_state['redirect'] = 'stuuselink';
+			break;
+		case "1":
+			$form_state['redirect'] = 'teauselink';
+                       	break;
+		case "2":
+			$form_state['redirect'] = 'mathsuselink';
+			break;
+/*
+		case "3":
+			$form_state['redirect'] = 'pexamsche';
+			break;
+*/
+		}
+
+  return;
+
+}

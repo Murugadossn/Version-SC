@@ -1,0 +1,5 @@
+name = Send Message[qbscv3]
+description = "V3 SMS Module"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

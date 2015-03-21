@@ -1,0 +1,414 @@
+<?php
+
+
+
+/**
+
+
+
+ * Implementation of hook_views_api().
+
+
+
+ *
+
+
+
+ */
+
+
+
+// require ( "../quadroquest/SMSLibrary.php");
+
+
+
+
+
+
+
+function v3_cce_report_card_pv_views_api() {
+
+
+
+  return array(
+
+
+
+    'api' => 2,
+
+
+
+    'path' => drupal_get_path('module', '  '),
+
+
+
+  );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function v3_cce_report_card_pv_menu() {
+
+
+
+	$items['reportcard_pv'] = array(
+
+
+
+			'title' => t('Report Card'),
+
+
+
+			'page callback' => 'cce_report_card_pv_form',
+
+
+
+			'type' => MENU_CALLBACK,
+
+
+
+			'access callback' => 'user_access',
+
+
+
+			'access arguments' => array('access content'),
+
+
+
+	);
+
+
+
+	
+
+return $items;
+
+
+
+}
+
+
+
+
+
+
+
+function cce_report_card_pv_form() {
+
+
+
+			$output = drupal_get_form('cce_report_pv_form');
+
+
+
+			return $output ;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function cce_report_pv_form( $form_state) {
+
+
+
+
+
+
+
+global $user;
+
+
+
+$profile =  profile_load_profile($user);
+
+
+
+$myMobileNumber =  $user->profile_mobile; 
+
+$uid = $user->uid; 
+
+
+
+
+
+
+
+$defusermobile = $myMobileNumber;
+
+
+
+$defadminuserid = "";
+
+
+
+$defadminpwd = "";
+
+
+
+
+
+
+
+
+
+
+
+	  $form['adminOuter'] = array(
+
+
+
+						'#type' => 'fieldset',
+
+
+
+						'#title' => t('Report card For CCE '),
+
+
+
+						'#collapsible' => TRUE, 
+
+
+
+						'#collapsed' => FALSE,
+
+
+
+						'#tree' => TRUE
+
+
+
+	  );
+
+
+
+				  
+
+
+
+
+
+
+
+	  db_set_active('qtxt_db');	
+
+
+
+
+
+
+
+	  
+
+
+
+	 // $resultg1 = db_query("SELECT account_grade_id,grade_name FROM {qtxt_sms_account_grades} a, {qtxt_sms_account} b where   a.account_id = b.account_id and section != 'ALL' order by class_weight ");
+
+$resultg1 = db_query("select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where drupal_uid =$uid order by student_name ");
+
+				  $igradeOptions = array('' => t('Select..'));
+
+
+
+				  while ($rowg1 = db_fetch_object($resultg1)) {
+
+
+
+				  	$igradeOptions[$rowg1->account_student_map_id ] =  $rowg1->student_name; //This is the only line that changed from the code above.
+
+
+
+				  	}
+
+
+
+				db_set_active('default');
+
+
+
+				  $form['adminOuter']['grade'] = array('#type' => 'select',
+
+
+
+				  				  		'#options' => $igradeOptions,
+
+
+
+				  				  		'#title' => t('Student'),
+
+
+
+				  				  		'#description' => t('Please select the Student Name '),
+
+
+
+				  				  		'#disabled' => FALSE,
+
+
+
+				  				  		
+
+
+
+				  );
+
+
+
+				  
+
+
+
+				 
+
+				  
+
+
+
+				
+
+
+
+  $form['adminOuter']['submit'] = array(
+
+
+
+    '#type' => 'submit',
+
+
+
+    '#value' => t('Confirm'),
+
+
+
+  );
+
+
+
+
+
+
+
+return $form;
+
+
+
+ 
+
+
+
+}
+
+
+
+function cce_report_pv_form_submit($form, &$form_state) {
+
+$op = $form_state['values']['op'];
+
+ 
+
+	global $user;
+
+
+
+	$profile =  profile_load_profile($user);
+
+
+
+	$myMobileNumber =  $user->profile_mobile; 
+
+
+
+	$uid = $user->uid;
+
+
+
+	// $_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+
+
+
+	$_SESSION['t_student_grade'] = $form_state['values']['adminOuter']['grade'];
+
+
+
+	
+
+
+
+
+
+
+
+	if(!empty($_SESSION['t_student_grade'])) {
+
+
+
+		$grade = &$_SESSION['t_student_grade'];
+
+
+
+	} else {
+
+
+
+		$grade = "";
+
+
+
+	}
+
+
+
+	// drupal_set_message(t("g $grade"));
+
+       // drupal_set_message(t("s $student"));
+
+ 
+
+
+
+
+
+	$form_state['redirect'] = "ccerc/$grade";
+
+
+
+  return;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+

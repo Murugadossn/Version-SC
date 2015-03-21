@@ -1,0 +1,5 @@
+; $Id$
+name = v3_student_teacher
+description = Send message to staff
+core = 6.x
+package = v3_student_teacher

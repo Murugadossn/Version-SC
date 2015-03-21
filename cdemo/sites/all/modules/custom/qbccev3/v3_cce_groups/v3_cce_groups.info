@@ -1,0 +1,5 @@
+; $Id$
+name = V3 CCE Groups
+description = File Upload for CCE
+core = 6.x
+package = CCE

@@ -1,0 +1,514 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/SMSLibrary.php");
+//require ( "cceClass.php");
+
+function v3_cce_scholastic_filedownload_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_cce_scholastic_filedownload'),
+  );
+}
+
+
+function v3_cce_scholastic_filedownload_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'scholdownload':
+      return '<p>'. t('download Scolastic mark details.') .'</p>';
+	
+	}
+  
+}  
+
+function v3_cce_scholastic_filedownload_menu() {
+	$items['scholdownload'] = array(
+    'title' => 'CCE - download Scholastic Data',
+    'description' => 'CCE - download Schlastic Data.',
+    'page callback' => 'cce_scholdownload',
+    'page arguments' => array('download'),
+   // 'access arguments' => array('administer users'),
+	'type' => MENU_CALLBACK,	
+'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+  $items['scholdownload/download'] = array(
+    'title' => 'download',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+	'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'weight' => -10,
+  );
+
+	$items['scholdownload/next'] = array(
+			'title' => t('CCE - download Scholastic Data -  Next Screen'),
+			'page callback' => 'v3_cce_schol_filedownload_next_form_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);  
+/*
+	$items['scholdownload/filedownloadnext'] = array(
+			'title' => t('CCE - download Scholastic Data File download -  Next Screen'),
+			'page callback' => 'v3_cce_schol_download_form_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);  
+
+*/
+	
+ $items['scholdownload/group/ahahjs1'] = array(
+        'page callback' => 'scholdownload_ahah_for_group_to_derive_class',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );
+	    
+		
+ $items['scholdownload/term/ahahjs2'] = array(
+        'page callback' => 'scholdownload_ahah_for_term_to_derive_assess',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );		
+  
+ 
+ $items['scholdownload/assessname/ahahjs3'] = array(
+        'page callback' => 'scholdownload_ahah_for_assess_to_derive_assesscateg',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );		
+  
+  
+ $items['scholdownload/assesscatdetlist/ahahjs4'] = array(
+        'page callback' => 'scholdownload_ahah_for_assesscateg_to_derive_assesscategdescriptor',
+        'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array('access content'),	
+  );	
+return $items;
+}
+
+
+
+function v3_cce_schol_filedownload_next_form_wrap() {
+			$output = drupal_get_form('v3_cce_schol_filedownload_next_form');
+			return $output ;
+}
+
+function v3_cce_schol_download_form_wrap() {
+			$output = drupal_get_form('v3_cce_schol_download_form');
+			return $output ;
+}
+
+
+
+function cce_scholdownload($callback_arg = '') {
+  
+  $op = isset($_POST['op']) ? $_POST['op'] : $callback_arg;
+
+//  drupal_set_message("Operamd - $op ");	
+  
+  switch ($op) {
+    case 'download':
+	case 'Process File':
+      $output = drupal_get_form('scholastic_download');
+      break;
+
+	default:
+      $output = drupal_get_form('scholastic_download');
+  }
+  return $output;
+  
+}
+
+
+function scholastic_download() {
+
+
+// get the list of active Year
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT account_id, account_name from {qtxt_sms_account} a where a.party_id = 5 ");
+		$yearOptions = array();
+		while ($row = db_fetch_object($result1)){
+		  $yearOptions[$row->account_id ] = $row->account_name; 
+		}
+		db_set_active('default');	
+		$form['institution'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Institution'),
+			'#options'=> $yearOptions,
+			'#title' => t('Institution'),
+			'#disabled' => FALSE,
+		);
+		
+		
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT group_id, concat( group_name, ' - ',  group_description) group_desc FROM {cce_groups} order by group_name ");
+		$groupOptions = array( '' => t('Select the Group Name') );
+		
+		while ($row = db_fetch_object($result1)){
+		  $groupOptions[$row->group_id ] = $row->group_desc; 
+		}
+		db_set_active('default');	
+
+
+		$form['group'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Group'),
+			'#options'=> $groupOptions,
+			'#title' => t('Group'),
+			'#ahah' => array(
+				  	'path' => 'scholdownload/group/ahahjs1',
+				  	'wrapper' => 'ahah-wrapper-group',
+				  	'method' => 'replace',
+				  			)
+		);
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT term_id, term_name FROM {cce_term_v} where term_id > 0 order by term_name ");
+		$accessOptions = array( '' => t('Select the Term Name') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions[$row->term_id] = $row->term_name; 
+		}
+		db_set_active('default');			
+		$form['term'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Term'),
+			'#options'=> $accessOptions,
+			'#title' => t('Term Name'),
+			'#disabled' => FALSE,
+			'#ahah' => array(
+				  	'path' => 'scholdownload/term/ahahjs2',
+				  	'wrapper' => 'ahah-wrapper-term',
+				  	'method' => 'replace',
+				  			)
+			);		
+
+		
+		$form['standard'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Class Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Class'),
+			'#disabled' => FALSE,
+			'#prefix' => '<div id = "ahah-wrapper-group">',
+			'#suffix' => '</div>',	
+		);
+
+
+		db_set_active('qtxt_db');	
+		$result1 = db_query("SELECT  distinct(subject_name), subject_id  FROM {qtxt_sms_subjects} order by subject_name");
+		$accessOptions1 = array( '' => t('Select the Subject') );
+		while ($row = db_fetch_object($result1)){
+		  $accessOptions1[$row->subject_id ] = $row->subject_name; 
+		}
+		db_set_active('default');	
+		
+		$form['subject'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Subject'),
+			'#options'=> $accessOptions1,
+			'#title' => t('Subject'),
+			'#disabled' => FALSE,
+		);		
+
+		$form['assessname'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Assessment Name'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Assessment Name'),
+			'#disabled' => FALSE,
+			'#prefix' => '<div id = "ahah-wrapper-term">',
+			'#suffix' => '</div>',		
+			'#ahah' => array(
+				  	'path' => 'scholdownload/assessname/ahahjs3',
+				  	'wrapper' => 'ahah-wrapper-assessname',
+				  	'method' => 'replace',
+				  			)
+		);
+
+		$form['assesscatdetlist'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Category'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Category Type'),
+			'#disabled' => FALSE,
+			'#prefix' => '<div id = "ahah-wrapper-assessname">',
+			'#suffix' => '</div>',			
+			'#ahah' => array(
+				  	'path' => 'scholdownload/assesscatdetlist/ahahjs4',
+				  	'wrapper' => 'ahah-wrapper-assesscatdetlist',
+				  	'method' => 'replace',
+				  			)			
+		);
+		
+		$form['assesscatdescriptors'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Descriptor'),
+			'#options'=> array( '' => t('Select ..') ),
+			'#title' => t('Category Name'),
+			'#disabled' => FALSE,
+			 '#prefix' => '<div id = "ahah-wrapper-assesscatdetlist">',
+				'#suffix' => '</div>',	
+		);			
+
+		$form['buttons']['submit'] = array(                                                          
+		'#type' => 'submit',
+		'#value' => t('Download File'),  
+                '#prefix' => '<br/><br/><br/><br/>',                                               
+	  );
+	$form['buttons']['submit']['#attributes']['class']  = $form['buttons']['submit']['#attributes']['class'] . ' qbsubmit';		
+	return $form;		
+
+}
+
+function scholastic_download_validate($form, &$form_state) {
+   $op = $form_state['values']['op'];
+  
+	if ( $op == "Cancel" ) {
+		  return;	
+	} 
+	$assesscatdescriptors = $form_state['values']['assesscatdescriptors'];
+	if ( $assesscatdescriptors == "" ) {
+		form_set_error('', t('Assessment Category Name is required to generate the file format'));
+	}
+	
+}
+		
+function scholastic_download_submit($form, &$form_state) {
+		
+	// $nonserassessdate = $form_state['values']['assessdate'];
+	
+	// $fromDateExp = "$nonserassessdate[year]-$nonserassessdate[month]-$nonserassessdate[day]";	
+	
+	$_SESSION['ccefilename'] = $name;
+	$_SESSION['ccedir'] = $dir;
+	$_SESSION['cceaccount'] = $form_state['values']['institution'];
+	$_SESSION['t_interface_type'] = $form_state['values']['interfaceType'];	
+	$_SESSION['groupid'] = $form_state['values']['group'];
+	$_SESSION['class'] = $form_state['values']['standard'];
+	$_SESSION['term'] = $form_state['values']['term'];
+	$_SESSION['assessdate'] = $fromDateExp;
+	
+	$_SESSION['subject'] = $form_state['values']['subject'];
+	$_SESSION['assessname'] = $form_state['values']['assessname'];
+	$_SESSION['assesscatdetlist'] = $form_state['values']['assesscatdetlist'];
+	$_SESSION['assesscatdescriptors'] = $form_state['values']['assesscatdescriptors'];
+
+	$groupId = &$_SESSION['groupid'];
+	$classId = &$_SESSION['class'];
+	$termId = &$_SESSION['term'];
+	$assess_date = &$_SESSION['assessdate'];
+	$subject = &$_SESSION['subject'];
+	$assessname = &$_SESSION['assessname'];
+	$assesscatdetlist = &$_SESSION['assesscatdetlist'];	
+	$assesscatdescriptors = &$_SESSION['assesscatdescriptors'];	
+
+			db_set_active('qtxt_db');	
+			$result1 = db_query("SELECT concat(standard,section) grade_name  FROM {qtxt_sms_account_grades} a where account_grade_id = $classId");
+			$rowg1 = db_fetch_object($result1);
+			$grade = $rowg1->grade_name;
+			db_set_active('default');	
+			
+	$file_path = "ScholasticDataFileFormat.csv";   
+			$a = new Qtxt_Util();
+			$a->cceGetSchol_Data($assesscatdescriptors);
+			drupal_set_header("Content-type: application/x-unknown; utf-8");
+			drupal_set_header('Content-Disposition: attachment; filename="' . $grade. date('_d-m-Y_') . "scholastic.csv" . '"');
+			drupal_set_header('ETag: ' . md5($file_path));	
+			  // Open the file and seek to starting byte
+				$fp = fopen($file_path, 'rb');
+			//    fseek($fp, $seek_start);
+
+				// Start buffered download
+				while (!feof($fp)) {
+				  // Reset time limit for large files
+				  set_time_limit(0);
+				  print(fread($fp, 1024 * 8));
+				  flush();
+				  ob_flush();
+				}
+				fclose($fp);
+				exit();	
+
+		  return;
+}
+
+
+function scholdownload_ahah_for_group_to_derive_class(){
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['group'];
+		db_set_active('qtxt_db');
+
+		$sqlg = "select grade_name, account_grade_id  from {cce_qtxt_sms_account_grades_v} where group_id = $gid order by grade_name";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->account_grade_id] = $datag->grade_name;
+		}
+		db_set_active('default');
+
+		$form['standard']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['standard'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function scholdownload_ahah_for_term_to_derive_assess () {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['group'];
+		$tid = $form['#post']['term'];
+		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_id, b.assessment_name  from cce_assesment_types b  where group_id = $gid  and  term_id = $tid order by assessment_name ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_id] = $datag->assessment_name;
+		}
+		db_set_active('default');
+
+		$form['assessname']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assessname'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function scholdownload_ahah_for_assess_to_derive_assesscateg () {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['assessname'];
+		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.assessment_category_type,   assessment_category_detail_id from cce_assesment_category_details_v b  where assessment_id  = $gid order by assessment_category_type ";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_category_detail_id] = $datag->assessment_category_type;
+		}
+		db_set_active('default');
+
+		$form['assesscatdetlist']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assesscatdetlist'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+function scholdownload_ahah_for_assesscateg_to_derive_assesscategdescriptor () {
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+		$form_build_id = $_POST['form_build_id'];
+
+		// Get for the form from the cache
+		$form = form_get_cache($form_build_id, $form_state);
+  
+		// Get the form set up to process
+		$args = $form['#parameters'];
+		$form_id = array_shift($args);
+		$form_state['post'] = $form['#post'] = $_POST;
+		$gid = $form['#post']['assesscatdetlist'];
+		$sid = $form['#post']['subject'];		
+		$aid = $form['#post']['standard'];			
+		
+		db_set_active('qtxt_db');
+
+		$sqlg = "select  b.descriptor_name,   assessment_cat_det_descriptor_id from cce_assesment_cat_det_descriptor b 
+ where assessment_category_detail_id  = $gid and subject_id = $sid and account_grade_id = $aid order by descriptor_name";
+
+        $resultg = db_query($sqlg);
+		$valueg[''] = 'Select a Value..';
+		while($datag = db_fetch_object($resultg))
+		{
+		$valueg[$datag->assessment_cat_det_descriptor_id] = $datag->descriptor_name;
+		}
+		db_set_active('default');
+
+		$form['assesscatdescriptors']['#options'] = $valueg;
+		form_set_cache($form_build_id, $form, $form_state);
+				$form += array(
+					'#post' => $_POST,
+					'#programmed' => FALSE,
+				  );
+	
+           $form = form_builder('form_details', $form, $form_state);			
+				$output = $form['assesscatdescriptors'];
+				unset($output['#prefix'],$output['#suffix']);
+				$out1 =  drupal_render($output);
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+}
+
+

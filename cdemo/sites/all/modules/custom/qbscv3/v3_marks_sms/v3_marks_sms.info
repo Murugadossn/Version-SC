@@ -1,0 +1,9 @@
+; $Id: qtxt.info,v 1.7 2008/09/02 17:02:14 smk Exp $
+name = v3_marks_sms
+description = "Allow qtxt views to be displayed"
+package = QuadroTxt Version 3.0
+
+core = 6.x
+
+
+

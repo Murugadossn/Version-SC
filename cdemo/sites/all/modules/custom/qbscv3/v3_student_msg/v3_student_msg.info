@@ -1,0 +1,5 @@
+name = Student Message[qbscv3]
+description = "to Write Messages by student"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

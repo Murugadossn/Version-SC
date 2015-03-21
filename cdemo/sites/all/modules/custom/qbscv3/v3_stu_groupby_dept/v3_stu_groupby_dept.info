@@ -1,0 +1,5 @@
+name = Student Details Grouped by Departmentwise[qbscv3]
+description = "To View Student Details Grouped by Departmentwise"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

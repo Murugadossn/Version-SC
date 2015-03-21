@@ -1,0 +1,338 @@
+<?php
+/**
+
+* Implementation of hook_views_api().
+	Re-Write: Deepak Mani - 02/28/2012 
+		- All Layout & Style Options
+		- Validation & form Submit
+*
+
+*/
+
+
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+function v3_leave_letter_views_api( ) {
+	return array(
+		 'api' => 2,
+		'path' => drupal_get_path( 'module', 'v3_leave_letter' ) 
+	);
+}
+function v3_leave_letter_menu( ) {
+	$items[ 'leave' ]        = array(
+		 'title' => t( 'Submit Leave Letter Online' ),
+		'page callback' => 'v3_leave_letter_form',
+		'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array(
+			 'access content' 
+		) 
+	);
+	$items[ 'leave/ahahjs' ] = array(
+		 'page callback' => 'ver3_leave_letter_ahah_field_js',
+		//    'access arguments' => array('administer ahahtestmodule'),
+		'type' => MENU_CALLBACK,
+		'access callback' => 'user_access',
+		'access arguments' => array(
+			 'access content' 
+		) 
+	);
+	return $items;
+}
+function v3_leave_letter_form( ) {
+	$output = drupal_get_form( 'v3_main_form' );
+	return $output;
+}
+function v3_main_form( $form_state ) {
+	global $user;
+	$profile        = profile_load_profile( $user );
+	$myMobileNumber = $user->profile_mobile;
+	$uid            = $user->uid;
+	$defusermobile  = $myMobileNumber;
+	$defadminuserid = "";
+	$defadminpwd    = "";
+	$form[ 'ver3_ParentSendLeaveLetter' ] = array(
+		 '#type' => 'fieldset',
+		'#title' => t( 'Draft a Leave Letter' ),
+		'#collapsible' => FALSE,
+		'#collapsed' => FALSE,
+		'#tree' => TRUE 
+	);
+	db_set_active( 'qtxt_db' );
+	$resultg2       = db_query( "select concat( student_name, '-', xx.grade_name) student_name,  account_student_map_id FROM  {qtxt_sms_mobile_students_v} xx where  xx.drupal_uid = $uid  " );
+	$studentOptions = array(
+		 '' => t( 'Select..' ) 
+	);
+	while ( $rowg2 = db_fetch_object( $resultg2 ) ) {
+		$studentOptions[ $rowg2->account_student_map_id ] = $rowg2->student_name;
+	} //$rowg2 = db_fetch_object( $resultg2 )
+	db_set_active( 'default' );
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'student' ] = array(
+		'#type' => 'select',
+		'#options' => $studentOptions,
+		'#title' => t( 'Send Leave Letter For' ),
+//		'#description' => t( 'Please Select The Student' ),
+		'#disabled' => FALSE,
+		'#ahah' => array(
+			 'path' => 'leave/ahahjs',
+			'wrapper' => 'ahah-wrapper-student',
+			'method' => 'replace' 
+		) 
+	);
+	/*$form[ 'ver3_ParentSendLeaveLetter' ][ 'teacher' ] = array(
+		 '#type' => 'select',
+		//'#options' => $igradeOptions,
+		'#title' => t( 'To Staff' ),
+		'#options' => array(
+			 '' => t( 'Select ..' ) 
+		),
+//		'#description' => t( 'Please Select The Teacher' ),
+		'#disabled' => FALSE,
+		'#prefix' => '<div id = "ahah-wrapper-student">',
+		'#suffix' => '</div>' 
+	);*/
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'teacher' ]                            = array(
+		 '#type' => 'select',
+		//'#options' => $igradeOptions,
+		'#title' => t( 'To Staff' ),
+		'#options' => array(
+			 '' => t( 'Select ..' ) 
+		),
+		'#description' => t( 'Please Select The Staff' ),
+		'#disabled' => FALSE,
+		'#prefix' => '<div id = "ahah-wrapper-student">',
+		'#suffix' => '</div>' 
+	);
+	
+	
+	$currdate      = date( "Y-m-d" );
+	$edefdoa       = $currdate;
+	if ( !empty( $_SESSION[ 'doa' ] ) ) {
+		$defdoa =& $_SESSION[ 'doa' ];
+						// drupal_set_message(t("doa  - $defdoa"));
+	} 					//!empty( $_SESSION[ 'doa' ] )
+	else {
+		$defdoa = $currdate;
+	}
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'doa' ] = array(
+		 '#type' => 'date_popup',
+		'#title' => t( 'From' ),
+		'#date_format' => 'D, M j, Y',
+		'#default_value' => $defdoa,
+		'#date_year_range' => '-1:+1',
+	//	'#prefix' => '<div style="margin-left:19px;">',	//margin-left:20px;float: left;
+	//	'#suffix' => '</div>' 
+	);
+	$currdate      = date( "Y-m-d" );
+	$edefdoa       = $currdate;
+	if ( !empty( $_SESSION[ 'edoa' ] ) ) {
+		$defdoa =& $_SESSION[ 'edoa' ];
+						// drupal_set_message(t("edoa  - edefdoa"));
+	} 					//!empty( $_SESSION[ 'edoa' ] )
+	else {
+		$edefdoaa = $currdate;
+	}
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'edoa' ]                               = array(
+		 '#type' => 'date_popup',
+		'#title' => t( 'To' ),
+		'#date_format' => 'D, M j, Y',	/*original d-m-Y*/
+		'#default_value' => $edefdoa,
+		'#date_year_range' => '-1:+1',
+	//	'#prefix' => '<div style="margin-left:22px;float: left;">',	//margin-left:20px;float: left;
+	//	'#suffix' => '</div>' 		
+	);
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'inMsg' ]                              = array(
+		 '#title' => t( 'Leave Subject' ),
+		'#type' => 'textfield',
+		'#size' => 84,
+		'#maxlength' => 100,
+		'#disabled' => FALSE,
+		'#resizable' => FALSE,
+//		'#description' => t( 'Please Enter Message' ),
+	//	'#prefix' => '<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><div style="margin-left:4px;">',	//margin-left:20px;float: left;
+		'#suffix' => '</div>' 		
+	);
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'reason' ]                             = array(
+		 '#title' => t( 'Leave Reason in Details' ),
+		'#type' => 'textarea',
+		'#size' => 65,
+		'#maxlength' => 500,
+		'#resizable' => FALSE,
+		'#disabled' => FALSE,
+//		'#description' => t( '[500 Characters Maximum]' ),
+//		'#prefix' => '<br/><br/><br/><br/><br/><div style="margin-left:4px;">',	//margin-left:20px;float: left;
+	    	'#suffix' => '</div>'
+	);
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'submit' ]                             = array(
+		 '#type' => 'submit',
+		'#value' => t( 'Send Leave Letter' ),
+		'#prefix' => '<br/><br/>' 
+	);
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'submit' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_ParentSendLeaveLetter' ][ 'submit' ][ '#attributes' ][ 'class' ] . ' qbsubmit';
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'student' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_ParentSendLeaveLetter' ][ 'student' ][ '#attributes' ][ 'class' ] . ' qbleaveletetrform';
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'teacher' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_ParentSendLeaveLetter' ][ 'teacher' ][ '#attributes' ][ 'class' ] . 'qbleaveletetrform';
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'doa' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_ParentSendLeaveLetter' ][ 'doa' ][ '#attributes' ][ 'class' ] . ' qbleaveletetrform';
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'edoa' ][ '#attributes' ][ 'class' ] = $form[ 'ver3_ParentSendLeaveLetter' ][ 'edoa' ][ '#attributes' ][ 'class' ] . ' qbleaveletetrform';
+
+	
+	return $form;
+}
+function v3_main_form_submit( $form, &$form_state ) {
+	global $user;
+	$profile           = profile_load_profile( $user );
+	$myMobileNumber    = $user->profile_mobile;
+	$uid               = $user->uid;
+	$teacherid         = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ][ 'teacher' ];
+	$studentid         = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ][ 'student' ];
+	$_SESSION[ 'doa' ] = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ][ 'doa' ];
+	$defdoa =& $_SESSION[ 'doa' ];
+	$_SESSION[ 'edoa' ] = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ][ 'edoa' ];
+	$edefdoa =& $_SESSION[ 'edoa' ];
+	$msg          = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ][ 'inMsg' ];
+	$msg          = str_replace( "'", "''", $msg );
+	$reson        = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ][ 'reason' ];
+	$reson        = str_replace( "'", "''", $reson );
+	$accountArray = "";
+	db_set_active( 'qtxt_db' );
+	$result         = db_query( "select distinct (a.staff_name) from {qtxt_sms_staff_mobile_v1} a  where a.staff_id = $teacherid " );
+	$accountGradeId = array( );
+	while ( $row = db_fetch_object( $result ) ) {
+		$accountGradeId[ ] = $row->staff_name;
+	} //$row = db_fetch_object( $result )
+	db_set_active( 'default' );
+	if ( count( $accountGradeId ) > 0 ) {
+		$accountArray = join( ",", $accountGradeId );
+	} //count( $accountGradeId ) > 0
+	$teachername   = "teacher: " . $accountArray . " ";
+	$accountArray1 = "";
+	db_set_active( 'qtxt_db' );
+	$result1         = db_query( "select distinct (a.student_name) from {qtxt_sms_mobile_students_v} a  where a.account_student_map_id = $studentid " );
+	$accountGradeId1 = array( );
+	while ( $row1 = db_fetch_object( $result1 ) ) {
+		$accountGradeId1[ ] = $row1->student_name;
+		// This is the only line that changed from the code above.
+	} //$row1 = db_fetch_object( $result1 )
+	db_set_active( 'default' );
+	if ( count( $accountGradeId1 ) > 0 ) {
+		$accountArray1 = join( ",", $accountGradeId1 );
+	} //count( $accountGradeId1 ) > 0
+	$studentname = "Student: " . $accountArray1 . " . ";
+	// drupal_set_message(t("Student  $studentname"));
+	db_set_active( 'qtxt_db' );
+	$result = db_query( "INSERT INTO`qtxt_sms_parent_message`(`parent_message_id`,`staff_id`, account_student_map_id, `message`,`parent_uid`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`msg_type`,process_flag,type_id,subject,from_date,to_date,delivery_report) VALUES(null,$teacherid,$studentid,'$reson',$uid,  sysdate(), sysdate(), 'admin', 'admin', 'PARENT',1,4,'$msg','$defdoa','$edefdoa','Request is Pending')" );
+	$result = db_query( "INSERT INTO`qtxt_sms_parent_message_bkp`(`parent_message_id`,`staff_id`, account_student_map_id, `message`,`parent_uid`,`creation_date`,`last_update_date`,`created_by`,`last_updated_by`,`msg_type`,process_flag,type_id,subject,from_date,to_date,delivery_report) VALUES(null,$teacherid,$studentid,'$reson',$uid,  sysdate(), sysdate(), 'admin', 'admin', 'PARENT',1,4,'$msg','$defdoa','$edefdoa','Request is Pending')" );
+	
+	$result = db_query( "SELECT staff_email FROM {qtxt_sms_account_staff} a where a.staff_id =  '%d' ", $teacherid );
+	while ( $row = db_fetch_object( $result ) ) {
+		$emailTo = $row->staff_email;
+		
+	} //$row = db_fetch_object( $result )
+	
+//	$reson = "$reson";
+$reson = "Subject : $msg  \n\n$studentname is going to take leave on $defdoa to $edefdoa \n\nReason : $reson "; 
+
+	$params = array(
+		 'myVar' => $reson, 
+	);
+	
+//	 $emailTo = 'kumarvino.p@gmail.com';
+	drupal_mail( 'v3_leave_letter', 'invitation', $emailTo, language_default(), $params, "demoadmin@demo.com" );
+	db_set_active( 'default' );
+	
+	drupal_set_message( t( "Leave Letter has been sent to $teachername." ) );
+	$accountArray = "";
+	// drupal_set_message(t("log 2 c1Val Not Set "));	
+	db_set_active( 'qtxt_db' );
+	$result         = db_query( "select distinct(mobile_number) from {qtxt_sms_staff_mobile_v1}  where staff_id = $teacherid  " );
+	$accountGradeId = array( );
+	while ( $row = db_fetch_object( $result ) ) {
+		$accountGradeId[ ] = $row->mobile_number;
+		// This is the only line that changed from the code above.
+	} //$row = db_fetch_object( $result )
+	db_set_active( 'default' );
+	if ( count( $accountGradeId ) > 0 ) {
+		$accountArray = join( ",", $accountGradeId );
+		// drupal_set_message(t("Id $accountArray"));
+	} //count( $accountGradeId ) > 0
+	$userMobile   = "" . $accountArray . "  ";
+	$message      = "Leave Letter has been Submitted by the Student";
+	$sms          = new Qtxt_Sms_Common;
+	$outputString = $sms->leavesmstoteachers( $message, $userMobile, $GLOBALS[ 'base_path' ] );
+	// drupal_set_message(  " SMS Status :  $outputString ");
+	return;
+}
+
+
+function v3_leave_letter_mail( $key, &$message, $params) {
+
+	$message['subject'] = t("Leave Letter") ;
+//	  $message['body'][] = t("Test Message" ) ;
+	$message['body'][] = $params['myVar'];
+}
+
+function v3_main_form_validate( $form, &$form_state ) {
+
+//Re-Write: Deepak Mani - 02/28/2012
+
+	$values    = $form_state[ 'values' ][ 'ver3_ParentSendLeaveLetter' ];
+	$teacherid     = $values[ teacher ];
+	$studentid = $values[ student ];
+	$defdoa    = $values[ doa ];
+	$edefdoa   = $values[ edoa ];
+	$msg       = $values[ inMsg ];
+	$reson     = $values[ reason ];
+	
+	$errortxt="";
+	
+	if ( $studentid == '' ) { $errortxt = $errortxt . "Select a Student Name"; }
+	if ( $teacherid == '' ) { $errortxt = $errortxt . "<br/>Select a Teacher Name"; }
+	if ( $defdoa == '' ) { $errortxt = $errortxt . "<br/>Choose a Leave Start Date"; }
+	if ( $edefdoa == '' ) { $errortxt = $errortxt . "<br/>Choose a Leave End Date"; }
+	if ( $msg == '' ) { $errortxt = $errortxt . "<br/>Enter the Leave Subject"; }
+	if ( $reson == '' ) { $errortxt = $errortxt . "<br/>Enter the Leave Reason"; }
+	
+	if ( strlen($errortxt) != 0 )
+	{
+		$errortxt = "<h4>Validation Error - Please review and correct the following.</h4>" . $errortxt; 
+		form_set_error( '', t( $errortxt ) );
+	}
+}
+
+function ver3_leave_letter_ahah_field_js( ) {
+	$form_state           = array(
+		 'storage' => NULL,
+		'submitted' => FALSE 
+	);
+	$form_build_id        = $_POST[ 'form_build_id' ];
+	// Get for the form from the cache
+	$form                 = form_get_cache( $form_build_id, $form_state );
+	// Get the form set up to process
+	$args                 = $form[ '#parameters' ];
+	$form_id              = array_shift( $args );
+	$form_state[ 'post' ] = $form[ '#post' ] = $_POST;
+	//		$form['#programmed'] = $form['#redirect'] = FALSE;
+	$gid                  = $form[ '#post' ][ 'ver3_ParentSendLeaveLetter' ][ 'student' ];
+	db_set_active( 'qtxt_db' );
+	$sqlg         = " select distinct staff_id, concat(staff_name, '-', xx.grade_name) staff_name FROM {qtxt_sms_staff_mobile_v1} a , {qtxt_sms_mobile_students_v} xx where xx.account_grade_id = a.account_grade_id and  xx.account_student_map_id = $gid  and a.admin_role = 'CLASS TEACHER' ";
+	$resultg      = db_query( $sqlg );
+	$valueg[ '' ] = 'Select a value';
+	while ( $datag = db_fetch_object( $resultg ) ) {
+		$valueg[ $datag->staff_id ] = $datag->staff_name;
+	} //$datag = db_fetch_object( $resultg )
+	db_set_active( 'default' );
+	//$valueg1 = drupal_map_assoc($valueg);
+	$form[ 'ver3_ParentSendLeaveLetter' ][ 'teacher' ][ '#options' ] = $valueg;
+	form_set_cache( $form_build_id, $form, $form_state );
+	$form += array(
+		 '#post' => $_POST,
+		'#programmed' => FALSE 
+	);
+	//	$form = form_builder('v3_main_form', $form, $form_state);		
+	$form   = form_builder( 'qtext1_smsform', $form, $form_state );
+	$output = $form[ 'ver3_ParentSendLeaveLetter' ][ 'teacher' ];
+	unset( $output[ '#prefix' ], $output[ '#suffix' ] );
+	$out1 = drupal_render( $output );
+	drupal_json( array(
+		 'status' => TRUE,
+		'data' => $out1 
+	) );
+}

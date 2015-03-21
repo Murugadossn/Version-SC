@@ -1,0 +1,5 @@
+; $Id$
+name = V3 CCE Scholastic Report
+description = Scholastic Reports for CCE
+core = 6.x
+package = CCE

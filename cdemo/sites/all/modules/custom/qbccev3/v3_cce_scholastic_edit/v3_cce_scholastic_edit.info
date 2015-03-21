@@ -1,0 +1,5 @@
+; $Id$
+name = V3 CCE Scholastic Marks - Edit
+description = V3 CCE Scholastic Marks - Edit
+core = 6.x
+package = CCE

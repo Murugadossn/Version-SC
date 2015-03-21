@@ -1,0 +1,10 @@
+; $Id$
+
+name = V3 CCE  Report Card
+
+description =  V3 CCE Report Card
+
+core = 6.x
+core = 6.x
+
+package = CCE

@@ -1,0 +1,16 @@
+; $Id: cce_pdf_generator.info,v 1.7 2008/09/02 17:02:14 smk Exp $
+
+name = v3_cce_pdf_generator
+
+description = "To generate the PDF Report"
+
+package = CCE
+
+core = 6.x
+
+
+
+
+
+
+

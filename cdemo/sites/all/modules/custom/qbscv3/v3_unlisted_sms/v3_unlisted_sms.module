@@ -1,0 +1,314 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+
+function v3_unlisted_sms_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_unlisted_sms'),
+  );
+}
+
+
+function v3_unlisted_sms_help($path, $arg) {
+  global $user;
+
+  switch ($path) {
+    case 'unlistsms':
+     //  return '<p>'. t('Drupal allows users to register, login, log out, maintain user profiles, etc. Users of the site may not use their own names to post content until they have signed up for a user account.') .'</p>';
+	
+	}
+  
+}  
+
+function v3_unlisted_sms_menu() {
+	$items['unlistsms'] = array(
+			'title' => t('Screen to send SMS for Unregistered Numbers'),
+			'page callback' => 'v3_unlistsms_first_page_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	$items['unlistsms/next'] = array(
+			'title' => t('Confirmation Screen to send SMS for Unregistered Numbers'),
+			'page callback' => 'v3_unlistsms_next_page_wrap',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);	
+	
+	
+return $items;
+}
+
+function v3_unlistsms_first_page_wrap() {
+			$output = drupal_get_form('v3_unlistsms_first_page');
+			return $output ;
+}
+function v3_unlistsms_next_page_wrap() {
+			$output = drupal_get_form('v3_unlistsms_next_page');
+			return $output ;
+}
+
+
+
+function v3_unlistsms_first_page( $form_state) {
+
+				// get the mobile number of the logged in user
+				//  First get the user profile
+				//  From the User Profile get the Mobile Number
+
+				global $user;
+				$profile =  profile_load_profile($user);
+				$myMobileNumber =  $user->profile_mobile;  
+
+				$defusermobile = $myMobileNumber;
+				$defadminuserid = "";
+				$defadminpwd = "";
+
+					// Define the Form
+
+				$form['mobileId'] = array(
+				'#title' => t('Mobile Number'),
+				'#type' => 'textfield',
+				'#default_value' => $defusermobile,
+				'#value' => $defusermobile,
+				'#disabled' => TRUE,
+				//'#description' => t('Your Mobile Number.'),
+				);
+
+				$form['userId'] = array(
+				'#title' => t('SMS User Id'),
+				'#type' => 'textfield',
+				'#default_value' => $defadminuserid,
+				//'#description' => t('Please enter your SMS User Id.'),
+				);
+				$form['pwdId'] = array(
+				'#title' => t('SMS Password Id'),
+				'#type' => 'password',
+				'#default_value' => $defadminpwd,
+				//'#description' => t('Please enter your SMS Password.'),
+				);
+
+				$form['mobnum'] = array(
+					 '#title' => t('Enter The Mobile Number'),
+					 '#type' => 'textfield',
+					 '#disabled' => FALSE,
+					 '#description' => t('Please Enter Mobile Number'),
+   				   );
+	             $form['mobnum1'] = array(
+					 '#title' => t('Enter The Mobile Number'),
+					 '#type' => 'textfield',
+					 '#disabled' => FALSE,
+					 '#description' => t('Please Enter Mobile Number'),
+   				   );
+				   $form['mobnum2'] = array(
+					 '#title' => t('Enter The Mobile Number'),
+					 '#type' => 'textfield',
+					 '#disabled' => FALSE,
+					 '#description' => t('Please Enter Mobile Number'),
+   				   );
+					 $form['adminMsg'] = array(
+					 '#title' => t('Message'),
+				//	 '#type' => 'textfield',
+					 '#type' => 'textarea',
+					 '#disabled' => FALSE,
+					 '#description' => t('Please Enter Message'),
+					 );
+			    $form['next_submit'] = array(
+				   '#type' => 'submit',
+				   '#value' => t('Confirm'),
+			    );
+
+			    return $form;
+}
+
+function v3_unlistsms_first_page_submit($form, &$form_state) {
+$op = $form_state['values']['op'];
+ // drupal_set_message(t("$op"));  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'unlistsms';
+		  return;	
+	} 
+	
+ 
+		
+		$_SESSION['user_mobile_number'] = $form_state['values']['mobileId'];
+		$_SESSION['admin_user_id'] = $form_state['values']['userId'];
+		$_SESSION['admin_pwd'] = $form_state['values']['pwdId'];
+//		$_SESSION['sms_category'] = $form_state['values']['smscategory'];
+		
+		$values = $form_state['values'];
+		$ulmobileNumnber = $values[mobnum];
+		$ulmobileNumnber1 = $values[mobnum1];
+		$ulmobileNumnber2 = $values[mobnum2];
+
+		$message = $values[adminMsg];
+        $_SESSION['ulmobileNumnber']= $ulmobileNumnber;	
+        $_SESSION['ulmobileNumnber1']= $ulmobileNumnber1;		
+        $_SESSION['ulmobileNumnber2']= $ulmobileNumnber2;		
+		
+		$_SESSION['message']= $message;
+//	drupal_set_message( "Unlist Mobile Number -$ulmobileNumnber" ) ;
+//	drupal_set_message( "Unlist Mobile Number1 -$ulmobileNumnber1" ) ;
+//	drupal_set_message( "Unlist Mobile Number2 -$ulmobileNumnber2" ) ;
+
+//	drupal_set_message( "Mesage -$message" ) ;
+	
+if($message == '')	
+{
+drupal_set_message( "templateCode -$templateCode" ) ;	
+}
+else	
+{
+//	drupal_set_message( "Message -$message" ) ;		
+}		
+	
+	$form_state['redirect'] = 'unlistsms/next';
+
+		  return;
+}
+
+
+
+function v3_unlistsms_first_page_validate($form, &$form_state) {
+$values = $form_state['values'];
+	$mobileId = $values[mobileId];
+	$userId = $values[userId];
+	$pwdId = $values[pwdId];
+    $ulmobileNumnber = $values[adminVar][mobnum];
+		
+         db_set_active('qtxt_db');	
+
+		$result = db_query("select distinct admin_user_id from qtxt_sms_admin_mobile_all_v  where mobile_number = '$mobileId'");
+
+		$accountGradeId = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradeId[] =  $row->admin_user_id; 
+		  		}
+
+		db_set_active('default');		
+		if (  count( $accountGradeId ) > 0 ) {
+			$accountArray = join( ",", $accountGradeId );
+		}
+		$duserId = "$accountArray";
+		
+		        
+                db_set_active('qtxt_db');	
+
+		$result = db_query("select distinct admin_password from qtxt_sms_admin_mobile_all_v  where mobile_number = '$mobileId'");
+
+		$accountGradepass = array();
+
+		while ($row = db_fetch_object($result)) {
+
+		  $accountGradepass[] =  $row->admin_password; 
+		  // This is the only line that changed from the code above.
+		}
+
+
+
+		db_set_active('default');		
+		if (  count( $accountGradepass ) > 0 ) {
+			$accountArray = join( ",", $accountGradepass );
+		}
+		$duserpass = "$accountArray";
+		
+		
+  if ( $mobileId == '') {
+    form_set_error('', t('Please set your Mobile information in User Settings.'));
+  }
+  if ( $userId == '') {
+    form_set_error('', t('Please enter your SMS Admin User id'));
+  }
+
+  if ( $pwdId == '') {
+    form_set_error('', t('Please enter your SMS Admin Pwd'));
+  }
+  if ( $userId != $duserId) {
+     form_set_error('', t('Please Enter Your Correct SMS UserId'));
+          
+	  }
+
+ if ( $pwdId != $duserpass) {
+		form_set_error('', t('Please Enter Your Correct SMS Password'));
+	  }
+	  
+	  $element = $form_state['values'];
+if($ulmobileNumnber != "")
+{
+if(!is_numeric($element[adminVar][mobnum])){
+        form_set_error('mobnum' , t('Please Enter Only Numbers in Mobile Number Field'));
+    }
+	
+}
+ 
+  }
+
+
+function v3_unlistsms_next_page( $form_state) {
+
+				// get the mobile number of the logged in user
+				//  First get the user profile
+				//  From the User Profile get the Mobile Number
+
+				global $user;
+				$profile =  profile_load_profile($user);
+				$myMobileNumber =  $user->profile_mobile;  
+
+
+			    $form['next_submit'] = array(
+				   '#type' => 'submit',
+				   '#value' => t('Send Message'),
+			    );
+				
+			    return $form;				
+				 
+
+}
+function v3_unlistsms_next_page_submit($form, &$form_state) {
+$op = $form_state['values']['op'];
+ // drupal_set_message(t("$op"));  
+	if ( $op == "Cancel" ) {
+		  $form_state['redirect'] = 'unlistsms';
+		  return;	
+	} 
+	
+		$mobileId= &$_SESSION['user_mobile_number'] ;
+		$adminUser = &$_SESSION['admin_user_id'];
+		$adminpwd = &$_SESSION['admin_pwd']; 
+		$ulmobileNumnber = &$_SESSION['ulmobileNumnber'];
+		$ulmobileNumnber1 = &$_SESSION['ulmobileNumnber1'];
+		$ulmobileNumnber2 = &$_SESSION['ulmobileNumnber2'];
+		$message = &$_SESSION['message'];
+/*		
+			drupal_set_message(  " Mobile Id :  $mobileId ");
+			drupal_set_message(  " USER :  $adminUser ");
+			drupal_set_message(  " PWD :  $adminpwd ");
+			drupal_set_message(  " UN LIST MOBILE NO :  $ulmobileNumnber ");
+			drupal_set_message(  " MSG :  $message ");
+*/
+
+			$sms= new Qtxt_Sms_Common;
+
+	
+		$outputString = $sms->UnlistSmsStatic(			$mobileId,
+										$userId,
+										$userPwd,
+										$message,
+										$ulmobileNumnber,
+										$ulmobileNumnber1,
+										$ulmobileNumnber2,
+										$GLOBALS['base_path']);
+
+		drupal_set_message(  " SMS Status :  Your Message Have Been Delivered Sccessfully ");
+		unset ($form_state['storage']);		
+
+$form_state['redirect'] = 'unlistsms';
+
+		return;		
+}

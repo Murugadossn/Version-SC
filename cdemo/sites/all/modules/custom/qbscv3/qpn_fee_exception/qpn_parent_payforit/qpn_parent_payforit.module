@@ -1,0 +1,858 @@
+<?php
+/**
+ * Implementation of hook_views_api().
+ *
+ */
+// require ( "../quadroquest/svrs/QtxtSVRSLibrary.php");
+
+function qpn_parent_payforit_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'qpn_parent_payforit'),
+  );
+}
+
+
+function qpn_parent_payforit_menu() {
+$items['qpn_main'] = array(
+			'title' => t('Pay Fee Through Online'),
+			'page callback' => 'qpn_parent_payforit_main_cb_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+	$items['qpn_payforit'] = array(
+			'title' => t('Pay Fee Through Online'),
+			'page callback' => 'qpn_parent_payforit_cb_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+	$items['qpn_payforit/next'] = array(
+			'title' => t('Pay the Fees Through Online'),
+			'page callback' => 'qpn_parent_payforit_next_cb_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	
+	$items['qpn_payforit_paid'] = array(
+			'title' => t('Paid Fees List'),
+			'page callback' => 'qpn_parent_payforit_paid_cb_form',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+	$items['qpn_main/ind/ahahjs2'] = array(
+
+        'page callback' => 'qpn_ahah_field_js_for_ind2',
+
+    //    'access arguments' => array('administer ahahtestmodule'),
+
+           'type' => MENU_CALLBACK,
+
+    			'access callback' => 'user_access',
+
+    			'access arguments' => array('access content'),	
+
+  );
+	
+	
+	
+	
+	return $items;
+	
+	}
+	function qpn_parent_payforit_cb_form() {
+	         
+			$output = drupal_get_form('qpn_parent_payforit_form');
+			 $output .= drupal_get_form('qpn_parent_payforit_paid_form');	
+			return $output ;
+}
+function qpn_parent_payforit_main_cb_form() {
+	    $output = drupal_get_form('qpn_parent_filter_form');     	
+		return $output ;
+}
+function qpn_parent_payforit_next_cb_form() {
+			$output = drupal_get_form('qpn_parent_filter_form'); 
+			$output .= drupal_get_form('qpn_parent_payforit_form');
+			return $output ;
+}
+function qpn_parent_payforit_paid_cb_form() {
+			$output = drupal_get_form('qpn_parent_filter1_form');
+			$output .= drupal_get_form('qpn_parent_payforit_paid_form');
+			return $output ;
+}
+
+
+
+
+function qpn_parent_filter_form($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+   $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+						'#title' => t('Fees Details'),
+						'#collapsible' => TRUE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+
+	  );
+db_set_active('qtxt_db');
+ $result = db_query("select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where drupal_uid = $uid ");
+	
+// $result = db_query("select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where a.drupal_uid = $uid ");
+// $result = db_query("select distinct(account_student_map_id),student_name from {qpn_pending_amount_by_student_v} where account_student_map_id = 1637");
+$options = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $options[$row->account_student_map_id ] =  $row->student_name; 
+  // This is the only line that changed from the code above.
+}
+db_set_active('default');
+$form['adminOuter']['class'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Student Name'),
+			'#options'=> $options,
+			'#title' => t('Student Name'),
+			'#disabled' => FALSE,
+				'#ahah' => array(
+
+				  				  		 'path' => 'qpn_main/ind/ahahjs2',
+
+				  				  		 'wrapper' => 'ahah-wrapper-fee',
+
+				  				  		 'method' => 'replace',
+
+				  				  						)
+					
+		);
+		
+		  $form['adminOuter']['student'] = array('#type' => 'select',
+
+				  				  		'#title' => t('Fee Name'),
+
+										'#options' =>  array( '' => t('Select ..') ),
+
+				  				  	// 	'#description' => t('Please select the Student'),
+
+				  				  		'#disabled' => FALSE,
+
+				  				  	'#prefix' => '<div id = "ahah-wrapper-fee">',
+
+				  					'#suffix' => '</div>',
+ 				  		
+
+				  );
+  
+ $form['adminOuter']['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+  );
+return $form;
+
+}
+function qpn_parent_filter_form_submit($form, &$form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$val2 = $form_state['values']['adminOuter']['class'];
+drupal_set_message(t("student_name_1, $val2 "));	 
+ 
+ $_SESSION['t_grade'] = $form_state['values']['adminOuter']['class'];
+
+	if(!empty($_SESSION['t_grade'])) {
+		$grade = &$_SESSION['t_grade'];
+		// drupal_set_message(t("student_name, $grade "));	 
+
+	} else {
+
+		$grade = "";
+} 
+
+$_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+
+	if(!empty($_SESSION['t_student'])) {
+		$student = &$_SESSION['t_student'];
+		// drupal_set_message(t("student_name, $student "));	 
+
+	} else {
+
+		$student = "";
+} 
+
+  $form_state['redirect'] = 'qpn_payforit/next';
+  return;
+  
+}
+
+function qpn_parent_payforit_form($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$c1Val = &$_SESSION['t_grade'] ;
+$c2Val = &$_SESSION['t_student'] ;
+  $header = array(
+    array(),
+    array('data' => t('Activity Name'), 'field' => 'b.activity_name'),
+    array('data' => t('Registration date '), 'field' => 'b.registration_start_date'),
+    array('data' => t('Due Date'), 'field' => 'b.registration_end_date'),
+    array('data' => t('Mandatory Fee'), 'field' => 'b.mandatory_flag'),
+	array('data' => t('Fee type'), 'field' => 'b.fee_type'),
+	array('data' => t('Fee Description'), 'field' => 'b.fee_description'),
+	array('data' => t('activity id'), 'field' => 'b.activity_id'),
+	array('data' => t('Total Amount'), 'field' => 'b.total_amount'),
+	array('data' => t('Total Amount Paid'), 'field' => 'b.total_paid_amount'),
+	array('data' => t('Pending Amount'), 'field' => 'b.exemption_amount'),
+  );
+
+
+$filterSection = " and b.account_student_map_id = '$c1Val' ";
+$feefilter = " and b.activity_id = '$c2Val' ";
+
+// drupal_set_message(t("After Submit account_student_map_id, '$c1Val' "));	 
+
+db_set_active('qtxt_db');	
+
+
+	$druId = db_query("select account_student_map_id,student_name FROM `qtxt_sms_mobile_students_v` where drupal_uid = $uid ");
+	
+	while ( $row = db_fetch_object( $druId ) ) {
+		 $ndruId = $row->account_student_map_id;
+		
+	}
+		
+	$feeQuotaId = db_query("select account_student_map_id,student_name,student_fees_fixed FROM `qtxt_sms_account_student_map` where account_student_map_id = '$ndruId' ");
+
+ 	while ( $row = db_fetch_object( $feeQuotaId ) ) {
+		 $nquotaId = $row->student_fees_fixed;
+		
+	}
+	
+	
+drupal_set_message(t("Fee Quota, $nquotaId "));	 
+drupal_set_message(t("stdId, $ndruId "));	 
+		
+if ($nquotaId != '')
+{
+$quotaId  = " and b.fee_quota = '$nquotaId' ";
+
+}
+else
+{
+$quotaId  = " and b.fee_quota = b.fee_quota ";
+}
+
+	
+/*	
+    $sql = "select b.activity_name, b.activity_desc,  b.special_instructions, b.registration_start_date, b.registration_end_date, b.mandatory_flag, b.fee_type, b.fee_description, b.account_id, b.year_id, b.fee_detail_id, b.activity_id, b.total_amount, b.account_student_map_id, b.account_grade_id,b.exemption_amount,b.total_paid_amount
+     from {qpn_pending_amount_by_student_v} b
+	where (`b`.`total_amount` <> (ifnull(`b`.`exemption_amount`,0) + ifnull(`b`.`total_paid_amount`,0)))  " . $filterSection . $feefilter ; 
+     $query_count = "select count(fee_detail_id) from {qpn_pending_amount_by_student_v} b 	 
+where (`b`.`total_amount` <> (ifnull(`b`.`exemption_amount`,0) + ifnull(`b`.`total_paid_amount`,0))) " . $filterSection . $feefilter ; 
+*/
+// qpn payforit
+db_set_active('qtxt_db');	
+
+
+ $sql = "select b.activity_name, b.activity_desc,  b.special_instructions, b.registration_start_date, b.registration_end_date, b.mandatory_flag, b.fee_type, b.fee_description, b.account_id, b.year_id, b.fee_detail_id, b.activity_id, b.total_amount, b.account_student_map_id, b.account_grade_id,b.exemption_amount,b.total_paid_amount,b.fee_quota from {qpn_pending_amount_by_student_v} b where (`b`.`total_amount` <> (ifnull(`b`.`exemption_amount`,0) + ifnull(`b`.`total_paid_amount`,0))) " 
+. $filterSection . $feefilter ; 
+ 
+     $query_count = "select count(fee_detail_id) from {qpn_pending_amount_by_student_v} b where (`b`.`total_amount` <> (ifnull(`b`.`exemption_amount`,0) + ifnull(`b`.`total_paid_amount`,0))) " . $filterSection . $feefilter ; 
+	     
+	 $sql .= tablesort_sql($header);
+
+   $result = pager_query($sql, 1000, 0, $query_count);
+
+  
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => true,
+  );  
+
+  $account = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->fee_detail_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+		'#disabled' => false,
+
+	  );
+	  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Pay the fees through online'),
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('PAY NOW'),
+  );
+  $form['options']['submit1'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+  );
+	  
+	  
+		
+    $form['access']['activityname'][$i][$account->fee_detail_id] = array('#value' => $account->activity_name);
+    $form['access']['feetype'][$i][$account->fee_detail_id] =  array('#value' => $account->fee_type);
+    $form['access']['feedesc'][$i][$account->fee_detail_id] =  array('#value' => $account->fee_description);
+	$form['access']['registration_start_date'][$i][$account->fee_detail_id] =  array('#value' => $account->registration_start_date);
+	$form['access']['registration_end_date'][$i][$account->fee_detail_id] =  array('#value' => $account->registration_end_date);
+    $form['access']['mandatory_flag'][$i][$account->fee_detail_id] =  array('#value' => $account->mandatory_flag);
+    $form['access']['total_amount'][$i][$account->fee_detail_id] =  array('#value' => $account->total_amount);
+   // $form['access']['exemption_amount'][$i][$account->fee_detail_id] =  array('#value' => $account->exemption_amount);
+   // $form['access']['total_paid_amount'][$i][$account->fee_detail_id] =  array('#value' => $account->total_paid_amount);
+	  $form['access']['feedetailid1'][$i][$account->fee_detail_id] =  array('#type' => 'hidden','#value' => $account->fee_detail_id);
+	
+	$form['access']['account_student_map_id'][$i][$account->fee_detail_id] =  array('#type' => 'hidden','#value' => $account->account_student_map_id);
+
+	       $form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+		$form['access']['studentmapid'][$i] =  array('#type' => 'hidden','#value' => $account->account_student_map_id);	
+		$form['access']['hidTotAmount'][$i] =  array('#type' => 'hidden','#value' => $account->total_amount);
+		$form['access']['feedetailid'][$i] =  array('#type' => 'hidden','#value' => $account->fee_detail_id);		
+/*
+$form['access']['actualpaidamount'][$i] = array(
+			'#type' => 'textfield',
+			// '#description' => t('Please enter the amount '),
+			  '#size' => 20,
+			  '#default_value' => $account->total_amount,
+			  '#maxlength' => 20,	
+		);	
+		*/
+		
+     
+	
+	$i = $i + 1;
+  }
+db_set_active('default');
+
+ // $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'qpn_parent_payforit_form_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+function qpn_parent_payforit_theme() {
+	return array(
+		'qpn_parent_payforit_form_theme' => array('arguments'=> array('form' => NULL),),
+		'qpn_parent_payforit_paid_form_theme' => array('arguments'=> array('form' => NULL),),
+		'qpn_parent_payforit_next_form_theme'  => array('arguments'=> array('form' => NULL),),
+
+		
+	);
+}
+
+
+function theme_qpn_parent_payforit_form_theme($form)
+{
+
+
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['index']) as $key) {
+	$row = array(); 
+    $row[] =  drupal_render($form['access']['account'][$i]);
+	// $form['access']['index'][$i] =  array('#type' => 'hidden', '#value' => $i);
+	$row[] =  drupal_render($form['access']['activityname'][$key]);
+	$row[] =  drupal_render($form['access']['feetype'][$key]);
+    $row[] =  drupal_render($form['access']['feedesc'][$key]);
+    $row[] =  drupal_render($form['access']['registration_start_date'][$key]);
+    $row[] =  drupal_render($form['access']['registration_end_date'][$key]);
+    $row[] =  drupal_render($form['access']['mandatory_flag'][$key]);
+    $row[] =  drupal_render($form['access']['total_amount'][$key]);
+
+   // $row[] =  drupal_render($form['access']['exemption_amount'][$key]);
+    // $row[] =  drupal_render($form['access']['total_paid_amount'][$key]);
+	// $row[] =  drupal_render($form['access']['actualpaidamount'][$key]);
+	 $row[] =  drupal_render($form['access']['account_student_map_id'][$key]);
+	 
+	 $row[] =  drupal_render($form['access']['index'][$key]);
+	  $row[] =  drupal_render($form['access']['studentmapid'][$key]);
+	  $row[] =  drupal_render($form['access']['hidTotAmount'][$key]);
+         $row[] =  drupal_render($form['access']['feedetailid'][$key]);
+
+    
+	
+       $rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+			$header = array(
+				theme('table_select_header_cell'), t('Fee Name'),t('Fee Type'),t('Fee Description'),t('Registration Start Date'),t('Registration End Date'),t('Manadatory Fee'),t('Total Amount'),t(' '),t(' '),t(' '),t(' '),t(' '));
+							
+  }
+  else{
+    $header = array(t(''), t('')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('Select the Student Name'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//return $output . drupal_render($form); 
+ $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ;
+}  
+
+function qpn_parent_payforit_form_submit($form, &$form_state) {
+ $op = $form_state['values']['op'];
+  switch ($op) {
+    case t('Cancel'):
+ $form_state['redirect'] = 'qpn_main';
+  return;
+  break;
+  case t('PAY NOW'):
+  
+$c1Val = &$_SESSION['t_grade'] ;
+$c2Val = &$_SESSION['t_student'] ;
+ drupal_set_message(t("Class Filter 1 , $c1Val"));	
+	$TotalCount = $form_state['values']['totalcount'];
+	 drupal_set_message(t("Total Count : $TotalCount"));
+	drupal_set_message(t("Fee Name : $c2Val"));
+	
+	$myArray = array();
+	
+	
+	
+	if ( isset( $form_state['clicked_button']['#post']['access']['studentmapid'] ) ) 
+	{
+	$accountstudentmapid = $form_state['clicked_button']['#post']['access']['studentmapid'];
+		}
+	if ( isset( $form_state['clicked_button']['#post']['access']['hidTotAmount'] ) ) 
+	{
+	$totalamount = $form_state['clicked_button']['#post']['access']['hidTotAmount'];
+	}
+	if ( isset( $form_state['clicked_button']['#post']['access']['feedetailid'] ) ) 
+	{
+	$feedetail = $form_state['clicked_button']['#post']['access']['feedetailid'];
+	}
+
+	if ( isset( $form_state['clicked_button']['#post']['access']['account'] ) ) 
+	{
+	$myArray = $form_state['clicked_button']['#post']['access']['account'];
+	// drupal_set_message(t("$myArray"));	
+	}
+	
+	foreach ($myArray as $key => $value) {
+       drupal_set_message(t("Key Value Pair : $key  -- $value"));
+ 	$feeid = $feedetail[$key] ;
+
+	 $sid = $accountstudentmapid[$key] ;
+	 $newAmount = $totalamount[$key] ;
+	 $accountId = 5;
+	 drupal_set_message(t("SID =$sid"));
+	 drupal_set_message(t("Amount:$newAmount"));
+
+	 if($newAmount > 0)
+	 {
+		db_set_active('qtxt_db');	
+		$result1 = db_query(" ");
+		
+	 $ret = sp_query("call  QPN_SP_CREATE_RECEIPT_ex(%d, %d, %f, %d, %f, %f );", $accountId, $sid, $newAmount, $feeid, $newAmount, $newAmount );
+					$rowval = $ret->fetch_row();
+					drupal_set_message( $rowval[0] );
+					}
+	
+	}
+//	drupal_set_message(t("Submit Clicked Form Submit"));	  
+	$_SESSION['user_total_count'] =  $TotalCount;
+	$_SESSION['selectOptions'] =  $myArray;
+
+  
+  $form_state['redirect'] =   'qpn_payforit/next';
+  return;
+  }
+}
+
+
+// --------------------
+
+function qpn_parent_payforit_paid_form($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+  $header = array(
+    array(),
+    array('data' => t('Activity Name'), 'field' => 'b.student_name'),
+    array('data' => t('Registration date '), 'field' => 'b.fee_detail_id'),
+    array('data' => t('Due Date'), 'field' => 'b.fee_type'),
+    array('data' => t('Mandatory Fee'), 'field' => 'b.fee_description'),
+	array('data' => t('Fee type'), 'field' => 'b.total_paid_amount'),
+	
+  );
+$c1Val = &$_SESSION['t_grade'] ;
+if ($c1Val != '')
+{
+$filterSection = " and b.account_student_map_id = '$c1Val' ";
+}
+else
+{
+// $filterSection = " and b.account_student_map_id = 1264 ";
+ $filterSection = " and b.account_student_map_id = b.account_student_map_id ";
+
+}
+$c2Val = &$_SESSION['t_student'] ;
+// $feefilter = " and b.activity_id = '$c2Val' ";
+
+if ($c2Val != '')
+{
+$feefilter  = " and b.activity_id = '$c2Val' ";
+
+}
+else
+{
+$feefilter  = " and b.activity_id = b.activity_id ";
+}
+
+
+// drupal_set_message(t("After Submit, $c1Val "));	 
+
+    db_set_active('qtxt_db');	
+//---
+db_set_active('qtxt_db');	
+
+
+	$druId = db_query("select account_student_map_id,student_name FROM `qtxt_sms_mobile_students_v` where drupal_uid = $uid ");
+	
+	while ( $row = db_fetch_object( $druId ) ) {
+		 $ndruId = $row->account_student_map_id;
+		
+	}
+		
+	$feeQuotaId = db_query("select account_student_map_id,student_name,student_fees_fixed FROM `qtxt_sms_account_student_map` where account_student_map_id = '$ndruId' ");
+
+ 	while ( $row = db_fetch_object( $feeQuotaId ) ) {
+		 $nquotaId = $row->student_fees_fixed;
+		
+	}
+if ($nquotaId != '')
+{
+$quotaId  = " and b.fee_quota = '$nquotaId' ";
+
+}
+else
+{
+$quotaId  = " and b.fee_quota = b.fee_quota ";
+}
+
+	
+//----
+	
+		
+    db_set_active('qtxt_db');	
+    $sql = "select b.account_student_map_id, b.student_name, b.student_identifier, b.standard, b.section, b.fee_detail_id,
+ b.fee_type,b.fee_description,actual_payment_amount,activity_name,b.fee_quota   from {qpn_payment_v} b 	where 1 = 1   " . $filterSection . $feefilter  ; 
+    $query_count = "select count(fee_detail_id) from {qpn_payment_v} b  where 1 = 1  " . $filterSection . $feefilter  ; 
+	     
+	 $sql .= tablesort_sql($header);
+
+   $result = pager_query($sql, 1000, 0, $query_count);
+
+  
+
+    $form['access'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Access log settings'),
+    '#tree' => TRUE,
+	'#visible' => false,
+  );  
+
+  $account = array();
+
+$i = 1;  
+  while ($account = db_fetch_object($result)) {
+	$form['access']['account'][$i] = array(
+		'#type' => 'checkbox',
+		'#return_value' => $account->fee_detail_id,
+		'#default_value' => 0,
+		'#tree' => TRUE,
+		'#disabled' => True,
+
+	  );
+	
+	  
+	$form['access']['sname'][$account->fee_detail_id] =  array('#value' => $account->student_name);
+	$form['access']['aname'][$account->fee_detail_id] =  array('#value' => $account->activity_name);
+       $form['access']['feetype'][$account->fee_detail_id] =  array('#value' => $account->fee_type);
+       $form['access']['feedesc'][$account->fee_detail_id] =  array('#value' => $account->fee_description);
+	 $form['access']['total_paid_amount'][$account->fee_detail_id] =  array('#value' => $account->actual_payment_amount);
+	$form['access']['account_student_map_id'][$account->fee_detail_id] =  array('#type' => 'hidden','#value' => $account->account_student_map_id);
+     $form['access']['feedetailid'][$account->fee_detail_id] =  array('#type' => 'hidden','#value' => $account->fee_detail_id);
+	
+	$i = $i + 1;
+  }
+db_set_active('default');
+
+ // $form['pager'] = array('#value' => theme('pager', NULL, 1000, 0));
+  $form['#theme'] = 'qpn_parent_payforit_paid_form_theme';   
+  $form['totalcount'] = array(
+	'#type' => 'hidden', '#default_value' => ($i  -1 )
+  );  
+  return $form;
+}
+
+
+
+
+function theme_qpn_parent_payforit_paid_form_theme($form)
+{
+
+
+$rows = array();
+$i = 1;
+foreach(element_children($form['access']['feedetailid']) as $key) {
+	$row = array(); 
+   //  $row[] =  drupal_render($form['access']['account'][$i]);
+	$row[] =  drupal_render($form['access']['sname'][$key]);
+	$row[] =  drupal_render($form['access']['aname'][$key]);
+	$row[] =  drupal_render($form['access']['feetype'][$key]);
+    $row[] =  drupal_render($form['access']['feedesc'][$key]);
+    $row[] =  drupal_render($form['access']['total_paid_amount'][$key]);
+ //   $row[] =  drupal_render($form['access']['account_student_map_id'][$key]);
+    
+	
+       $rows[] = $row; 
+	$i = $i +1 ;
+}
+
+if(count($rows)){
+            $header123 = array(t('FEES PAID BY STUDENT'), t('')); 
+			$header = array(
+				t('Student Name'),t('Fee Name'), t('Fee type'),t('Fee Description'),t('Amount Paid by Student'));
+					
+  }
+  else{
+    $header = array(t('FEES PAID BY STUDENT'), t('')); 
+    $row = array();
+    $row[] = array
+    (
+      'data' => t('Fees has not paid till yet'),
+      'colspan' => 2,
+      'style' => 'text-align:center'
+    );
+    $rows[] = $row;
+  }
+$output = theme('table', $header, $rows); 
+//return $output . drupal_render($form); 
+ $form['access']['#access'] = false;
+ return $output . drupal_render($form); 
+ return $output ;
+}
+
+function qpn_ahah_field_js_for_ind2 () {
+
+//  krumo($form_state);
+
+$form_state = array('storage' => NULL, 'submitted' => FALSE);
+
+		$form_build_id = $_POST['form_build_id'];
+
+
+
+		// Get for the form from the cache
+
+		$form = form_get_cache($form_build_id, $form_state);
+
+  
+
+		// Get the form set up to process
+
+		$args = $form['#parameters'];
+
+		$form_id = array_shift($args);
+
+		$form_state['post'] = $form['#post'] = $_POST;
+
+//		$form['#programmed'] = $form['#redirect'] = FALSE;
+		$gid = $form['#post']['adminOuter']['class'];
+
+		db_set_active('qtxt_db');
+
+//		$sqlg = " select activity_id,activity_name from {qpn_pending_amount_by_student_v} where account_student_map_id = '$gid' ";
+// $sqlg = " select a.activity_id,a.activity_name,b.student_fees_fixed from {qpn_pending_amount_by_student_v} a,{qtxt_sms_account_student_map} b where b.student_fees_fixed = a.fee_quota and a.account_student_map_id = b.account_student_map_id and a.account_student_map_id = '$gid' ";
+
+$sqlg = " select a.activity_id,a.activity_name,b.student_fees_fixed from {qpn_pending_amount_by_student_v} a,
+{qtxt_sms_account_student_map} b where b.student_fees_fixed = a.fee_quota and a.account_grade_id = b.account_grade_id 
+and a.account_student_map_id = '$gid' or a.fee_quota = 'General' ";
+
+// $sqlg = " select a.activity_id,a.activity_name,b.student_fees_fixed from {qpn_pending_amount_by_student_v} a,{qtxt_sms_account_student_map} b where b.student_fees_fixed = a.fee_quota and a.account_grade_id = b.account_grade_id and a.account_student_map_id = '$gid' ";
+
+
+		$resultg = db_query($sqlg);
+
+		$valueg[''] = 'Select a value';
+
+		while($datag = db_fetch_object($resultg))
+
+		{
+
+		$valueg[$datag->activity_id] = $datag->activity_name;
+
+		}
+
+		db_set_active('default');
+
+		//$valueg1 = drupal_map_assoc($valueg);
+
+		$form['adminOuter']['student']['#options'] = $valueg;
+
+		form_set_cache($form_build_id, $form, $form_state);
+
+				$form += array(
+
+					'#post' => $_POST,
+
+					'#programmed' => FALSE,
+
+				  );
+
+				$form = form_builder('qtext1_smsform', $form, $form_state);		
+
+				$output = $form['adminOuter']['student'];
+
+				unset($output['#prefix'],$output['#suffix']);
+
+				$out1 =  drupal_render($output);
+
+				drupal_json(array('status' => TRUE, 'data' => $out1));
+
+
+
+
+
+}
+
+
+// ------------- filter form 
+  
+
+function qpn_parent_filter1_form($form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+   $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+						'#title' => t('Fees Details'),
+						'#collapsible' => TRUE, 
+						'#collapsed' => FALSE,
+						'#tree' => TRUE
+
+	  );
+db_set_active('qtxt_db');	
+ $result = db_query("select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where drupal_uid = $uid ");
+
+// $result = db_query("select account_student_map_id,student_name from {qtxt_sms_mobile_students_v} where a.drupal_uid = $uid ");
+// $result = db_query("select distinct(account_student_map_id),student_name from {qpn_pending_amount_by_student_v} where account_student_map_id = 1264");
+$options = array('' => t('Select..'));
+while ($row = db_fetch_object($result)) {
+  $options[$row->account_student_map_id ] =  $row->student_name; 
+  // This is the only line that changed from the code above.
+}
+db_set_active('default');
+$form['adminOuter']['class'] = array(
+			'#type' => 'select',
+			'#description' => t('Please select the Student Name'),
+			'#options'=> $options,
+			'#title' => t('Student Name'),
+			'#required'=> true,
+			'#disabled' => FALSE,
+			'#ahah' => array(
+
+				  				  		 'path' => 'qpn_main/ind/ahahjs2',
+
+				  				  		 'wrapper' => 'ahah-wrapper-fee',
+
+				  				  		 'method' => 'replace',
+
+				  				  						)
+					
+		);
+		
+		  $form['adminOuter']['student'] = array('#type' => 'select',
+
+				  				  		'#title' => t('Fee Name'),
+
+										'#options' =>  array( '' => t('Select ..') ),
+
+				  				  	// 	'#description' => t('Please select the Student'),
+
+				  				  		'#disabled' => FALSE,
+
+				  				  	'#prefix' => '<div id = "ahah-wrapper-fee">',
+
+				  					'#suffix' => '</div>',
+ 				  		
+
+				  );
+  
+ $form['adminOuter']['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+  );
+return $form;
+
+}
+function qpn_parent_filter1_form_submit($form, &$form_state) {
+global $user;
+$profile =  profile_load_profile($user);
+$myMobileNumber =  $user->profile_mobile; 
+$uid = $user->uid;
+$val2 = $form_state['values']['adminOuter']['class'];
+drupal_set_message(t("student_name_1, $val2 "));	 
+ 
+ $_SESSION['t_grade'] = $form_state['values']['adminOuter']['class'];
+
+	if(!empty($_SESSION['t_grade'])) {
+		$grade = &$_SESSION['t_grade'];
+		drupal_set_message(t("student_name, $grade "));	 
+
+	} else {
+
+		$grade = "";
+} 
+
+$_SESSION['t_student'] = $form_state['values']['adminOuter']['student'];
+
+	if(!empty($_SESSION['t_student'])) {
+		$student = &$_SESSION['t_student'];
+		drupal_set_message(t("student_name, $student "));	 
+
+	} else {
+
+		$student = "";
+} 
+
+  $form_state['redirect'] = 'qpn_payforit_paid';
+  return;
+  
+}
+
+
+

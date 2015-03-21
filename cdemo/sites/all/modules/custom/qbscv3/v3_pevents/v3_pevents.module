@@ -1,0 +1,124 @@
+<?php
+
+function v3_pevents_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'v3_pevents'),
+  );
+}
+
+
+function v3_pevents_menu() {
+	$items['pareventpage'] = array(
+			'title' => t('Events'),
+			'page callback' => 'v3_pevents_first_page_cb',
+			'type' => MENU_CALLBACK,
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+	);
+
+
+
+	return $items ;
+}
+
+function v3_pevents_first_page_cb() {
+			$output = drupal_get_form('v3_pevents_first_page');
+			return $output ;
+}
+
+
+
+
+
+
+
+function v3_pevents_first_page( $form_state) {
+
+				// get the mobile number of the logged in user
+				//  First get the user profile
+				//  From the User Profile get the Mobile Number
+
+				global $user;
+				$profile =  profile_load_profile($user);
+				$myMobileNumber =  $user->profile_mobile;  
+
+
+				$defusermobile = $myMobileNumber;
+				$defadminuserid = "";
+				$defadminpwd = "";
+
+					// Define the Form
+
+	  $form['adminOuter'] = array(
+
+						'#type' => 'fieldset',
+
+						'#title' => t('Filter'),
+
+						'#collapsible' => FALSE, 
+
+						'#collapsed' => FALSE,
+
+						'#tree' => TRUE
+
+	  );
+
+$clVal = &$_SESSION['event_category'] ;
+
+				
+				 $form['adminOuter']['eventcategory'] = array (
+					  '#type' => 'select', 
+					  '#title' => t('Event Categories'), 
+                                     '#default_value' =>$clVal, 
+					  '#options' => array (
+                                            ' ' => t('Select..'),
+                                            '0' => t('General Events'),
+                                            '1' => t('Culturals'),
+                                            '2' => t('Special Events')),
+					);
+
+					
+					
+
+			    $form['adminOuter']['next_submit'] = array(
+				   '#type' => 'submit',
+				   '#value' => t('Apply'),
+                                   '#prefix' => '<br/>',
+			    );
+$form['adminOuter']['next_submit']['#attributes']['class']  = $form['adminOuter']['next_submit']['#attributes']['class'] . ' qbsubmit';
+
+			    return $form;
+}
+
+
+
+function v3_pevents_first_page_submit($form, &$form_state) {
+		
+		$_SESSION['event_category'] = $form_state['values']['adminOuter']['eventcategory'];
+		
+		
+		$category = $form_state['values']['adminOuter']['eventcategory'];
+$clVal = &$_SESSION['event_category'] ;
+		
+		switch ($category) {
+                case " ":
+			$form_state['redirect'] = 'pareventpage';
+			break;
+		case "0":
+			$form_state['redirect'] = 'pareventpage';
+			break;
+		case "1":
+			$form_state['redirect'] = 'pculeve';
+                       	break;
+		case "2":
+			$form_state['redirect'] = 'pspevent';
+			break;
+		case "3":
+			$form_state['redirect'] = 'pexamsche';
+			break;
+		}
+
+  return;
+
+}

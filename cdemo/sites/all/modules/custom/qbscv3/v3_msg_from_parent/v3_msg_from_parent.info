@@ -1,0 +1,5 @@
+name = Msg From Parent[qbscv3]
+description = "Allow ver3_msg_from_parent views to be displayed"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

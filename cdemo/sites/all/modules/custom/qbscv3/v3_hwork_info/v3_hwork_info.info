@@ -1,0 +1,5 @@
+name = Homework & Assignment Info[qbscv3]
+description = "To View Home Work Messages"
+package = School Connect Version 3.0
+core = 6.x
+version = 3.0

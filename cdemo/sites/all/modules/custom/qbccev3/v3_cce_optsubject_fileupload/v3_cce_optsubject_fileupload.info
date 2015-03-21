@@ -1,0 +1,5 @@
+; $Id$
+name = V3 CCE Optional Subjects File Upload
+description = Optional Subjects File Upload for CCE
+core = 6.x
+package = CCE
