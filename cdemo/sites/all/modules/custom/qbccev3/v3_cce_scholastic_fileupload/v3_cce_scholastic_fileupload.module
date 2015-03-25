@@ -437,6 +437,7 @@ db_set_active('qtxt_db');
                   $accountGradeId3[] =  $rowg2->assessment_name; 
 				  	}
 	db_set_active('default');
+	drupal_set_message(t("Assessment id: $assessname"));
 if (  count( $accountGradeId3 ) > 0 ) {
 			$accountArray3 = join( " ", $accountGradeId3 );
 		}
@@ -449,6 +450,7 @@ db_set_active('qtxt_db');
 				  while ($rowg2 = db_fetch_object($resultg2)) {
                   $accountGradeId3[] =  $rowg2->assessment_category_type; 
 				  	}
+				  	drupal_set_message("asseementcatdet:$assesscatdetlist");
 	db_set_active('default');
 if (  count( $accountGradeId3 ) > 0 ) {
 			$accountArray3 = join( " ", $accountGradeId3 );
@@ -465,6 +467,7 @@ db_set_active('qtxt_db');
 				  while ($rowg2 = db_fetch_object($resultg2)) {
                   $accountGradeId3[] =  $rowg2->descriptor_name; 
 				  	}
+				  	drupal_set_message("asseementcatdes:$assesscatdescriptors");
 	db_set_active('default');
 if (  count( $accountGradeId3 ) > 0 ) {
 			$accountArray3 = join( " ", $accountGradeId3 );
