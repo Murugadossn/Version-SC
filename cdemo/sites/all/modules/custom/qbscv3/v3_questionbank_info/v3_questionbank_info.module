@@ -177,7 +177,7 @@ $names[$key] = 'Name';
       '#type' => 'select',
 
       '#options' => $options,
- '#title' => t('Department'),
+'#title' => t('Class'),
 
     );
 
