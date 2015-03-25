@@ -1377,7 +1377,8 @@ if ( $levelname == "STUDENT" ){
 						  
 	$form['v3AdminOuter']['adminVar']['keywordType'] = array(
      '#type' => 'select',
-     '#options' => array( '' => t('Select ..'), 'MSG' => t('Enter the Broadcast Message') , 'TEMPLATE' => t('Select one of the Templates')  ),
+       '#options' => array( '' => t('Select ..'), 'MSG' =>t('Enter the Broadcast Message for info'),'MSG1' => t('Enter the Broadcast Message for HW') ,'MSG2'=>t('Enter the Broadcast Message for Meeting'),'MSG3' => t('Enter the Broadcast Message for Remainder') ,'TEMPLATE' => t('Select one of the Templates')  ),
+     '#title' => t('SMS Message Type'),
      '#title' => t('SMS Message Type'),
      '#description' => t('Please Select The Message Type'),
      '#disabled' => FALSE,
@@ -2086,7 +2087,28 @@ function v3_qtext_ahah_field_js_for_sbc1 () {
 			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
 			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
 			
-		} elseif ( $keyWordType == "TEMPLATE" ){
+		} 
+		} elseif ( $keyWordType == "MSG1" ){
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "HOME WORK:";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+		} 
+		elseif ( $keyWordType == "MSG2" ){
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "MEETING:";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+		}  
+		elseif ( $keyWordType == "MSG3" ){
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   FALSE;	
+			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "REMAINDER:";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#default_value'] 	=   "";	
+			$form['v3AdminOuter']['adminVar']['adminMsgOuter']['adminTemplate']['#disabled'] 	=   TRUE;	
+		}  elseif ( $keyWordType == "TEMPLATE" ){
 			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
 			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#disabled'] 	=   TRUE;	
 //			$form['v3AdminOuter']['adminVar'] ['adminMsgOuter']['adminMsg']['#default_value'] 	=   "";	
