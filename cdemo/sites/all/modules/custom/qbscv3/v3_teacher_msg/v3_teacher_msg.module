@@ -408,7 +408,7 @@ $uid = $user->uid;
   $header = array(
     array(),
     array('data' => t('Teacher Name'), 'field' => 'b.teacher_name'),
-    array('data' => t('Student Name'), 'field' => 'b.student_name'),
+    //array('data' => t('Student Name'), 'field' => 'b.student_name'),
     array('data' => t('Message'), 'field' => 'b.message'),
     array('data' => t('File Name'), 'field' => 'b.file_name'),
    array('data' => t('Created On'), 'field' => 'b.str_msg_creation_date'),
@@ -448,7 +448,7 @@ if  ( ( ! isset($clVal) )|| ( $clVal == "" ) ) {
 			$accountArray = "";
 			db_set_active('qtxt_db');	
 
-		$result = db_query("select type_id from {qtxt_sms_teacher_message_type} where type_id < 3");
+		$result = db_query("select type_id from {qtxt_sms_teacher_message_type} where type_id = 3");
 
 		$typeId = array();
 
@@ -480,9 +480,9 @@ if  ( ( ! isset($clVal) )|| ( $clVal == "" ) ) {
 
 
 	 
-	 $sql .= tablesort_sql($header);
+	 $sql = tablesort_sql($header);
 
-   $result = pager_query($sql, 1000, 0, $query_count);
+   $result = db_query($sql, 1000, 0, $query_count);
 
   $form['options'] = array(
     '#type' => 'fieldset',
@@ -682,10 +682,10 @@ $filterClass = " and b.account_student_map_id in $keyvalues ";
      $query_count = "select count(teacher_message_id) from {qtxt_sms_teacher_messages_v2} b 
 	 where b.process_flag = 1  "  . $filterClass . $filterSection . " ORDER BY teacher_message_id DESC " ; 
 	    
-  $sql .= tablesort_sql($header);
+  tablesort_sql($header);
 
   
-  $result = pager_query($sql, 1000, 0, $query_count);
+  $result = db_query($sql, 1000, 0, $query_count);
   while ($account = db_fetch_object($result)) {
 //	drupal_set_message(t("RESULT FETCH -- $account->teacher_message_id "));	
 	
