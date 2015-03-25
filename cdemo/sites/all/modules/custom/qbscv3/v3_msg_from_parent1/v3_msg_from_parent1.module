@@ -254,11 +254,11 @@ $query_count = "select count(parent_message_id) from {qtxt_sms_parent_messages_v
 
 
 
-$sql .= tablesort_sql($header);
+$sql = tablesort_sql($header);
 
 
 
-   $result = pager_query($sql, 5, 0, $query_count);
+   $result = db_query($sql, 5, 0, $query_count);
 
 
 
