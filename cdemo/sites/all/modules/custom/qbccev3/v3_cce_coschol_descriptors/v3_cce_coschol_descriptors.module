@@ -474,7 +474,6 @@ $userdefinedcategoryorder = $form_state['values']['userdefinedcategoryorder'];
 			} else {
 				$total_max_marks = $result1->max_marks;
 			}
-			db_set_active('qtxt_db');
 			global $user;
    $uid=$user->uid; 
                  $sql = "select account_id from {cce_account_admin} where drupal_uid=$uid "   ; 
