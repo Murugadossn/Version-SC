@@ -286,8 +286,7 @@ $defadminpwd = "";
 
 
 
-				  				  		'#title' => t('Class - Section'),
-
+				  				  	'#title' => t('Department - Year'),
 
 
 				  				  		'#description' => t('Please select the Class and Section '),
