@@ -504,21 +504,7 @@ $sdate = $form_state['values']['doa'];
 
 			$termName = str_replace("'", "''", $termName);
 			$termDesc = str_replace("'", "''", $termDesc);
-			db_set_active('qtxt_db');
-			global $user;
-			$uid=$user->uid;	
-	                $sql = "select account_id from {cce_account_admin} where drupal_uid=$uid "   ; 
-
-			$resultg2 = db_query($sql);	  
-			while ($rowg2 = db_fetch_object($resultg2)) {
-				  	$cceArray =  $rowg2->account_id ; 
-			}
-			db_set_active('default');
-			$cceaccountid=$cceArray;
-			//drupal_set_message("accountid:$cceaccountid");
 			
-			db_set_active('qtxt_db');	
-		
 			$result = db_query( "INSERT INTO `cce_term`  (`term_id`, `year_id`, `term_name`,  `term_description`,  `creation_date`,  `update_date`,  `created_by`,  `updated_by`, number_of_working_days,term_start_date,term_end_date ) 
 VALUES  (  null, 1,upper('$termName'),  '$termDesc',  sysdate(),  sysdate(),  'admin',  'admin', $noofworkingdays,'$sdate','$edate' )");
 			db_set_active('default');
