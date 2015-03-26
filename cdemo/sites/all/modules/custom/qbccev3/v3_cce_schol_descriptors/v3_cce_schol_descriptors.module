@@ -829,7 +829,6 @@ if($op == "Cancel")
 				foreach ( $final_array as $k => $v) 
 				global $user;
    $uid=$user->uid; 
-   db_set_active('qtxt_db');
                  $sql = "select account_id from {cce_account_admin} where drupal_uid=$uid "   ; 
 
    $resultg2 = db_query($sql);   
