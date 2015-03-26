@@ -28,7 +28,7 @@
 
 <br><br>
 <center>
-<h3>Demo File Upload</h3>
+<h3>College File Upload</h3>
 </center>
 <br><br>
 <table>
