@@ -437,12 +437,12 @@ db_set_active('qtxt_db');
                   $accountGradeId3[] =  $rowg2->assessment_name; 
 				  	}
 	db_set_active('default');
-	drupal_set_message(t("Assessment id: $assessname"));
+
 if (  count( $accountGradeId3 ) > 0 ) {
 			$accountArray3 = join( " ", $accountGradeId3 );
 		}
 $assessTempname = " $accountArray3 ";
-drupal_set_message(t("Assessment Name: $assessTempname"));
+
 db_set_active('qtxt_db');	
 	  $resultg2 = db_query("select  assessment_category_type, assessment_category_detail_id from cce_assesment_category_details_v b  
 	  where assessment_category_detail_id  = $assesscatdetlist  order by assessment_category_type");
@@ -456,7 +456,7 @@ if (  count( $accountGradeId3 ) > 0 ) {
 			$accountArray3 = join( " ", $accountGradeId3 );
 		}
 $categorytype = " $accountArray3 ";
-drupal_set_message(t("Category Type: $categorytype"));
+
 
 
 
