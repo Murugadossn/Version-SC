@@ -448,7 +448,7 @@ if  ( ( ! isset($clVal) )|| ( $clVal == "" ) ) {
 			$accountArray = "";
 			db_set_active('qtxt_db');	
 
-		$result = db_query("select type_id from {qtxt_sms_teacher_message_type} where type_id = 3");
+		$result = db_query("select type_id from {qtxt_sms_teacher_message_type} where type_id < 3");
 
 		$typeId = array();
 
@@ -480,9 +480,9 @@ if  ( ( ! isset($clVal) )|| ( $clVal == "" ) ) {
 
 
 	 
-	 $sql = tablesort_sql($header);
+	 $sql . = tablesort_sql($header);
 
-   $result = db_query($sql, 1000, 0, $query_count);
+   $result = pager_query($sql, 1000, 0, $query_count);
 
   $form['options'] = array(
     '#type' => 'fieldset',
